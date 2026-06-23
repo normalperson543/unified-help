@@ -1,3 +1,5 @@
+'use client'
+
 import { Avatar, Chip, Button } from "@heroui/react";
 import {
   CheckIcon,

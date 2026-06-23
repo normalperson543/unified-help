@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Ticket {
+  id          String    @id @unique @default(uuid())
+  messageId   String
+  program     Program   @relation(fields: [programId], references: [id])
+  message     String
+  dateCreated DateTime
+  dateIndexed DateTime  @default(now())
+  slackUser   SlackUser @relation(fields: [slackUserId], references: [id])
+
+  programId   String
+  slackUserId String
+  replies     Reply[]
+}
+
+model Program {
+  id        String   @id @unique @default(uuid())
+  name      String
+  channelId String
+  tickets   Ticket[]
+}
+
+model SlackUser {
+  id       String   @id @unique
+  username String
+  tickets  Ticket[]
+  replies  Reply[]
+}
+
+model Reply {
+  id          String    @id @unique @default(uuid())
+  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  message     String
+  slackUser   SlackUser @relation(fields: [slackUserId], references: [id])
+  slackUserId String
+  dateCreated DateTime
+  dateIndexed DateTime  @default(now())
+  ticketId    String
+}
