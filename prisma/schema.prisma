@@ -38,6 +38,7 @@ model SlackUser {
   username String
   tickets  Ticket[]
   replies  Reply[]
+
 }
 
 model Reply {

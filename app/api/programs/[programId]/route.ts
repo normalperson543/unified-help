@@ -3,18 +3,18 @@ import { type NextRequest } from "next/server";
 
 export async function GET(
   _req: NextRequest,
-  ctx: RouteContext<"/api/ticket/[ticketId]">,
+  ctx: RouteContext<"/api/programs/[programId]">,
 ) {
-  const { ticketId } = await ctx.params;
-  const ticket = await prisma.ticket.findUnique({
+  const { programId } = await ctx.params;
+  const ticket = await prisma.ticket.findMany({
     where: {
-      id: ticketId,
+      programId: programId,
     },
     include: {
       replies: {
         include: {
-          slackUser: true
-        }
+          slackUser: true,
+        },
       },
       slackUser: true,
     },
