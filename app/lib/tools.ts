@@ -1,3 +1,5 @@
+import { getSlackUser } from "./data";
+
 /* since this is a menial task, this was vibecoded */
 export function stringToColor(str: string) {
   let hash = 0;
@@ -19,4 +21,10 @@ export function getShortTitle(str: string) {
     if (index < cutoff) cutoff = index;
   });
   return str.substring(0, cutoff);
+}
+
+export async function getResolver(str: string) {
+  const firstPart = str.substring(str.indexOf("<@") + 2);
+  const userId = firstPart.substring(0, firstPart.indexOf(">"));
+  return await getSlackUser(userId)
 }

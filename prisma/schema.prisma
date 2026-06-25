@@ -27,10 +27,11 @@ model Ticket {
 }
 
 model Program {
-  id        String   @id @unique @default(uuid())
-  name      String
-  channelId String
-  tickets   Ticket[]
+  id            String      @id @unique @default(uuid())
+  name          String
+  channelId     String
+  tickets       Ticket[]
+  assignedUsers SlackUser[]
 }
 
 model SlackUser {
@@ -38,7 +39,9 @@ model SlackUser {
   username String
   tickets  Ticket[]
   replies  Reply[]
+  isBot    Boolean  @default(false)
 
+  programs Program[]
 }
 
 model Reply {

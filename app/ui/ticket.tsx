@@ -2,7 +2,12 @@
 
 import { fetcher } from "@/app/lib/swr";
 import { Avatar, Chip, Button, Card } from "@heroui/react";
-import { CircleDashedIcon, SquareArrowOutUpRightIcon } from "lucide-react";
+import {
+  CheckIcon,
+  CircleAlertIcon,
+  CircleDashedIcon,
+  SquareArrowOutUpRightIcon,
+} from "lucide-react";
 import useSWR from "swr";
 import { TicketWithReplies } from "../lib/types";
 import Post from "./post";
@@ -38,16 +43,17 @@ export default function TicketUI({
             >
               <Card className="flex flex-row gap-2 items-center">
                 <Avatar size="sm">
-                  <Avatar.Image
-                    src={`https://cachet.dunkirk.sh/users/${ticket.slackUserId}/r`}
-                    alt="Profile picture"
-                  />
+                  <Avatar.Image alt="Profile picture" />
                   <Avatar.Fallback>
                     {ticket.slackUser.username.substring(0, 1)}
                   </Avatar.Fallback>
                 </Avatar>
-                <div className="flex flex-col gap-2 font-bold">
+                <div className="flex flex-col gap-1">
                   {getShortTitle(ticket.message)}
+                  <div className="text-muted">
+                    {ticket.slackUser.username} - Opened{" "}
+                    {new Date(ticket.dateCreated).toLocaleDateString()}
+                  </div>
                 </div>
               </Card>
             </Link>
@@ -58,10 +64,7 @@ export default function TicketUI({
           <>
             <div className="flex gap-4">
               <Avatar>
-                <Avatar.Image
-                  src={`https://cachet.dunkirk.sh/users/${ticket.slackUserId}/r`}
-                  alt="Profile picture"
-                />
+                <Avatar.Image alt="Profile picture" />
                 <Avatar.Fallback>
                   {ticket.slackUser.username.substring(0, 1)}
                 </Avatar.Fallback>
@@ -86,17 +89,87 @@ export default function TicketUI({
               username={ticket.slackUser.username}
               message={ticket.message}
               slackId={ticket.slackUserId}
+              dateCreated={ticket.dateCreated}
               op
             />
-            {ticket.replies.map((r) => (
-              <Post
-                username={r.slackUser.username}
-                message={r.message}
-                slackId={r.slackUserId}
-                key={r.id}
-                op={ticket.slackUserId === r.slackUserId}
-              />
-            ))}
+            {ticket.replies.map((r) => {
+              if (r.slackUser.isBot) {
+                if (r.message.includes("marked as resolved")) {
+                  const resolver = r.resolver;
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 rounded-md"
+                    >
+                      <CheckIcon />
+                      Marked as <b>resolved</b> on{" "}
+                      {new Date(r.dateCreated).toLocaleString()} by{" "}
+                      {resolver ? (
+                        <b>{resolver.username}</b>
+                      ) : (
+                        "a non-indexed user"
+                      )}
+                      {resolver && resolver.id === ticket.slackUserId && (
+                        <Chip variant="primary" color="accent">
+                          OP
+                        </Chip>
+                      )}
+                      {resolver &&
+                        resolver.programs.some((p) => p.id === programId) && (
+                          <Chip variant="primary" color="success">
+                            Helper
+                          </Chip>
+                        )}
+                    </div>
+                  );
+                }
+                if (r.message.includes("reopened")) {
+                  const reopener = r.reopener;
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-row gap-2 items-center p-4 bg-orange-50 border border-orange-200 rounded-md"
+                    >
+                      <CircleAlertIcon />
+                      <b>Reopened</b> on{" "}
+                      {new Date(r.dateCreated).toLocaleDateString()} by{" "}
+                      {reopener ? (
+                        <b>{reopener.username}</b>
+                      ) : (
+                        "a non-indexed user"
+                      )}
+                      {reopener && reopener.id === ticket.slackUserId && (
+                        <Chip variant="primary" color="accent">
+                          OP
+                        </Chip>
+                      )}
+                      {reopener &&
+                        reopener.programs.some((p) => p.id === programId) && (
+                          <Chip variant="primary" color="success">
+                            Helper
+                          </Chip>
+                        )}
+                    </div>
+                  );
+                }
+                if (r.message.includes("someone")) {
+                  return;
+                }
+              }
+              return (
+                <Post
+                  username={r.slackUser.username}
+                  message={r.message}
+                  slackId={r.slackUserId}
+                  key={r.id}
+                  op={ticket.slackUserId === r.slackUserId}
+                  isHelper={r.slackUser.programs.some(
+                    (p) => p.id === programId,
+                  )}
+                  dateCreated={r.dateCreated}
+                />
+              );
+            })}
           </>
         )}
       </div>
