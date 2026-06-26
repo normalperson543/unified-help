@@ -1,7 +1,7 @@
 "use client";
 
 import { fetcher } from "@/app/lib/swr";
-import { Avatar, Chip, Button, Card } from "@heroui/react";
+import { Avatar, Chip, Button, Card, Tooltip } from "@heroui/react";
 import {
   CheckIcon,
   CircleAlertIcon,
@@ -36,7 +36,10 @@ export default function TicketUI({
           <div className="flex justify-between">
             <div className="flex gap-4 flex-1">
               <Avatar>
-                <Avatar.Image alt="Profile picture" />
+                <Avatar.Image
+                  src={`https://cachet.dunkirk.sh/users/${ticket.slackUser.id}/r`}
+                  alt="Profile picture"
+                />
                 <Avatar.Fallback>
                   {ticket.slackUser.username.substring(0, 1)}
                 </Avatar.Fallback>
@@ -53,36 +56,21 @@ export default function TicketUI({
                     </Chip>
                   )}
                   {ticket.status === 1 && (
-                    <>
-                      <Chip color="accent" variant="primary">
-                        <CircleIcon width={16} /> Assigned
-                      </Chip>
-                      <div className="flex flex-col gap-6">
-                        <div className="flex -space-x-2">
-                          {ticket.assignees.map((user) => (
-                            <Avatar size="sm" key={user.id}>
-                              <Avatar.Image
-                                src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
-                                alt="Profile picture"
-                              />
-                              <Avatar.Fallback>
-                                {user.username.substring(0, 1)}
-                              </Avatar.Fallback>
-                            </Avatar>
-                          ))}
-                        </div>
-                      </div>
-                    </>
+                    <Chip color="accent" variant="primary">
+                      <CircleIcon width={16} /> Assigned
+                    </Chip>
                   )}
                   {ticket.status === 2 && (
-                    <>
-                      <Chip color="success" variant="primary">
-                        <CheckIcon width={16} /> Resolved
-                      </Chip>
-                      <div className="flex flex-col gap-6">
-                        <div className="flex -space-x-2">
-                          {ticket.assignees.map((user) => (
-                            <Avatar size="sm" key={user.id}>
+                    <Chip color="success" variant="primary">
+                      <CheckIcon width={16} /> Resolved
+                    </Chip>
+                  )}
+                  <div className="flex flex-col gap-6">
+                    <div className="flex -space-x-2">
+                      {ticket.assignees.map((user) => (
+                        <Tooltip delay={0} key={user.id}>
+                          <Tooltip.Trigger>
+                            <Avatar size="sm">
                               <Avatar.Image
                                 src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
                                 alt="Profile picture"
@@ -91,13 +79,16 @@ export default function TicketUI({
                                 {user.username.substring(0, 1)}
                               </Avatar.Fallback>
                             </Avatar>
-                          ))}
-                          {ticket.assignees.length === 0 && (
-                            <p className="text-muted">No assignees - </p>
-                          )}
-                        </div>
-                      </div>
-                    </>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p>{user.username}</p>
+                          </Tooltip.Content>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                  {ticket.assignees.length === 0 && (
+                    <p className="text-muted">No assignees</p>
                   )}
                 </div>
               </div>
@@ -120,7 +111,7 @@ export default function TicketUI({
                 return (
                   <div
                     key={r.id}
-                    className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 rounded-md"
+                    className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-700 rounded-md"
                   >
                     <CheckIcon />
                     Marked as <b>resolved</b> on{" "}
@@ -149,7 +140,7 @@ export default function TicketUI({
                 return (
                   <div
                     key={r.id}
-                    className="flex flex-row gap-2 items-center p-4 bg-orange-50 border border-orange-200 rounded-md"
+                    className="flex flex-row gap-2 items-center p-4 bg-orange-50 border border-orange-200 dark:bg-orange-950 dark:border-orange-700 rounded-md"
                   >
                     <CircleAlertIcon />
                     <b>Reopened</b> on{" "}

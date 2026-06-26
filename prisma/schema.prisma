@@ -22,7 +22,7 @@ model Ticket {
   slackUser   SlackUser   @relation("ticketAuthor", fields: [slackUserId], references: [id])
   resolver    SlackUser?  @relation("ticketResolver", fields: [resolverId], references: [id])
   assignees   SlackUser[] @relation("ticketAssignees")
-  status      Int @default(0)
+  status      Int         @default(0)
 
   programId   String
   slackUserId String
@@ -36,6 +36,7 @@ model Program {
   channelId     String
   tickets       Ticket[]
   assignedUsers SlackUser[]
+  logo          String?
 }
 
 model SlackUser {
