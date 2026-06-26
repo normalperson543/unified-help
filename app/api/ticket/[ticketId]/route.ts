@@ -22,6 +22,7 @@ export async function GET(
         },
       },
       slackUser: true,
+      assignees: true
     },
   });
   if (!ticket)

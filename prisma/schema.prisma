@@ -13,16 +13,20 @@ datasource db {
 }
 
 model Ticket {
-  id          String    @id @unique @default(uuid())
+  id          String      @id @unique @default(uuid())
   messageId   String
-  program     Program   @relation(fields: [programId], references: [id])
+  program     Program     @relation(fields: [programId], references: [id])
   message     String
   dateCreated DateTime
-  dateIndexed DateTime  @default(now())
-  slackUser   SlackUser @relation(fields: [slackUserId], references: [id])
+  dateIndexed DateTime    @default(now())
+  slackUser   SlackUser   @relation("ticketAuthor", fields: [slackUserId], references: [id])
+  resolver    SlackUser?  @relation("ticketResolver", fields: [resolverId], references: [id])
+  assignees   SlackUser[] @relation("ticketAssignees")
+  status      Int @default(0)
 
   programId   String
   slackUserId String
+  resolverId  String?
   replies     Reply[]
 }
 
@@ -35,19 +39,22 @@ model Program {
 }
 
 model SlackUser {
-  id       String   @id @unique
+  id       String  @id @unique
   username String
-  tickets  Ticket[]
   replies  Reply[]
-  isBot    Boolean  @default(false)
+  isBot    Boolean @default(false)
 
-  programs Program[]
+  programs        Program[]
+  createdTickets  Ticket[]  @relation("ticketAuthor")
+  resolvedTickets Ticket[]  @relation("ticketResolver")
+  assignedTickets Ticket[]  @relation("ticketAssignees")
 }
 
 model Reply {
   id          String    @id @unique @default(uuid())
   ticket      Ticket    @relation(fields: [ticketId], references: [id])
   message     String
+  messageId   String
   slackUser   SlackUser @relation(fields: [slackUserId], references: [id])
   slackUserId String
   dateCreated DateTime
