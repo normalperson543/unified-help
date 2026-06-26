@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import ProgramSelector from "./ui/program-selector";
+import { Button } from "@heroui/react";
+import { LogInIcon } from "lucide-react";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -17,8 +20,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark`}>
-      <body className="h-full flex flex-col bg-background text-foreground">{children}</body>
+    <html
+      lang="en"
+      className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark`}
+    >
+      <body className="h-full flex flex-col bg-background text-foreground">
+        <div className="flex flex-col h-full">
+          <div className="flex flex-row justify-between p-4 border-b border-accent-background">
+            <div className="flex flex-row gap-4 items-center">
+              <h2 className="text-lg">
+                unified<b>help</b>
+              </h2>
+              <ProgramSelector />
+            </div>
+            <div className="flex flex-row gap-4 items-center">
+              <Button>
+                <LogInIcon /> Sign in
+              </Button>
+            </div>
+          </div>
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
