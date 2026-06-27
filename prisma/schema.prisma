@@ -31,12 +31,13 @@ model Ticket {
 }
 
 model Program {
-  id            String      @id @unique @default(uuid())
-  name          String
-  channelId     String
-  tickets       Ticket[]
-  assignedUsers SlackUser[]
-  logo          String?
+  id              String      @id @unique @default(uuid())
+  name            String
+  channelId       String
+  tickets         Ticket[]
+  assignedUsers   SlackUser[]
+  logo            String?
+  usersOrganizing User[]      @relation("programsOrganizing")
 }
 
 model SlackUser {
@@ -78,6 +79,8 @@ model User {
   slackId     String?
   slackUserId String?
   slackUser   SlackUser? @relation(fields: [slackUserId], references: [id])
+
+  programsOrganizing Program[] @relation("programsOrganizing")
 
   @@unique([email])
   @@map("user")

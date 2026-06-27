@@ -1,7 +1,7 @@
 "use client";
 
 import { fetcher } from "@/app/lib/swr";
-import { Avatar, Chip, Button, Card, Tooltip } from "@heroui/react";
+import { Avatar, Chip, Button, Card, Tooltip, Spinner } from "@heroui/react";
 import {
   CheckIcon,
   CircleAlertIcon,
@@ -31,6 +31,11 @@ export default function TicketUI({
 
   return (
     <>
+      {(ticketIsLoading || !ticket) && (
+        <div className="flex justify-center items-center w-full h-full">
+          <Spinner />
+        </div>
+      )}
       {!ticketIsLoading && ticket && (
         <>
           <div className="flex justify-between">

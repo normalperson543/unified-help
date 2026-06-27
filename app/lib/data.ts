@@ -17,7 +17,33 @@ export async function getUser(id: string) {
       id: id,
     },
     include: {
-      slackUser: true,
+      slackUser: {
+        include: {
+          programs: {
+            include: {
+              _count: {
+                select: {
+                  tickets: true,
+                  assignedUsers: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      programsOrganizing: true,
+    },
+  });
+}
+export async function getPrograms() {
+  return await prisma.program.findMany({
+    include: {
+      _count: {
+        select: {
+          tickets: true,
+          assignedUsers: true,
+        },
+      },
     },
   });
 }

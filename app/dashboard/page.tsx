@@ -1,7 +1,72 @@
-export default function DashboardPage() {
+import { headers } from "next/headers";
+import { auth } from "../lib/auth";
+import { getPrograms, getUser } from "../lib/data";
+import { Card } from "@heroui/react";
+import Link from "next/link";
+import Image from "next/image";
+import { SquareArrowOutUpRightIcon } from "lucide-react";
+
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(), // you need to pass the headers object.
+  });
+  const programs = await getPrograms();
+  let user;
+  if (session?.user.id) user = await getUser(session?.user.id);
+  if (!user) return <p>Unauthorized</p>;
   return (
-    <div className="flex flex-col gap-2 p-4">
-      
+    <div className="flex flex-col gap-2 px-12 py-4 w-full h-full">
+      <h2 className="text-lg font-bold">Your Programs</h2>
+      {!user.slackUser ? (
+        <p>Your Slack user was not linked to the database.</p>
+      ) : (
+        <>
+          <p>
+            You&apos;re assigned to help in {user.slackUser?.programs.length}{" "}
+            program
+            {user.slackUser?.programs.length !== 1 && "s"}.
+          </p>
+          <div className="flex flex-row flex-wrap gap-4">
+            {user.slackUser?.programs.map((p) => (
+              <Link href={`/programs/${p.id}`} key={p.id}>
+                <Card className="w-96">
+                  {p.logo && (
+                    <Image
+                      src={p.logo}
+                      alt="Program logo"
+                      width={32}
+                      height={32}
+                    />
+                  )}
+                  <b>{p.name}</b>
+                  <p className="text-muted">
+                    {p._count.tickets} tickets - {p._count.assignedUsers}{" "}
+                    helpers
+                  </p>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+      <div className="w-full h-1 bg-accent-background"></div>
+      <h2 className="text-lg font-bold">All Registered Programs</h2>
+      <p>View tickets for registered programs under Unified Help.</p>
+      <div className="flex flex-row flex-wrap gap-4">
+        {programs.map((p) => (
+          <Link href={`/programs/${p.id}`} key={p.id}>
+            <Card className="w-96">
+              {p.logo && (
+                <Image src={p.logo} alt="Program logo" width={32} height={32} />
+              )}
+              <b>{p.name}</b>
+              <p className="text-muted">
+                {p._count.tickets} tickets - {p._count.assignedUsers} helpers
+              </p>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
-  )
+  );
 }

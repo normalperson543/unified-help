@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { Program } from "@/generated/prisma/client";
 import { fetcher } from "../lib/swr";
 import Image from "next/image";
+import { useRouter, useParams } from "next/navigation";
 
 export default function ProgramSelector() {
   const {
@@ -11,9 +12,17 @@ export default function ProgramSelector() {
     error: programsError,
     isLoading: programsIsLoading,
   } = useSWR<Program[]>(`/api/programs`, fetcher);
+
+  const router = useRouter();
+  const { programId } = useParams()
+
   if (!programs) return <Spinner />;
+
+  function handleSelectProgram(id: string) {
+    router.push(`/programs/${id}`);
+  }
   return (
-    <Select>
+    <Select onChange={(e) => handleSelectProgram(e?.toString() as string)} value={programId as string?? ""}>
       <Select.Trigger>
         <Select.Value />
         <Select.Indicator />
