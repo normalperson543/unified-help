@@ -4,6 +4,10 @@ export type SlackUserWithPrograms = Prisma.SlackUserGetPayload<{
   include: { programs: true };
 }>;
 
+export type UserWithSlackUser = Prisma.UserGetPayload<{
+  include: { slackUser: true };
+}>;
+
 type TicketPayload = Prisma.TicketGetPayload<{
   include: {
     replies: {

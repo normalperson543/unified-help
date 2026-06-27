@@ -15,12 +15,10 @@ export const auth = betterAuth({
       slackId: {
         type: "string",
         required: false,
-        input: false,
       },
       slackUserId: {
         type: "string",
         required: false,
-        input: false,
       },
     },
   },
@@ -32,10 +30,12 @@ export const auth = betterAuth({
 
           clientId: process.env.HACKCLUB_CLIENT_ID!,
           clientSecret: process.env.HACKCLUB_CLIENT_SECRET!,
-          
-          overrideUserInfoOnSignIn: true,
-          
+
+          overrideUserInfo: true,
+
           mapProfileToUser: async (profile) => {
+            console.log("info:");
+            console.log(profile);
             const slackId = profile.slack_id; // whatever field your OAuth puts it in
 
             const slackUser = await prisma.slackUser.findUnique({
@@ -54,13 +54,7 @@ export const auth = betterAuth({
 
           userInfoUrl: "https://auth.hackclub.com/api/v1/me",
 
-          scopes: [
-            "email",
-            "name",
-            "profile",
-            "verification_status",
-            "slack_id",
-          ],
+          scopes: ["name", "email", "slack_id"],
 
           responseType: "code",
           pkce: true,
@@ -110,6 +104,7 @@ export const auth = betterAuth({
                 .filter(Boolean)
                 .join(" "),
               emailVerified: true,
+              slack_id: slackId,
               image,
             };
           },

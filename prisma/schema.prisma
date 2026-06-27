@@ -75,6 +75,10 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  slackId     String?
+  slackUserId String?
+  slackUser   SlackUser? @relation(fields: [slackUserId], references: [id])
+
   @@unique([email])
   @@map("user")
 }
