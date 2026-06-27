@@ -8,8 +8,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
 import { SearchIcon } from "lucide-react";
-import { useLayoutEffect, useRef } from "react";
-import ProgramSelector from "@/app/ui/program-selector";
+import { useLayoutEffect, useRef, useState } from "react";
 
 let savedSidebarScrollTop = 0;
 
@@ -20,6 +19,7 @@ export default function RootLayout({
 }>) {
   const params = useParams();
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -33,6 +33,7 @@ export default function RootLayout({
     error: programError,
     isLoading: programIsLoading,
   } = useSWR<TicketWithReplies[]>(`/api/programs/${params.programId}`, fetcher);
+
   return (
     <div className="flex w-full text-sm flex-1 min-h-0">
       <div
@@ -48,6 +49,8 @@ export default function RootLayout({
             type="text"
             className="w-full"
             placeholder="Search by name or ID"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">

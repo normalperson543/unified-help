@@ -7,7 +7,7 @@ import Image from "next/image";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({
+  const session = await auth.api.getSession({ // from better auth docs
     headers: await headers(), // you need to pass the headers object.
   });
   const programs = await getPrograms();

@@ -98,9 +98,14 @@ export default function TicketUI({
                 </div>
               </div>
             </div>
-            <Button>
-              Open in Slack <SquareArrowOutUpRightIcon />
-            </Button>
+            <Link
+              href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
+              target="_blank"
+            >
+              <Button>
+                Open in Slack <SquareArrowOutUpRightIcon />
+              </Button>
+            </Link>
           </div>
           <Post
             username={ticket.slackUser.username}

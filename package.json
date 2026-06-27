@@ -16,14 +16,17 @@
     "better-auth": "^1.6.22",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.21.0",
+    "lunr": "^2.3.9",
     "next": "16.2.9",
     "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "swr": "^2.4.2"
+    "swr": "^2.4.2",
+    "use-debounce": "^10.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/lunr": "^2.3.7",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",

@@ -47,3 +47,40 @@ export async function getPrograms() {
     },
   });
 }
+export async function getProgram(id: string) {
+  return await prisma.program.findUnique({
+    where: {
+      id: id,
+    },
+  });
+}
+export async function getProgramStatistics(id: string) {
+  const ticketsResolved = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 2,
+    },
+  });
+  const ticketsAssigned = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 1,
+    },
+  });
+  const ticketsOpen = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 0,
+    },
+  });
+  const totalTickets = await prisma.ticket.count({
+    where: { programId: id },
+  });
+  return {
+    total: totalTickets,
+    open: ticketsOpen,
+    assigned: ticketsAssigned,
+    resolved: ticketsResolved,
+  };
+}
+//todo: move all of the route data stuff into this file so it's more organized

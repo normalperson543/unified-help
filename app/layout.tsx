@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import { prisma } from "./lib/prisma";
 import { getUser } from "./lib/data";
 import SignInButton from "./ui/sign-in-button";
+import Header from "./ui/header";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -24,13 +25,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(), // you need to pass the headers object.
-  });
-  let user;
-  if (session?.user.id) user = await getUser(session?.user.id);
-  console.log(session);
-
   return (
     <html
       lang="en"
@@ -38,28 +32,7 @@ export default async function RootLayout({
     >
       <body className="h-full flex flex-col bg-background text-foreground">
         <div className="flex flex-col h-full">
-          <div className="flex flex-row justify-between p-4 border-b border-accent-background">
-            <div className="flex flex-row gap-4 items-center">
-              <h2 className="text-lg">
-                unified<b>help</b>
-              </h2>
-              <ProgramSelector />
-            </div>
-            <div className="flex flex-row gap-4 items-center">
-              {!session?.user && <SignInButton />}
-              {session && session.user && (
-                <Avatar size="sm">
-                  <Avatar.Image
-                    src={`https://cachet.dunkirk.sh/users/${user?.slackUser?.id}/r`}
-                    alt="Profile picture"
-                  />
-                  <Avatar.Fallback>
-                    {user?.slackUser?.username.substring(0, 1)}
-                  </Avatar.Fallback>
-                </Avatar>
-              )}
-            </div>
-          </div>
+          <Header />
           {children}
         </div>
       </body>
