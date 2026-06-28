@@ -37,7 +37,8 @@ export default function RootLayout({
   const params = useParams();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("0,1,2");
+  const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -50,7 +51,10 @@ export default function RootLayout({
     data: programTickets,
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
-  } = useSWR<TicketWithReplies[]>(`/api/programs/${params.programId}`, fetcher);
+  } = useSWR<TicketWithReplies[]>(
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}`,
+    fetcher,
+  );
 
   const {
     data: program,
@@ -62,7 +66,6 @@ export default function RootLayout({
   );
 
   const { contains } = useFilter({ sensitivity: "base" });
-  const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
 
   const onRemoveTags = (keys: Set<Key>) => {
     // from heroUI docs
@@ -71,7 +74,7 @@ export default function RootLayout({
 
   function handleChangeStatusFilter(newValue: string) {
     //todo: debounce search
-    setStatusFilter(newValue)
+    setStatusFilter(newValue);
   }
 
   return (
@@ -172,10 +175,18 @@ export default function RootLayout({
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                <ListBox.Item id="all" value="all">All statuses</ListBox.Item>
-                <ListBox.Item id="open" value="open">Open</ListBox.Item>
-                <ListBox.Item id="assigned" value="assigned">Assigned</ListBox.Item>
-                <ListBox.Item id="resolved" value="resolved">Resolved</ListBox.Item>
+                <ListBox.Item id="0,1,2" value="0,1,2">
+                  All statuses
+                </ListBox.Item>
+                <ListBox.Item id="0" value="0">
+                  Open
+                </ListBox.Item>
+                <ListBox.Item id="1" value="1">
+                  Assigned
+                </ListBox.Item>
+                <ListBox.Item id="2" value="2">
+                  Resolved
+                </ListBox.Item>
               </ListBox>
             </Select.Popover>
           </Select>
