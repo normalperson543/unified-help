@@ -8,6 +8,10 @@ export type UserWithSlackUser = Prisma.UserGetPayload<{
   include: { slackUser: true };
 }>;
 
+export type ProgramWithAssignees = Prisma.ProgramGetPayload<{
+  include: { assignedUsers: true }
+}>
+
 type TicketPayload = Prisma.TicketGetPayload<{
   include: {
     replies: {
@@ -38,5 +42,6 @@ export type ProgramStatistics = {
   total: number;
   open: number;
   assigned: number;
+  assignedToMe: number;
   resolved: number;
 };

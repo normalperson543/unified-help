@@ -4,6 +4,8 @@ import { getUser } from "../lib/data";
 import ProgramSelector from "./program-selector";
 import SignInButton from "./sign-in-button";
 import { Avatar } from "@heroui/react";
+import ProgramStats from "./program-stats";
+import Link from "next/link";
 
 export default async function Header({
   children,
@@ -19,13 +21,16 @@ export default async function Header({
   return (
     <div className="flex flex-row justify-between p-4 border-b border-accent-background">
       <div className="flex flex-row gap-4 items-center">
-        <h2 className="text-lg">
-          unified<b>help</b>
-        </h2>
+        <Link href="/dashboard">
+          <h2 className="text-lg">
+            unified<b>help</b>
+          </h2>
+        </Link>
         <ProgramSelector />
       </div>
       <div className="flex flex-row gap-4 items-center">
         {children}
+        <ProgramStats />
         {!session?.user && <SignInButton />}
         {session && session.user && (
           <Avatar size="sm">

@@ -1,4 +1,6 @@
 "use server";
+import { headers } from "next/headers";
+import { auth } from "./auth";
 import { prisma } from "./prisma";
 
 export async function getSlackUser(id: string) {
@@ -52,9 +54,18 @@ export async function getProgram(id: string) {
     where: {
       id: id,
     },
+    include: {
+      assignedUsers: true
+    }
   });
 }
 export async function getProgramStatistics(id: string) {
+  const session = await auth.api.getSession({
+    // from better auth docs bc too lazy :
+    headers: await headers(), // you need to pass the headers object.
+  });
+  console.log(session?.user.slackUserId)
+
   const ticketsResolved = await prisma.ticket.count({
     where: {
       programId: id,
@@ -73,6 +84,20 @@ export async function getProgramStatistics(id: string) {
       status: 0,
     },
   });
+  let ticketsAssignedToMe = 0;
+  if (session?.user.slackId) {
+    ticketsAssignedToMe = await prisma.ticket.count({
+      where: {
+        programId: id,
+        status: 1,
+        assignees: {
+          some: {
+            id: session.user.slackUserId as string,
+          },
+        },
+      },
+    });
+  }
   const totalTickets = await prisma.ticket.count({
     where: { programId: id },
   });
@@ -80,6 +105,7 @@ export async function getProgramStatistics(id: string) {
     total: totalTickets,
     open: ticketsOpen,
     assigned: ticketsAssigned,
+    assignedToMe: ticketsAssignedToMe,
     resolved: ticketsResolved,
   };
 }

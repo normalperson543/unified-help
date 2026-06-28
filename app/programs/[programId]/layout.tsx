@@ -2,13 +2,30 @@
 
 import { fetcher } from "@/app/lib/swr";
 import { getShortTitle } from "@/app/lib/tools";
-import { TicketWithReplies } from "@/app/lib/types";
-import { Avatar, Card, Input, Spinner } from "@heroui/react";
+import { ProgramWithAssignees, TicketWithReplies } from "@/app/lib/types";
+import {
+  Autocomplete,
+  Avatar,
+  Card,
+  ComboBox,
+  EmptyState,
+  Input,
+  Key,
+  Label,
+  ListBox,
+  SearchField,
+  Select,
+  Spinner,
+  Tag,
+  TagGroup,
+  useFilter,
+} from "@heroui/react";
 import Link from "next/link";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
+import { SlackUser } from "@/generated/prisma/client";
 
 let savedSidebarScrollTop = 0;
 
@@ -20,6 +37,7 @@ export default function RootLayout({
   const params = useParams();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all")
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -30,9 +48,31 @@ export default function RootLayout({
 
   const {
     data: programTickets,
+    error: programTicketsError,
+    isLoading: programTicketsIsLoading,
+  } = useSWR<TicketWithReplies[]>(`/api/programs/${params.programId}`, fetcher);
+
+  const {
+    data: program,
     error: programError,
     isLoading: programIsLoading,
-  } = useSWR<TicketWithReplies[]>(`/api/programs/${params.programId}`, fetcher);
+  } = useSWR<ProgramWithAssignees>(
+    `/api/programs/${params.programId}/info`,
+    fetcher,
+  );
+
+  const { contains } = useFilter({ sensitivity: "base" });
+  const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
+
+  const onRemoveTags = (keys: Set<Key>) => {
+    // from heroUI docs
+    setSelectedUsers((prev) => prev.filter((key) => !keys.has(key)));
+  };
+
+  function handleChangeStatusFilter(newValue: string) {
+    //todo: debounce search
+    setStatusFilter(newValue)
+  }
 
   return (
     <div className="flex w-full text-sm flex-1 min-h-0">
@@ -43,18 +83,105 @@ export default function RootLayout({
         }}
         className="flex flex-col gap-2 w-1/2 h-full overflow-scroll border-r border-accent-background relative"
       >
-        <div className="flex gap-2 items-center sticky top-0 z-10 bg-background px-4 py-2">
-          <SearchIcon width={16} />
-          <Input
-            type="text"
-            className="w-full"
-            placeholder="Search by name or ID"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="bg-background px-4 py-2 flex flex-col gap-1">
+          <div className="flex gap-2 items-center sticky top-0 z-10">
+            <SearchIcon width={16} />
+            <Input
+              type="text"
+              className="w-full"
+              placeholder="Search by name or ID"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Autocomplete
+            placeholder="Select assignees"
+            selectionMode="multiple"
+            value={selectedUsers}
+            onChange={(keys: Key | Key[] | null) =>
+              setSelectedUsers(keys as Key[])
+            }
+          >
+            <Label>Assignees</Label>
+            <Autocomplete.Trigger>
+              <Autocomplete.Value>
+                {({ defaultChildren, isPlaceholder, state }: any) => {
+                  if (isPlaceholder || state.selectedItems.length === 0) {
+                    return defaultChildren;
+                  }
+                  const selectedItemsKeys = state.selectedItems.map(
+                    (item: any) => item.key,
+                  );
+                  return (
+                    <TagGroup size="sm" onRemove={onRemoveTags}>
+                      <TagGroup.List>
+                        {selectedItemsKeys.map((selectedItemKey: Key) => {
+                          const item = program?.assignedUsers.find(
+                            (s) => s.id === selectedItemKey,
+                          );
+                          if (!item) return null;
+                          return (
+                            <Tag key={item.id} id={item.id}>
+                              {item.username}
+                            </Tag>
+                          );
+                        })}
+                      </TagGroup.List>
+                    </TagGroup>
+                  );
+                }}
+              </Autocomplete.Value>
+              <Autocomplete.Indicator />
+            </Autocomplete.Trigger>
+            <Autocomplete.Popover>
+              <Autocomplete.Filter filter={contains}>
+                <SearchField autoFocus name="search" variant="secondary">
+                  <SearchField.Group>
+                    <SearchField.SearchIcon />
+                    <SearchField.Input placeholder="Search..." />
+                    <SearchField.ClearButton />
+                  </SearchField.Group>
+                </SearchField>
+                <ListBox
+                  renderEmptyState={() => (
+                    <EmptyState>No results found</EmptyState>
+                  )}
+                >
+                  {program &&
+                    program?.assignedUsers.map((user) => (
+                      <ListBox.Item
+                        key={user.id}
+                        id={user.id}
+                        textValue={user.username}
+                      >
+                        {user.username}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                </ListBox>
+              </Autocomplete.Filter>
+            </Autocomplete.Popover>
+          </Autocomplete>
+          <Select
+            onChange={(e) => handleChangeStatusFilter(e?.toString() as string)}
+            value={statusFilter}
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="all" value="all">All statuses</ListBox.Item>
+                <ListBox.Item id="open" value="open">Open</ListBox.Item>
+                <ListBox.Item id="assigned" value="assigned">Assigned</ListBox.Item>
+                <ListBox.Item id="resolved" value="resolved">Resolved</ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">
-          {(!programTickets || programIsLoading) && (
+          {(!programTickets || programTicketsIsLoading) && (
             <div className="flex justify-center items-center w-full h-full">
               <Spinner />
             </div>

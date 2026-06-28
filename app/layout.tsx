@@ -1,14 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
-import ProgramSelector from "./ui/program-selector";
-import { Avatar, Button } from "@heroui/react";
-import { LogInIcon } from "lucide-react";
-import { auth } from "./lib/auth";
-import { headers } from "next/headers";
-import { prisma } from "./lib/prisma";
-import { getUser } from "./lib/data";
-import SignInButton from "./ui/sign-in-button";
 import Header from "./ui/header";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -22,9 +14,12 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ ticketId: string; programId: string }>;
 }>) {
+  const slugs = await params;
   return (
     <html
       lang="en"
