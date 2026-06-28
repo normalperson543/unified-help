@@ -31,9 +31,14 @@ export default function TicketUI({
 
   return (
     <>
-      {(ticketIsLoading || !ticket) && (
+      {(ticketIsLoading || !ticket) && !ticketError && (
         <div className="flex justify-center items-center w-full h-full">
           <Spinner />
+        </div>
+      )}
+      {ticketError && (
+        <div className="flex justify-center items-center w-full h-full">
+          <p className="text-muted">Problem fetching ticket</p>
         </div>
       )}
       {!ticketIsLoading && ticket && (

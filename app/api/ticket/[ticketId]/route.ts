@@ -1,11 +1,18 @@
 import { prisma } from "@/app/lib/prisma";
 import { type NextRequest } from "next/server";
 import { getResolver } from "@/app/lib/tools";
+import { getUserAuthStatus } from "@/app/lib/data";
 
 export async function GET(
   _req: NextRequest,
   ctx: RouteContext<"/api/ticket/[ticketId]">,
 ) {
+  const authStatus = await getUserAuthStatus();
+  if (authStatus.status === "unauthenticated") {
+    return new Response(JSON.stringify({ status: "Unauthorized" }), {
+      status: 401,
+    });
+  }
   const { ticketId } = await ctx.params;
   const ticket = await prisma.ticket.findUnique({
     where: {
@@ -23,7 +30,7 @@ export async function GET(
       },
       slackUser: true,
       assignees: true,
-      program: true
+      program: true,
     },
   });
   if (!ticket)

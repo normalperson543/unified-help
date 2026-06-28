@@ -109,4 +109,11 @@ export async function getProgramStatistics(id: string) {
     resolved: ticketsResolved,
   };
 }
+export async function getUserAuthStatus() {
+  const session = await auth.api.getSession({
+    headers: await headers(), 
+  });
+  if (!session || !session.user || !session.user.id) return {"status": "unauthenticated"}
+  return {"status": "authenticated"}
+}
 //todo: move all of the route data stuff into this file so it's more organized

@@ -3,9 +3,10 @@ import { auth } from "../lib/auth";
 import { getUser } from "../lib/data";
 import ProgramSelector from "./program-selector";
 import SignInButton from "./sign-in-button";
-import { Avatar } from "@heroui/react";
+
 import ProgramStats from "./program-stats";
 import Link from "next/link";
+import SignOutButton from "./sign-out-button";
 
 export default async function Header({
   children,
@@ -33,15 +34,10 @@ export default async function Header({
         <ProgramStats />
         {!session?.user && <SignInButton />}
         {session && session.user && (
-          <Avatar size="sm">
-            <Avatar.Image
-              src={`https://cachet.dunkirk.sh/users/${user?.slackUser?.id}/r`}
-              alt="Profile picture"
-            />
-            <Avatar.Fallback>
-              {user?.slackUser?.username.substring(0, 1)}
-            </Avatar.Fallback>
-          </Avatar>
+          <SignOutButton
+            username={user?.slackUser?.username ?? ""}
+            pfp={`https://cachet.dunkirk.sh/users/${user?.slackUser?.id}/r`}
+          />
         )}
       </div>
     </div>

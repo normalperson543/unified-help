@@ -1,3 +1,4 @@
+import { getUserAuthStatus } from "@/app/lib/data";
 import { prisma } from "@/app/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { type NextRequest } from "next/server";
@@ -6,6 +7,12 @@ export async function GET(
   req: NextRequest,
   ctx: RouteContext<"/api/programs/[programId]">,
 ) {
+  const authStatus = await getUserAuthStatus();
+  if (authStatus.status === "unauthenticated") {
+    return new Response(JSON.stringify({ status: "Unauthorized" }), {
+      status: 401,
+    });
+  }
   const { programId } = await ctx.params;
   const params = req.nextUrl.searchParams; //todo: searching stuff
   console.log(params);
@@ -20,7 +27,7 @@ export async function GET(
   if (assigneeIds && assigneeIds[0].length > 0) {
     filters.push({ assignees: { some: { id: { in: assigneeIds } } } });
   }
-  console.log(assigneeIds)
+  console.log(assigneeIds);
   if (statuses?.length > 0) {
     filters.push({ status: { in: statuses } });
   }
