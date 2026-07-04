@@ -41,6 +41,7 @@ export default function RootLayout({
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [sort, setSort] = useState("desc")
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -54,7 +55,7 @@ export default function RootLayout({
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<TicketWithReplies[]>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}`,
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}x`,
     fetcher,
   );
 
@@ -77,6 +78,10 @@ export default function RootLayout({
   function handleChangeStatusFilter(newValue: string) {
     //todo: debounce search
     setStatusFilter(newValue);
+  }
+  function handleChangeSort(newValue: string) {
+    //todo: debounce search
+    setSort(newValue);
   }
 
   return (
@@ -208,6 +213,29 @@ export default function RootLayout({
                   </ListBox>
                 </Select.Popover>
               </Select>
+              <Select
+                onChange={(e) =>
+                  handleChangeSort(e?.toString() as string)
+                }
+                value={sort}
+                className="w-1/2"
+              >
+                <Label>Sort by</Label>
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="asc" value="asc">
+                      Ascending
+                    </ListBox.Item>
+                    <ListBox.Item id="desc" value="desc">
+                      Descending
+                    </ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
+              </Select>
             </div>
           )}
           {programTickets && (
@@ -222,7 +250,7 @@ export default function RootLayout({
               <Spinner />
             </div>
           )}
-          {(!programTickets || programTicketsIsLoading) && (
+          {programError && (
             <div className="flex justify-center items-center w-full h-full">
               <p className="text-muted">Problem fetching tickets</p>
             </div>
