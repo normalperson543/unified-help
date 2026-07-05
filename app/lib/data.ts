@@ -126,8 +126,12 @@ export async function getBacklogStatus(programId: string) {
   const resp = await fetch(
     `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/status`,
   );
-  if (!resp.ok)
+  const respJson = await resp.json()
+  if (!resp.ok) {
+    console.log(respJson)
     throw new Error("Error fetching backlog status from backlogger");
-  return await resp.json();
+  }
+  console.log(respJson)
+  return await respJson;
 }
 //todo: move all of the route data stuff into this file so it's more organized

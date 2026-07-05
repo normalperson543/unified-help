@@ -75,6 +75,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  isAdmin       Boolean   @default(false)
 
   slackId     String?
   slackUserId String?

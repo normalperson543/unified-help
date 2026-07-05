@@ -6,14 +6,15 @@ import { revalidatePath } from "next/cache";
 
 export async function startBacklog(
   programId: string,
-  backlogTo: string,
-  backlogFrom: string,
+  backlogTo?: string | null,
+  backlogFrom?: string | null,
 ) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  if (!session || !session.user || !session.user.id)
+  if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
+  }
   const resp = await fetch(
     `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/start`,
     {
@@ -29,6 +30,40 @@ export async function startBacklog(
       },
     },
   );
-  if (!resp.ok) throw new Error("Could not start backlog job");
+  if (!resp.ok) {
+    const respText = await resp.text()
+    console.log(respText)
+    throw new Error("Could not start backlog job");
+  }
+  revalidatePath(`/programs/${programId}/settings`);
+}
+
+export async function stopBacklog(
+  programId: string,
+) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+  const resp = await fetch(
+    `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/stop`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        programId: programId,
+        actorId: session.user.id,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    },
+  );
+  if (!resp.ok) {
+    const respText = await resp.text()
+    console.log(respText)
+    throw new Error("Could not stop backlog job");
+  }
   revalidatePath(`/programs/${programId}/settings`);
 }
