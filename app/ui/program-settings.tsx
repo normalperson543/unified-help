@@ -2,7 +2,10 @@
 
 import { Program } from "@/generated/prisma/client";
 import {
+  Avatar,
   Button,
+  Card,
+  Chip,
   DateField,
   DateValue,
   Input,
@@ -14,14 +17,19 @@ import {
 } from "@heroui/react";
 import {
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   InfoIcon,
   PlayIcon,
   SaveIcon,
+  ShieldIcon,
   SquareIcon,
   SquareStopIcon,
+  UserIcon,
+  XIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { BacklogStatus } from "../lib/types";
+import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
 import { startBacklog, stopBacklog } from "../lib/actions";
 import { getLocalTimeZone } from "@internationalized/date";
 
@@ -93,13 +101,13 @@ export default function ProgramSettings({
   program,
   backlogStatus,
 }: {
-  program: Program;
+  program: ProgramWithAssignees;
   backlogStatus: BacklogStatus;
 }) {
   const [programName, setProgramName] = useState(program.name);
 
   async function handleStopBacklog() {
-    stopBacklog(program.id)
+    stopBacklog(program.id);
   }
   return (
     <div className="flex flex-col gap-4 p-4 w-full h-full">
@@ -157,6 +165,96 @@ export default function ProgramSettings({
               <StartButton programId={program.id} />
             </>
           )}
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="programName">Helpers</Label>
+        <p className="text-muted">
+          Manage Slack users who handle tickets in this program.
+        </p>
+        <div className="flex gap-2 flex-wrap">
+          {program.assignedUsers.map((u) => (
+            <Card key={u.id} className="basis-50 grow shrink">
+              <div className="flex flex-col gap-2 items-center justify-center">
+                <Avatar size="sm">
+                  <Avatar.Image
+                    src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                    alt="Profile picture"
+                  />
+                  <Avatar.Fallback>
+                    {u.username.substring(0, 1)}
+                  </Avatar.Fallback>
+                </Avatar>
+                <p className="font-bold text-lg">{u.username}</p>
+                <p className="text-muted font-mono">{u.id}</p>
+                {u.users.length > 0 &&
+                  u.users[0].programsOrganizing.filter(
+                    (p) => p.id === program.id,
+                  ).length === 0 && (
+                    <>
+                      <Chip>
+                        <UserIcon width={12} />
+                        Registered helper
+                      </Chip>
+                      <Button>
+                        <ChevronUpIcon /> Make org
+                      </Button>
+                    </>
+                  )}
+                {u.users.length > 0 &&
+                  u.users[0].programsOrganizing.filter(
+                    (p) => p.id === program.id,
+                  ).length > 0 && (
+                    <>
+                      <Chip>
+                        <ShieldIcon width={12} />
+                        Organizer
+                      </Chip>
+                      <Button variant="danger">
+                        <ChevronDownIcon /> Demote
+                      </Button>
+                    </>
+                  )}
+                {u.users.length === 0 && (
+                  <>
+                    <Chip>
+                      <WarningIcon width={12} />
+                      Unregistered on Unified Help
+                    </Chip>
+                    <Button isDisabled={true}>
+                      <ChevronUpIcon /> Awaiting signup
+                    </Button>
+                  </>
+                )}
+                <Modal>
+                  <Button variant="danger">
+                    <XIcon /> Remove
+                  </Button>
+                  <Modal.Backdrop>
+                    <Modal.Container>
+                      <Modal.Dialog>
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                          <Modal.Heading>
+                            Remove ${u.username} from {program.name}
+                          </Modal.Heading>
+                        </Modal.Header>
+                        <Modal.Body>
+                          <div className="flex flex-col gap-2"></div>
+                        </Modal.Body>
+                        <Modal.Footer>
+                          <Button slot="close" onClick={handleBacklog}>
+                            <PlayIcon />
+                            Confirm and start
+                          </Button>
+                        </Modal.Footer>
+                      </Modal.Dialog>
+                    </Modal.Container>
+                  </Modal.Backdrop>
+                </Modal>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
       <Button>

@@ -9,8 +9,18 @@ export type UserWithSlackUser = Prisma.UserGetPayload<{
 }>;
 
 export type ProgramWithAssignees = Prisma.ProgramGetPayload<{
-  include: { assignedUsers: true }
-}>
+  include: {
+    assignedUsers: {
+      include: {
+        users: {
+          include: {
+            programsOrganizing: true;
+          };
+        };
+      };
+    };
+  };
+}>;
 
 type TicketPayload = Prisma.TicketGetPayload<{
   include: {
@@ -30,9 +40,9 @@ type TicketPayload = Prisma.TicketGetPayload<{
 }>;
 
 export type BacklogStatus = {
-  status: "unqueued" | "pending" | "failed" | "success" | "stopped",
-  job?: BacklogJob
-}
+  status: "unqueued" | "pending" | "failed" | "success" | "stopped";
+  job?: BacklogJob;
+};
 
 export type BacklogJob = {
   programId: string;

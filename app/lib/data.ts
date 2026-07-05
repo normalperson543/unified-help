@@ -55,7 +55,15 @@ export async function getProgram(id: string) {
       id: id,
     },
     include: {
-      assignedUsers: true,
+      assignedUsers: {
+        include: {
+          users: {
+            include: {
+              programsOrganizing: true
+            }
+          }
+        }
+      },
     },
   });
 }
