@@ -9,10 +9,13 @@ import {
   Chip,
   DateField,
   DateValue,
+  Description,
   Input,
   Label,
   Modal,
   Spinner,
+  Switch,
+  TextField,
   toast,
   WarningIcon,
 } from "@heroui/react";
@@ -33,7 +36,15 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
-import { addAsHelper, startBacklog, stopBacklog } from "../lib/actions";
+import {
+  addAsHelper,
+  removeHelper,
+  saveUserGroup,
+  setAutoIndex,
+  startBacklog,
+  stopBacklog,
+  updateInfo,
+} from "../lib/actions";
 import { getLocalTimeZone } from "@internationalized/date";
 import { createUser } from "../lib/slack";
 
@@ -45,7 +56,9 @@ export default function ProgramSettings({
   backlogStatus: BacklogStatus;
 }) {
   const [programName, setProgramName] = useState(program.name);
-  const [userGroup, setUserGroup] = useState(program.userGroup);
+  const [channelId, setChannelId] = useState(program.channelId);
+  const [autoIndex, setAutoIndex] = useState(program.canAutoIndex);
+  const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
 
   async function handleStopBacklog() {
@@ -78,17 +91,65 @@ export default function ProgramSettings({
     });
   }
 
+  async function handleSaveGroupId() {
+    await saveUserGroup(userGroup, program.id);
+    toast("Saved and indexing users", {
+      description:
+        "Unified Help will start indexing users from this user group.",
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handleRemoveHelper(id: string) {
+    await removeHelper(id, program.id);
+    toast("Removed helper", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handleUpdateInfo() {
+    await updateInfo(program.id, programName, autoIndex)
+    toast("Updated info", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
   return (
     <div className="flex flex-col gap-4 p-4 w-full h-full">
       <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="programName">Program name</Label>
-        <Input
-          type="text"
-          id="programName"
-          value={programName}
-          onChange={(e) => setProgramName(e.target.value)}
-        />
+      <div className="flex flex-col gap-2">
+        <TextField type="text">
+          <Label htmlFor="programName">Program name</Label>
+          <Input
+            value={programName}
+            onChange={(e) => setProgramName(e.target.value)}
+          />
+        </TextField>
+        <TextField type="text">
+          <Label htmlFor="programName">Channel ID</Label>
+          <Description>
+            Unified Help will use this channel ID to index tickets and for
+            ticket links. Be careful when changing this.
+          </Description>
+          <Input
+            value={channelId}
+            onChange={(e) => setChannelId(e.target.value)}
+            className="font-mono"
+          />
+        </TextField>
+        <Switch isSelected={autoIndex} onChange={setAutoIndex}>
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+            Enable automatic ticket indexing
+          </Switch.Content>
+        </Switch>
+        <Button onClick={handleUpdateInfo}>
+          <SaveIcon /> Save changes
+        </Button>
       </div>
       <div className="flex flex-col gap-1">
         <Label htmlFor="programName">Backlog</Label>
@@ -329,7 +390,11 @@ export default function ProgramSettings({
                           </div>
                         </Modal.Body>
                         <Modal.Footer>
-                          <Button slot="close" variant="danger">
+                          <Button
+                            slot="close"
+                            variant="danger"
+                            onClick={() => handleRemoveHelper(u.id)}
+                          >
                             <XIcon />
                             Remove
                           </Button>
@@ -342,13 +407,30 @@ export default function ProgramSettings({
             </Card>
           ))}
         </div>
-        <p className="text-muted">
-          You can also automatically add helpers based on a ping group.
-        </p>
+
+        <TextField type="text">
+          <Label htmlFor="programName">Linked user group</Label>
+          <Description>
+            Anyone in this user group will automatically be added as a helper.
+            Note that users removed from this ping group will not be removed in
+            Unified Help.
+          </Description>
+          <Description>
+            Enter the group ID of the user group you want to link. You can find
+            this by opening the user group on Slack, clicking the three dots,
+            and clicking &quot;Copy group ID&quot;. Group IDs begin with S.
+          </Description>
+          <Input
+            id="userGroup"
+            value={userGroup}
+            onChange={(e) => setUserGroup(e.target.value)}
+            className="font-mono"
+          />
+          <Button onClick={handleSaveGroupId}>
+            <SaveIcon /> Save changes
+          </Button>
+        </TextField>
       </div>
-      <Button>
-        <SaveIcon /> Save changes
-      </Button>
     </div>
   );
 }

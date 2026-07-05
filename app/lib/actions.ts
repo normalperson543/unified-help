@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
+import { indexUsersFromUserGroup } from "./slack";
+import { group } from "console";
 
 export async function startBacklog(
   programId: string,
@@ -67,7 +69,11 @@ export async function stopBacklog(programId: string) {
   revalidatePath(`/programs/${programId}/settings`);
 }
 
-export async function addAsHelper(slackId: string, programId: string) {
+export async function addAsHelper(
+  slackId: string,
+  programId: string,
+  revalidate: boolean = true,
+) {
   await prisma.slackUser.update({
     where: {
       id: slackId,
@@ -80,7 +86,9 @@ export async function addAsHelper(slackId: string, programId: string) {
       },
     },
   });
-  revalidatePath(`/programs/${programId}/settings`)
+  if (revalidate) {
+    revalidatePath(`/programs/${programId}/settings`);
+  }
 }
 
 export async function removeHelper(slackId: string, programId: string) {
@@ -90,11 +98,36 @@ export async function removeHelper(slackId: string, programId: string) {
     },
     data: {
       programs: {
-        connect: {
+        disconnect: {
           id: programId,
         },
       },
     },
   });
-  revalidatePath(`/programs/${programId}/settings`)
+  revalidatePath(`/programs/${programId}/settings`);
+}
+
+export async function saveUserGroup(groupId: string, programId: string) {
+  await prisma.program.update({
+    where: {
+      id: programId,
+    },
+    data: {
+      userGroup: groupId,
+    },
+  });
+  indexUsersFromUserGroup(groupId, programId); // not async on purpose :p
+  revalidatePath(`/programs/${programId}/settings`);
+}
+export async function updateInfo(programId: string, name: string, canAutoIndex: boolean) {
+  await prisma.program.update({
+    where: {
+      id: programId
+    },
+    data: {
+      name: name,
+      canAutoIndex: canAutoIndex
+    }
+  })
+  revalidatePath(`/programs/${programId}/settings`);
 }
