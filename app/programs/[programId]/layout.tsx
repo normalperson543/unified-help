@@ -55,7 +55,7 @@ export default function RootLayout({
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<TicketWithReplies[]>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}x`,
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}`,
     fetcher,
   );
 

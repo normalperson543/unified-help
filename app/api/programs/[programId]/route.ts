@@ -33,6 +33,8 @@ export async function GET(
     filters.push({ status: { in: statuses } });
   }
 
+  console.log(filters)
+
   const ticket = await prisma.ticket.findMany({
     where: {
       programId,

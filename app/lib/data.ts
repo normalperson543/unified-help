@@ -55,8 +55,8 @@ export async function getProgram(id: string) {
       id: id,
     },
     include: {
-      assignedUsers: true
-    }
+      assignedUsers: true,
+    },
   });
 }
 export async function getProgramStatistics(id: string) {
@@ -64,7 +64,7 @@ export async function getProgramStatistics(id: string) {
     // from better auth docs bc too lazy :
     headers: await headers(), // you need to pass the headers object.
   });
-  console.log(session?.user.slackUserId)
+  console.log(session?.user.slackUserId);
 
   const ticketsResolved = await prisma.ticket.count({
     where: {
@@ -111,9 +111,23 @@ export async function getProgramStatistics(id: string) {
 }
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
-    headers: await headers(), 
+    headers: await headers(),
   });
-  if (!session || !session.user || !session.user.id) return {"status": "unauthenticated"}
-  return {"status": "authenticated"}
+  if (!session || !session.user || !session.user.id)
+    return { status: "unauthenticated" };
+  return { status: "authenticated" };
+}
+export async function getBacklogStatus(programId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id)
+    throw new Error("unauthenticated");
+  const resp = await fetch(
+    `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/status`,
+  );
+  if (!resp.ok)
+    throw new Error("Error fetching backlog status from backlogger");
+  return await resp.json();
 }
 //todo: move all of the route data stuff into this file so it's more organized
