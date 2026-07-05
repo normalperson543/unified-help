@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
+import { prisma } from "./prisma";
 
 export async function startBacklog(
   programId: string,
@@ -31,16 +32,14 @@ export async function startBacklog(
     },
   );
   if (!resp.ok) {
-    const respText = await resp.text()
-    console.log(respText)
+    const respText = await resp.text();
+    console.log(respText);
     throw new Error("Could not start backlog job");
   }
   revalidatePath(`/programs/${programId}/settings`);
 }
 
-export async function stopBacklog(
-  programId: string,
-) {
+export async function stopBacklog(programId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -61,9 +60,41 @@ export async function stopBacklog(
     },
   );
   if (!resp.ok) {
-    const respText = await resp.text()
-    console.log(respText)
+    const respText = await resp.text();
+    console.log(respText);
     throw new Error("Could not stop backlog job");
   }
   revalidatePath(`/programs/${programId}/settings`);
+}
+
+export async function addAsHelper(slackId: string, programId: string) {
+  await prisma.slackUser.update({
+    where: {
+      id: slackId,
+    },
+    data: {
+      programs: {
+        connect: {
+          id: programId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`)
+}
+
+export async function removeHelper(slackId: string, programId: string) {
+  await prisma.slackUser.update({
+    where: {
+      id: slackId,
+    },
+    data: {
+      programs: {
+        connect: {
+          id: programId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`)
 }

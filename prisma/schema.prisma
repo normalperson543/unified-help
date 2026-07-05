@@ -37,6 +37,8 @@ model Program {
   tickets         Ticket[]
   assignedUsers   SlackUser[]
   logo            String?
+  canAutoIndex    Boolean     @default(true)
+  userGroup       String?
   usersOrganizing User[]      @relation("programsOrganizing")
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "./ui/header";
+import { Toast } from "@heroui/react";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default async function RootLayout({
       lang="en"
       className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark`}
     >
+      <Toast.Provider placement="top" />
       <body className="h-full flex flex-col bg-background text-foreground">
         <div className="flex flex-col h-full">
           <Header />

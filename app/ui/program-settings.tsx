@@ -3,6 +3,7 @@
 import { Program } from "@/generated/prisma/client";
 import {
   Avatar,
+  Badge,
   Button,
   Card,
   Chip,
@@ -21,82 +22,21 @@ import {
   ChevronUpIcon,
   InfoIcon,
   PlayIcon,
+  PlusIcon,
   SaveIcon,
   ShieldIcon,
   SquareIcon,
   SquareStopIcon,
+  TriangleAlertIcon,
   UserIcon,
   XIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
-import { startBacklog, stopBacklog } from "../lib/actions";
+import { addAsHelper, startBacklog, stopBacklog } from "../lib/actions";
 import { getLocalTimeZone } from "@internationalized/date";
+import { createUser } from "../lib/slack";
 
-function StartButton({ programId }: { programId: string }) {
-  const [startDate, setStartDate] = useState<DateValue | null>(null);
-  const [endDate, setEndDate] = useState<DateValue | null>(null);
-  async function handleBacklog() {
-    startBacklog(
-      programId,
-      String(startDate?.toDate(getLocalTimeZone()).getTime()),
-      String(endDate?.toDate(getLocalTimeZone()).getTime()),
-    );
-  }
-  return (
-    <Modal>
-      <Button>
-        <PlayIcon /> Start
-      </Button>
-      <Modal.Backdrop>
-        <Modal.Container>
-          <Modal.Dialog>
-            <Modal.CloseTrigger />
-            <Modal.Header>
-              <Modal.Heading>Start backlog task</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <div className="flex flex-col gap-2">
-                <DateField
-                  name="startDate"
-                  value={startDate}
-                  onChange={setStartDate}
-                >
-                  <Label>Start date</Label>
-                  <p className="text-muted">
-                    All tickets after this date will be indexed.
-                  </p>
-                  <DateField.Group variant="secondary">
-                    <DateField.Input>
-                      {(segment) => <DateField.Segment segment={segment} />}
-                    </DateField.Input>
-                  </DateField.Group>
-                </DateField>
-                <DateField name="endDate" value={endDate} onChange={setEndDate}>
-                  <Label>End date</Label>
-                  <p className="text-muted">
-                    All tickets before this date will be indexed.
-                  </p>
-                  <DateField.Group variant="secondary">
-                    <DateField.Input>
-                      {(segment) => <DateField.Segment segment={segment} />}
-                    </DateField.Input>
-                  </DateField.Group>
-                </DateField>
-              </div>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button slot="close" onClick={handleBacklog}>
-                <PlayIcon />
-                Confirm and start
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
-  );
-}
 export default function ProgramSettings({
   program,
   backlogStatus,
@@ -105,10 +45,39 @@ export default function ProgramSettings({
   backlogStatus: BacklogStatus;
 }) {
   const [programName, setProgramName] = useState(program.name);
+  const [userGroup, setUserGroup] = useState(program.userGroup);
+  const [slackId, setSlackId] = useState("");
 
   async function handleStopBacklog() {
     stopBacklog(program.id);
   }
+  async function handleAddUserAsHelper() {
+    let user;
+    try {
+      user = await createUser(slackId);
+    } catch {
+      toast("There was a problem finding this Slack user", {
+        description: "Make sure the Slack user ID is correct.",
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      return;
+    }
+    try {
+      await addAsHelper(slackId, program.id);
+    } catch {
+      toast("There was a problem linking the Slack user to the program", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      return;
+    }
+    toast(`Added ${user?.username} as a helper`, {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4 p-4 w-full h-full">
       <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
@@ -168,10 +137,56 @@ export default function ProgramSettings({
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor="programName">Helpers</Label>
-        <p className="text-muted">
-          Manage Slack users who handle tickets in this program.
-        </p>
+        <div className="flex gap-1 items-center">
+          <div className="flex flex-col gap-1 flex-1">
+            <Label htmlFor="programName">Helpers</Label>
+            <p className="text-muted">
+              Manage Slack users who handle tickets in this program.
+            </p>
+          </div>
+          <Modal>
+            <Button>
+              <PlusIcon />
+              Add helper
+            </Button>
+            <Modal.Backdrop>
+              <Modal.Container>
+                <Modal.Dialog>
+                  <Modal.CloseTrigger />
+                  <Modal.Header>
+                    <Modal.Heading>Add helper to {program.name}</Modal.Heading>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="programName">
+                        Enter the Slack ID of the user you want to add
+                      </Label>
+                      <p className="text-muted">
+                        Get this by going to #what-is-my-slack-id or go to the
+                        Slack profile, clicking on the 3 dots, and clicking
+                        &quot;Copy member ID&quot;
+                      </p>
+                      <Input
+                        type="text"
+                        id="programName"
+                        variant="secondary"
+                        value={slackId}
+                        onChange={(e) => setSlackId(e.target.value)}
+                        className="font-mono"
+                      />
+                    </div>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button slot="close" onClick={handleAddUserAsHelper}>
+                      <PlusIcon />
+                      Add
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Dialog>
+              </Modal.Container>
+            </Modal.Backdrop>
+          </Modal>
+        </div>
         <div className="flex gap-2 flex-wrap">
           {program.assignedUsers.map((u) => (
             <Card key={u.id} className="basis-50 grow shrink">
@@ -210,9 +225,56 @@ export default function ProgramSettings({
                         <ShieldIcon width={12} />
                         Organizer
                       </Chip>
-                      <Button variant="danger">
-                        <ChevronDownIcon /> Demote
-                      </Button>
+                      <Modal>
+                        <Button variant="danger">
+                          <ChevronDownIcon /> Demote
+                        </Button>
+                        <Modal.Backdrop>
+                          <Modal.Container>
+                            <Modal.Dialog>
+                              <Modal.CloseTrigger />
+                              <Modal.Header>
+                                <Modal.Heading>
+                                  Demote {u.username} from {program.name}?
+                                </Modal.Heading>
+                              </Modal.Header>
+                              <Modal.Body>
+                                <div className="flex flex-row gap-2 items-center">
+                                  <Badge.Anchor>
+                                    <Avatar size="sm">
+                                      <Avatar.Image
+                                        src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                        alt="Profile picture"
+                                      />
+                                      <Avatar.Fallback>
+                                        {u.username.substring(0, 1)}
+                                      </Avatar.Fallback>
+                                    </Avatar>
+                                    <Badge
+                                      color="danger"
+                                      placement="bottom-right"
+                                      size="sm"
+                                    >
+                                      <ChevronDownIcon className="size-2.5" />
+                                    </Badge>
+                                  </Badge.Anchor>
+                                  <p>
+                                    Confirm you would like to demote{" "}
+                                    <b>{u.username}</b> to a helper role in{" "}
+                                    <b>{program.name}</b>?
+                                  </p>
+                                </div>
+                              </Modal.Body>
+                              <Modal.Footer>
+                                <Button slot="close" variant="danger">
+                                  <ChevronDownIcon />
+                                  Demote
+                                </Button>
+                              </Modal.Footer>
+                            </Modal.Dialog>
+                          </Modal.Container>
+                        </Modal.Backdrop>
+                      </Modal>
                     </>
                   )}
                 {u.users.length === 0 && (
@@ -236,16 +298,40 @@ export default function ProgramSettings({
                         <Modal.CloseTrigger />
                         <Modal.Header>
                           <Modal.Heading>
-                            Remove ${u.username} from {program.name}
+                            Remove {u.username} from {program.name}?
                           </Modal.Heading>
                         </Modal.Header>
                         <Modal.Body>
-                          <div className="flex flex-col gap-2"></div>
+                          <div className="flex flex-row gap-2 items-center">
+                            <Badge.Anchor>
+                              <Avatar size="sm">
+                                <Avatar.Image
+                                  src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                  alt="Profile picture"
+                                />
+                                <Avatar.Fallback>
+                                  {u.username.substring(0, 1)}
+                                </Avatar.Fallback>
+                              </Avatar>
+                              <Badge
+                                color="danger"
+                                placement="bottom-right"
+                                size="sm"
+                              >
+                                <XIcon className="size-2.5" />
+                              </Badge>
+                            </Badge.Anchor>
+                            <p>
+                              Confirm you would like to remove{" "}
+                              <b>{u.username}</b> from helping in{" "}
+                              <b>{program.name}</b>?
+                            </p>
+                          </div>
                         </Modal.Body>
                         <Modal.Footer>
-                          <Button slot="close" onClick={handleBacklog}>
-                            <PlayIcon />
-                            Confirm and start
+                          <Button slot="close" variant="danger">
+                            <XIcon />
+                            Remove
                           </Button>
                         </Modal.Footer>
                       </Modal.Dialog>
@@ -256,10 +342,82 @@ export default function ProgramSettings({
             </Card>
           ))}
         </div>
+        <p className="text-muted">
+          You can also automatically add helpers based on a ping group.
+        </p>
       </div>
       <Button>
         <SaveIcon /> Save changes
       </Button>
     </div>
+  );
+}
+
+function StartButton({ programId }: { programId: string }) {
+  const [startDate, setStartDate] = useState<DateValue | null>(null);
+  const [endDate, setEndDate] = useState<DateValue | null>(null);
+  async function handleBacklog() {
+    startBacklog(
+      programId,
+      String(startDate?.toDate(getLocalTimeZone()).getTime()),
+      String(endDate?.toDate(getLocalTimeZone()).getTime()),
+    );
+    toast("Backlog job started", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+  return (
+    <Modal>
+      <Button>
+        <PlayIcon /> Start
+      </Button>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Start backlog task</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="flex flex-col gap-2">
+                <DateField
+                  name="startDate"
+                  value={startDate}
+                  onChange={setStartDate}
+                >
+                  <Label>Start date</Label>
+                  <p className="text-muted">
+                    All tickets after this date will be indexed.
+                  </p>
+                  <DateField.Group variant="secondary">
+                    <DateField.Input>
+                      {(segment) => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
+                </DateField>
+                <DateField name="endDate" value={endDate} onChange={setEndDate}>
+                  <Label>End date</Label>
+                  <p className="text-muted">
+                    All tickets before this date will be indexed.
+                  </p>
+                  <DateField.Group variant="secondary">
+                    <DateField.Input>
+                      {(segment) => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
+                </DateField>
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button slot="close" onClick={handleBacklog}>
+                <PlayIcon />
+                Confirm and start
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

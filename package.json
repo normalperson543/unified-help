@@ -14,6 +14,7 @@
     "@internationalized/date": "^3.12.2",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@slack/web-api": "^7.18.0",
     "better-auth": "^1.6.22",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.21.0",
