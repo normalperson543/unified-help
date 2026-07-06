@@ -1,7 +1,5 @@
+import ProgramUI from "@/app/ui/program-home";
+
 export default function ProgramPage() {
-  return (
-    <div className="flex justify-center items-center w-full h-full">
-      <p className="text-muted">Select a ticket to continue</p>
-    </div>
-  )
+  return <ProgramUI />
 }

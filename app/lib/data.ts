@@ -59,10 +59,10 @@ export async function getProgram(id: string) {
         include: {
           users: {
             include: {
-              programsOrganizing: true
-            }
-          }
-        }
+              programsOrganizing: true,
+            },
+          },
+        },
       },
     },
   });
@@ -117,6 +117,68 @@ export async function getProgramStatistics(id: string) {
     resolved: ticketsResolved,
   };
 }
+export async function getProgramStatisticsInLastDays(id: string, days: number) {
+  const session = await auth.api.getSession({
+    // from better auth docs bc too lazy :
+    headers: await headers(), // you need to pass the headers object.
+  });
+  console.log(session?.user.slackUserId);
+
+  const lastDays = new Date();
+  lastDays.setDate(lastDays.getDate() - days);
+
+  const ticketsResolved = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 2,
+      dateCreated: {
+        gte: lastDays,
+      },
+    },
+  });
+  const ticketsAssigned = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 1,
+      dateCreated: {
+        gte: lastDays,
+      },
+    },
+  });
+  const ticketsOpen = await prisma.ticket.count({
+    where: {
+      programId: id,
+      status: 0,
+      dateCreated: {
+        gte: lastDays,
+      },
+    },
+  });
+  let ticketsAssignedToMe = 0;
+  if (session?.user.slackId) {
+    ticketsAssignedToMe = await prisma.ticket.count({
+      where: {
+        programId: id,
+        status: 1,
+        assignees: {
+          some: {
+            id: session.user.slackUserId as string,
+          },
+        },
+      },
+    });
+  }
+  const totalTickets = await prisma.ticket.count({
+    where: { programId: id },
+  });
+  return {
+    total: totalTickets,
+    open: ticketsOpen,
+    assigned: ticketsAssigned,
+    assignedToMe: ticketsAssignedToMe,
+    resolved: ticketsResolved,
+  };
+}
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -134,12 +196,38 @@ export async function getBacklogStatus(programId: string) {
   const resp = await fetch(
     `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/status`,
   );
-  const respJson = await resp.json()
+  const respJson = await resp.json();
   if (!resp.ok) {
-    console.log(respJson)
+    console.log(respJson);
     throw new Error("Error fetching backlog status from backlogger");
   }
-  console.log(respJson)
+  console.log(respJson);
   return await respJson;
+}
+
+export async function getResolvedTicketsCount(programId: string, days: number) {
+  const lastDays = new Date();
+  lastDays.setDate(lastDays.getDate() - days);
+
+  return await prisma.slackUser.findMany({
+    // this was made with help from claude
+    select: {
+      id: true,
+      username: true,
+      _count: {
+        select: {
+          assignedTickets: {
+            where: {
+              programId: programId,
+              status: 2,
+              dateCreated: {
+                gte: lastDays,
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 }
 //todo: move all of the route data stuff into this file so it's more organized

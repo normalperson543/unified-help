@@ -40,7 +40,6 @@ import {
   addAsHelper,
   removeHelper,
   saveUserGroup,
-  setAutoIndex,
   startBacklog,
   stopBacklog,
   updateInfo,
