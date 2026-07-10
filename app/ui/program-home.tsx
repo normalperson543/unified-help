@@ -1,7 +1,7 @@
 "use client";
 
 import { Pie, PieChart, PieSectorShapeProps, Sector, Tooltip } from "recharts";
-import { Leaderboard, ProgramStatistics } from "../lib/types";
+import { HangTime, Leaderboard, ProgramStatistics, ProgramWithAssignees } from "../lib/types";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { useParams } from "next/navigation";
@@ -10,9 +10,11 @@ import {
   CheckIcon,
   CircleDashedIcon,
   CircleIcon,
+  ClockIcon,
   TicketIcon,
   UserCheckIcon,
 } from "lucide-react";
+import { useState } from "react";
 
 const STATS_COLORS = ["#f00", "#00f", "#0f0"];
 
@@ -22,6 +24,17 @@ const StatsCustomPie = (props: PieSectorShapeProps) => (
 
 export default function ProgramUI() {
   const { programId } = useParams();
+  const [lastDays, setLastDays] = useState(7);
+
+  const {
+    data: info,
+    error: infoError,
+    isLoading: infoIsLoading,
+  } = useSWR<ProgramWithAssignees>(
+    programId && `/api/programs/${programId}/info`,
+    fetcher,
+  );
+
   const {
     data: stats,
     error: statsError,
@@ -36,6 +49,15 @@ export default function ProgramUI() {
     isLoading: lbIsLoading,
   } = useSWR<Leaderboard>(
     programId && `/api/programs/${programId}/leaderboard/days/7`,
+    fetcher,
+  );
+
+  const {
+    data: hangTime,
+    error: hangTimeError,
+    isLoading: hangTimeIsLoading,
+  } = useSWR<HangTime>(
+    programId && `/api/programs/${programId}/hang-time/days/7`,
     fetcher,
   );
 
@@ -56,9 +78,11 @@ export default function ProgramUI() {
       },
     ];
   }
+  
 
   return (
     <div className="flex flex-col p-4 gap-6 w-full h-full">
+      <p className="text-xl font-bold">{info?.name}</p>
       <div className="flex flex-row gap-2">
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
@@ -110,9 +134,22 @@ export default function ProgramUI() {
             />
           </div>
         </Card>
+        <Card className="basis-50 grow shrink relative">
+          <div className="flex flex-col gap-1">
+            <p className="text-muted uppercase">Hang time</p>
+            <p className="font-bold text-3xl">
+              {hangTime && Math.round(hangTime.time * 100) / 100}
+            </p>
+            <p>minutes</p>
+            <ClockIcon
+              width={64}
+              className="bottom-2 -right-2 absolute opacity-30"
+            />
+          </div>
+        </Card>
       </div>
       <div className="flex flex-row gap-2">
-        <Card>
+        <Card className="grow shrink">
           <PieChart
             style={{
               width: "100%",
@@ -132,13 +169,13 @@ export default function ProgramUI() {
               label={({ percent }) =>
                 percent && `${(percent * 100).toFixed(0)}%`
               }
-              isAnimationActive={true}
+              isAnimationActive={false}
               shape={StatsCustomPie}
             />
             <Tooltip />
           </PieChart>
         </Card>
-        <Card>
+        <Card className="grow shrink">
           <div className="flex flex-col gap-2">
             <p className="text-lg font-bold">Leaderboard</p>
             {lb &&

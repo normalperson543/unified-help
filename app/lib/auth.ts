@@ -6,6 +6,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { genericOAuth } from "better-auth/plugins";
 import { prisma } from "./prisma";
+import { createUser } from "./slack";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -38,13 +39,12 @@ export const auth = betterAuth({
             console.log(profile);
             const slackId = profile.slack_id; // whatever field your OAuth puts it in
 
-            const slackUser = await prisma.slackUser.findUnique({
-              where: { id: slackId },
-            });
+            const user = await createUser(profile.slack_id);
+            console.log(user)
 
             return {
               slackId,
-              slackUserId: slackUser?.id ?? null,
+              slackUserId: user?.id ?? null,
             };
           },
 

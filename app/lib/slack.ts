@@ -7,13 +7,14 @@ import { addAsHelper } from "./actions";
 const web = new WebClient(process.env["SLACK_API_TOKEN"]);
 
 export async function createUser(id: string) {
-  const user = await prisma.slackUser.findUnique({
+  let dbUser
+  dbUser = await prisma.slackUser.findUnique({
     where: {
       id: id as string,
     },
   });
-  let slackUser, dbUser;
-  if (!user) {
+  let slackUser;
+  if (!dbUser) {
     slackUser = await web.users.info({
       user: id as string,
     });

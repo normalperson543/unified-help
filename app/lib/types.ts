@@ -78,3 +78,7 @@ export type Leaderboard = {
     assignedTickets: number;
   };
 }[];
+
+export type HangTime = {
+  time: number
+}
