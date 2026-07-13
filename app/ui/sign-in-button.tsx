@@ -1,19 +1,29 @@
 "use client";
-import { Avatar, Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { LogInIcon } from "lucide-react";
 import { authClient } from "../lib/auth-client";
+import { useState } from "react";
 
 export default function SignInButton() {
+  const [signingIn, setSigningIn] = useState(false);
   async function handleSignIn() {
-    console.log("twout");
+    setSigningIn(true);
     await authClient.signIn.social({
       provider: "hackclub",
       callbackURL: "/dashboard",
     });
   }
   return (
-    <Button onClick={handleSignIn}>
-      <LogInIcon /> Sign in
+    <Button onClick={handleSignIn} isPending={signingIn}>
+      {signingIn ? (
+        <>
+          <Spinner color="accent" /> Signing in
+        </>
+      ) : (
+        <>
+          <LogInIcon /> Sign in
+        </>
+      )}
     </Button>
   );
 }

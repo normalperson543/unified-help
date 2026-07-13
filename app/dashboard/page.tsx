@@ -4,21 +4,26 @@ import { getPrograms, getUser } from "../lib/data";
 import { Card } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
-import { SquareArrowOutUpRightIcon } from "lucide-react";
+import { PlusSquareIcon, SquareArrowOutUpRightIcon } from "lucide-react";
+import NotLoggedIn from "../ui/not-logged-in";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ // from better auth docs
+  const session = await auth.api.getSession({
+    // from better auth docs
     headers: await headers(), // you need to pass the headers object.
   });
   const programs = await getPrograms();
   let user;
   if (session?.user.id) user = await getUser(session?.user.id);
-  if (!user) return <p>Unauthorized</p>;
+  if (!user) return <NotLoggedIn />;
   return (
     <div className="flex flex-col gap-2 px-12 py-4 w-full h-full">
       <h2 className="text-lg font-bold">Your Programs</h2>
       {!user.slackUser ? (
-        <p>Your Slack user was not linked to the database.</p>
+        <p>
+          Your Slack user was not linked to the database. Please log out and log
+          back in again. If this persists, contact Unified Help support.
+        </p>
       ) : (
         <>
           <p>
@@ -66,6 +71,14 @@ export default async function DashboardPage() {
             </Card>
           </Link>
         ))}
+        {user.isAdmin && (
+          <Link href="/dashboard/add-program">
+            <Card className="w-96 flex flex-row border-dashed border-2 border-muted">
+              <PlusSquareIcon width={16} />
+              <b>Create program</b>
+            </Card>
+          </Link>
+        )}
       </div>
     </div>
   );

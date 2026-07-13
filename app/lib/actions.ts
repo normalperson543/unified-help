@@ -4,14 +4,24 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { indexUsersFromUserGroup } from "./slack";
+import { createUser, indexUsersFromUserGroup } from "./slack";
 import { group } from "console";
+import { redirect } from "next/navigation";
 
+async function throwIfNoAuth() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+}
 export async function startBacklog(
   programId: string,
   backlogTo?: string | null,
   backlogFrom?: string | null,
 ) {
+  throwIfNoAuth();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -42,6 +52,7 @@ export async function startBacklog(
 }
 
 export async function stopBacklog(programId: string) {
+  throwIfNoAuth();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -74,6 +85,8 @@ export async function addAsHelper(
   programId: string,
   revalidate: boolean = true,
 ) {
+  throwIfNoAuth();
+  await createUser(slackId);
   await prisma.slackUser.update({
     where: {
       id: slackId,
@@ -92,6 +105,7 @@ export async function addAsHelper(
 }
 
 export async function removeHelper(slackId: string, programId: string) {
+  throwIfNoAuth();
   await prisma.slackUser.update({
     where: {
       id: slackId,
@@ -108,6 +122,7 @@ export async function removeHelper(slackId: string, programId: string) {
 }
 
 export async function saveUserGroup(groupId: string, programId: string) {
+  throwIfNoAuth();
   await prisma.program.update({
     where: {
       id: programId,
@@ -119,15 +134,48 @@ export async function saveUserGroup(groupId: string, programId: string) {
   indexUsersFromUserGroup(groupId, programId); // not async on purpose :p
   revalidatePath(`/programs/${programId}/settings`);
 }
-export async function updateInfo(programId: string, name: string, canAutoIndex: boolean) {
+export async function updateInfo(
+  programId: string,
+  name: string,
+  canAutoIndex: boolean,
+) {
+  throwIfNoAuth();
   await prisma.program.update({
     where: {
-      id: programId
+      id: programId,
     },
     data: {
       name: name,
-      canAutoIndex: canAutoIndex
-    }
-  })
+      canAutoIndex: canAutoIndex,
+    },
+  });
   revalidatePath(`/programs/${programId}/settings`);
+}
+export async function createProgram(
+  name: string,
+  channelId: string,
+  canAutoIndex: boolean,
+) {
+  throwIfNoAuth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const program = await prisma.program.create({
+    data: {
+      name: name,
+      channelId: channelId,
+      canAutoIndex: canAutoIndex,
+      usersOrganizing: {
+        connect: {
+          id: session!.user?.id,
+        },
+      },
+      assignedUsers: {
+        connect: {
+          id: session!.user.slackId as string,
+        },
+      },
+    },
+  });
+  redirect(`/programs/${program.id}`);
 }
