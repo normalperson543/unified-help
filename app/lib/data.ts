@@ -64,6 +64,7 @@ export async function getProgram(id: string) {
           },
         },
       },
+      usersOrganizing: true
     },
   });
 }

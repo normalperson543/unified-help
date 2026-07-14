@@ -155,6 +155,7 @@ export async function createProgram(
   name: string,
   channelId: string,
   canAutoIndex: boolean,
+  imageLink: string,
 ) {
   throwIfNoAuth();
   const session = await auth.api.getSession({
@@ -165,6 +166,7 @@ export async function createProgram(
       name: name,
       channelId: channelId,
       canAutoIndex: canAutoIndex,
+      logo: imageLink,
       usersOrganizing: {
         connect: {
           id: session!.user?.id,

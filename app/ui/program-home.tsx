@@ -1,10 +1,10 @@
 "use client";
 
 import { Pie, PieChart, PieSectorShapeProps, Sector, Tooltip } from "recharts";
-import { HangTime, Leaderboard, ProgramStatistics, ProgramWithAssignees } from "../lib/types";
+import { HangTime, Leaderboard, ProgramStatistics, ProgramWithAssignees, RouteError } from "../lib/types";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { Avatar, Card } from "@heroui/react";
 import {
   CheckIcon,
@@ -15,6 +15,7 @@ import {
   UserCheckIcon,
 } from "lucide-react";
 import { useState } from "react";
+import NotLoggedIn from "./not-logged-in";
 
 const STATS_COLORS = ["#f00", "#00f", "#0f0"];
 
@@ -30,7 +31,7 @@ export default function ProgramUI() {
     data: info,
     error: infoError,
     isLoading: infoIsLoading,
-  } = useSWR<ProgramWithAssignees>(
+  } = useSWR<ProgramWithAssignees, RouteError>(
     programId && `/api/programs/${programId}/info`,
     fetcher,
   );
@@ -78,8 +79,12 @@ export default function ProgramUI() {
       },
     ];
   }
-  
 
+  console.log("error")
+  console.log(infoError)
+  
+  if (infoError && infoError.info.status === "Not found") notFound()
+    
   return (
     <div className="flex flex-col p-4 gap-6 w-full h-full">
       <p className="text-xl font-bold">{info?.name}</p>

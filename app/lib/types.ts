@@ -61,6 +61,7 @@ export type ReplyWithResolver = TicketPayload["replies"][number] & {
 
 export type TicketWithReplies = Omit<TicketPayload, "replies"> & {
   replies: ReplyWithResolver[];
+
 };
 
 export type ProgramStatistics = {
@@ -81,4 +82,11 @@ export type Leaderboard = {
 
 export type HangTime = {
   time: number
+}
+
+export type RouteError = {
+  info: {
+    status: "Unauthorized" | "Unauthenticated" | "Not found"
+  },
+  status: number
 }

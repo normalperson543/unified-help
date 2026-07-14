@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthorized" }), {
+    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
       status: 401,
     });
   }

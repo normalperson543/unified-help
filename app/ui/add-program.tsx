@@ -14,10 +14,11 @@ import { useState } from "react";
 
 export default function AddProgramUI() {
   const [programName, setProgramName] = useState("");
+  const [imageLink, setImageLink] = useState("");
   const [channelId, setChannelId] = useState("");
   const [autoIndex, setAutoIndex] = useState(true);
   function handleAddProgram() {
-    createProgram(programName, channelId, autoIndex);
+    createProgram(programName, channelId, autoIndex, imageLink);
   }
 
   return (
@@ -28,6 +29,18 @@ export default function AddProgramUI() {
         <Input
           value={programName}
           onChange={(e) => setProgramName(e.target.value)}
+        />
+      </TextField>
+      <TextField type="text">
+        <Label htmlFor="programName">Icon</Label>
+        <Description>
+          Icons must be square.{" "}
+          <a href="https://cdn.hackclub.com" className="underline" target="_blank">Hack Club CDN</a> links are
+          accepted.
+        </Description>
+        <Input
+          value={imageLink}
+          onChange={(e) => setImageLink(e.target.value)}
         />
       </TextField>
       <TextField type="text">

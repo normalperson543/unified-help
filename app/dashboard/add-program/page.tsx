@@ -4,7 +4,6 @@ import AddProgramUI from "@/app/ui/add-program";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import Unauthorized from "@/app/ui/unauthorized";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
 
 export default async function AddProgram() {
   const session = await auth.api.getSession({
@@ -15,5 +14,6 @@ export default async function AddProgram() {
   if (session?.user.id) user = await getUser(session?.user.id);
   if (!user) return <NotLoggedIn />;
   if (!user.isAdmin) return <Unauthorized />
+
   return <AddProgramUI />;
 }

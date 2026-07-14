@@ -1,8 +1,8 @@
 import { auth } from "@/app/lib/auth";
 import { getUser } from "@/app/lib/data";
-import NotLoggedIn from "@/app/ui/not-logged-in";
 import TicketUI from "@/app/ui/ticket";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 export default async function ThreadUI({
   params,
@@ -16,7 +16,7 @@ export default async function ThreadUI({
   });
   let user;
   if (session?.user.id) user = await getUser(session?.user.id);
-  if (!user) return <NotLoggedIn />;
+  if (!user) notFound();
 
   return <TicketUI id={ticketId} programId={programId} />;
 }
