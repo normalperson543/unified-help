@@ -18,7 +18,8 @@ export type ProgramWithAssignees = Prisma.ProgramGetPayload<{
           };
         };
       };
-    };
+    },
+    usersOrganizing: true
   };
 }>;
 

@@ -41,7 +41,7 @@ export default function RootLayout({
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [sort, setSort] = useState("desc")
+  const [sort, setSort] = useState("desc");
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -184,58 +184,58 @@ export default function RootLayout({
                   </Autocomplete.Filter>
                 </Autocomplete.Popover>
               </Autocomplete>
-              <Select
-                onChange={(e) =>
-                  handleChangeStatusFilter(e?.toString() as string)
-                }
-                value={statusFilter}
-                className="w-1/2"
-              >
-                <Label>Status</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="0,1,2" value="0,1,2">
-                      All statuses
-                    </ListBox.Item>
-                    <ListBox.Item id="0" value="0">
-                      Open
-                    </ListBox.Item>
-                    <ListBox.Item id="1" value="1">
-                      Assigned
-                    </ListBox.Item>
-                    <ListBox.Item id="2" value="2">
-                      Resolved
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <Select
-                onChange={(e) =>
-                  handleChangeSort(e?.toString() as string)
-                }
-                value={sort}
-                className="w-1/2"
-              >
-                <Label>Sort by</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="asc" value="asc">
-                      Ascending
-                    </ListBox.Item>
-                    <ListBox.Item id="desc" value="desc">
-                      Descending
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
+              <div className="flex gap-4">
+                <Select
+                  onChange={(e) =>
+                    handleChangeStatusFilter(e?.toString() as string)
+                  }
+                  value={statusFilter}
+                  className="w-1/2"
+                >
+                  <Label>Status</Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="0,1,2" value="0,1,2">
+                        All statuses
+                      </ListBox.Item>
+                      <ListBox.Item id="0" value="0">
+                        Open
+                      </ListBox.Item>
+                      <ListBox.Item id="1" value="1">
+                        Assigned
+                      </ListBox.Item>
+                      <ListBox.Item id="2" value="2">
+                        Resolved
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+                <Select
+                  onChange={(e) => handleChangeSort(e?.toString() as string)}
+                  value={sort}
+                  className="w-1/2"
+                >
+                  <Label>Sort by</Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="asc" value="asc">
+                        Ascending
+                      </ListBox.Item>
+                      <ListBox.Item id="desc" value="desc">
+                        Descending
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+              </div>
             </div>
           )}
           {programTickets && (
@@ -245,11 +245,12 @@ export default function RootLayout({
           )}
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">
-          {((!programTickets || programTicketsIsLoading) && !programTicketsError) && (
-            <div className="flex justify-center items-center w-full h-full">
-              <Spinner />
-            </div>
-          )}
+          {(!programTickets || programTicketsIsLoading) &&
+            !programTicketsError && (
+              <div className="flex justify-center items-center w-full h-full">
+                <Spinner />
+              </div>
+            )}
           {programError && (
             <div className="flex justify-center items-center w-full h-full">
               <p className="text-muted">Problem fetching tickets</p>

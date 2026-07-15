@@ -7,6 +7,7 @@ import SignInButton from "./sign-in-button";
 import ProgramStats from "./program-stats";
 import Link from "next/link";
 import SignOutButton from "./sign-out-button";
+import ProgramTabs from "./program-tabs";
 
 export default async function Header({
   children,
@@ -28,7 +29,9 @@ export default async function Header({
           </h2>
         </Link>
         <ProgramSelector />
+        <ProgramTabs />
       </div>
+
       <div className="flex flex-row gap-4 items-center">
         {children}
         <ProgramStats />

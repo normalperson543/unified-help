@@ -7,6 +7,7 @@ import {
   CircleAlertIcon,
   CircleDashedIcon,
   CircleIcon,
+  ClockIcon,
   SquareArrowOutUpRightIcon,
 } from "lucide-react";
 import useSWR from "swr";
@@ -99,6 +100,25 @@ export default function TicketUI({
                   </div>
                   {ticket.assignees.length === 0 && (
                     <p className="text-muted">No assignees</p>
+                  )}
+                  {ticket.responseTime !== 0 && ticket.status > 0 && (
+                    <div className="flex items-center gap-2">
+                      <ClockIcon width={16} className="text-muted" />
+                      <p className="text-muted">
+                        {ticket.responseTime < 60 && (
+                          <>
+                            {Math.round(ticket.responseTime * 100) / 100}{" "}
+                            seconds
+                          </>
+                        )}
+                        {ticket.responseTime >= 60 && (
+                          <>
+                            {Math.round((ticket.responseTime / 60) * 100) / 100} {" "}
+                            minutes
+                          </>
+                        )}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>

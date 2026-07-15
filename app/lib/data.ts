@@ -232,37 +232,23 @@ export async function getResolvedTicketsCount(programId: string, days: number) {
   });
 }
 export async function getHangTime(programId: string, days: number) {
-  // used claude code
   const lastDays = new Date();
   lastDays.setDate(lastDays.getDate() - days);
 
-  const tickets = await prisma.ticket.findMany({
+  const res = await prisma.ticket.aggregate({
+    _avg: {
+      responseTime: true,
+    },
     where: {
+      responseTime: {
+        not: 0
+      },
       dateCreated: {
-        gte: lastDays,
-      },
-      programId: programId,
-    },
-    include: {
-      replies: {
-        orderBy: { dateCreated: "asc" },
-        take: 2,
-      },
-    },
-  });
-
-  const gapsMs = tickets
-    .filter((t) => t.replies.length >= 2)
-    .map(
-      (t) =>
-        t.replies[1].dateCreated.getTime() - t.replies[0].dateCreated.getTime(),
-    );
-
-  const averageMs =
-    gapsMs.length > 0
-      ? gapsMs.reduce((sum, ms) => sum + ms, 0) / gapsMs.length
-      : null;
-
-  return averageMs !== null ? averageMs / (1000 * 60) : null;
+        gte: lastDays
+      }
+    }
+  })
+  console.log(res);
+  return res._avg.responseTime;
 }
 //todo: move all of the route data stuff into this file so it's more organized

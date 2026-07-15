@@ -1,7 +1,13 @@
 "use client";
 
 import { Pie, PieChart, PieSectorShapeProps, Sector, Tooltip } from "recharts";
-import { HangTime, Leaderboard, ProgramStatistics, ProgramWithAssignees, RouteError } from "../lib/types";
+import {
+  HangTime,
+  Leaderboard,
+  ProgramStatistics,
+  ProgramWithAssignees,
+  RouteError,
+} from "../lib/types";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { notFound, useParams } from "next/navigation";
@@ -80,14 +86,11 @@ export default function ProgramUI() {
     ];
   }
 
-  console.log("error")
-  console.log(infoError)
-  
-  if (infoError && infoError.info.status === "Not found") notFound()
-    
   return (
     <div className="flex flex-col p-4 gap-6 w-full h-full">
-      <p className="text-xl font-bold">{info?.name}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xl font-bold">{info?.name}</p>
+      </div>
       <div className="flex flex-row gap-2">
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
@@ -143,7 +146,7 @@ export default function ProgramUI() {
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Hang time</p>
             <p className="font-bold text-3xl">
-              {hangTime && Math.round(hangTime.time * 100) / 100}
+              {hangTime && Math.round(hangTime.time / 60 * 100) / 100}
             </p>
             <p>minutes</p>
             <ClockIcon
