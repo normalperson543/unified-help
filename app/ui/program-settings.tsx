@@ -116,7 +116,7 @@ export default function ProgramSettings({
     });
   }
   return (
-    <div className="flex flex-col gap-4 p-4 w-full h-full">
+    <div className="flex flex-col gap-4 p-4 w-full min-h-full">
       <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
       <div className="flex flex-col gap-2">
         <TextField type="text">

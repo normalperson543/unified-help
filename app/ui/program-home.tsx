@@ -11,17 +11,28 @@ import {
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { notFound, useParams } from "next/navigation";
-import { Avatar, Card } from "@heroui/react";
+import {
+  Avatar,
+  Button,
+  Card,
+  DateField,
+  DateValue,
+  Label,
+  NumberField,
+} from "@heroui/react";
 import {
   CheckIcon,
   CircleDashedIcon,
   CircleIcon,
   ClockIcon,
+  SquareArrowOutUpRightIcon,
   TicketIcon,
   UserCheckIcon,
 } from "lucide-react";
 import { useState } from "react";
 import NotLoggedIn from "./not-logged-in";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import Image from "next/image";
 
 const STATS_COLORS = ["#f00", "#00f", "#0f0"];
 
@@ -32,6 +43,15 @@ const StatsCustomPie = (props: PieSectorShapeProps) => (
 export default function ProgramUI() {
   const { programId } = useParams();
   const [lastDays, setLastDays] = useState(7);
+  const [startDate, setStartDate] = useState<DateValue | null>(
+    today(getLocalTimeZone()).subtract({ days: 1 }),
+  );
+  const [endDate, setEndDate] = useState<DateValue | null>(
+    today(getLocalTimeZone()),
+  );
+
+  const fStartDate = startDate?.toDate(getLocalTimeZone()).getTime();
+  const fEndDate = endDate?.toDate(getLocalTimeZone()).getTime();
 
   const {
     data: info,
@@ -47,7 +67,8 @@ export default function ProgramUI() {
     error: statsError,
     isLoading: statsIsLoading,
   } = useSWR<ProgramStatistics>(
-    programId && `/api/programs/${programId}/ticket-count/days/7`,
+    programId &&
+      `/api/programs/${programId}/ticket-count/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
   const {
@@ -55,16 +76,16 @@ export default function ProgramUI() {
     error: lbError,
     isLoading: lbIsLoading,
   } = useSWR<Leaderboard>(
-    programId && `/api/programs/${programId}/leaderboard/days/7`,
+    programId && `/api/programs/${programId}/leaderboard/days/${lastDays}`,
     fetcher,
   );
-
   const {
     data: hangTime,
     error: hangTimeError,
     isLoading: hangTimeIsLoading,
   } = useSWR<HangTime>(
-    programId && `/api/programs/${programId}/hang-time/days/7`,
+    programId &&
+      `/api/programs/${programId}/hang-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
 
@@ -89,13 +110,60 @@ export default function ProgramUI() {
   return (
     <div className="flex flex-col p-4 gap-6 w-full h-full">
       <div className="flex items-center justify-between">
-        <p className="text-xl font-bold">{info?.name}</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            {info?.logo && (
+              <Image
+                src={info.logo}
+                alt="Program logo"
+                width={32}
+                height={32}
+                className="rounded-sm"
+              />
+            )}
+            <p className="text-xl font-bold">{info?.name}</p>
+          </div>
+          <div className="flex gap-1 text-muted">
+            <pre>{info?.channelId}</pre> - {info?.assignedUsers.length} helper
+            {info?.assignedUsers.length != 1 && "s"} -{" "}
+            {info?.usersOrganizing.length} organizer
+            {info?.usersOrganizing.length != 1 && "s"}
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          {info?.channelId && (
+            <a
+              href={`https://hackclub.enterprise.slack.com/archives/${info.channelId}`}
+              target="_blank"
+            >
+              <Button>
+                Open in Slack <SquareArrowOutUpRightIcon />
+              </Button>
+            </a>
+          )}
+          <DateField name="startDate" value={startDate} onChange={setStartDate}>
+            <Label>Start date</Label>
+            <DateField.Group variant="secondary">
+              <DateField.Input>
+                {(segment) => <DateField.Segment segment={segment} />}
+              </DateField.Input>
+            </DateField.Group>
+          </DateField>
+          <DateField name="endDate" value={endDate} onChange={setEndDate}>
+            <Label>End date</Label>
+            <DateField.Group variant="secondary">
+              <DateField.Input>
+                {(segment) => <DateField.Segment segment={segment} />}
+              </DateField.Input>
+            </DateField.Group>
+          </DateField>
+        </div>
       </div>
       <div className="flex flex-row gap-2">
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Open tickets</p>
-            <p className="font-bold text-3xl">{stats && stats.open}</p>
+            <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
             <CircleDashedIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -105,7 +173,7 @@ export default function ProgramUI() {
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Assigned tickets</p>
-            <p className="font-bold text-3xl">{stats && stats.assigned}</p>
+            <p className="font-bold text-3xl">{stats ? stats.assigned : 0}</p>
             <CircleIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -115,7 +183,7 @@ export default function ProgramUI() {
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Resolved tickets</p>
-            <p className="font-bold text-3xl">{stats && stats.resolved}</p>
+            <p className="font-bold text-3xl">{stats ? stats.resolved : 0}</p>
             <CheckIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -125,7 +193,9 @@ export default function ProgramUI() {
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Assigned to you</p>
-            <p className="font-bold text-3xl">{stats && stats.assignedToMe}</p>
+            <p className="font-bold text-3xl">
+              {stats ? stats.assignedToMe : 0}
+            </p>
             <UserCheckIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -135,7 +205,7 @@ export default function ProgramUI() {
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Total tickets</p>
-            <p className="font-bold text-3xl">{stats && stats.total}</p>
+            <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
             <TicketIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -146,7 +216,7 @@ export default function ProgramUI() {
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Hang time</p>
             <p className="font-bold text-3xl">
-              {hangTime && Math.round(hangTime.time / 60 * 100) / 100}
+              {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
             </p>
             <p>minutes</p>
             <ClockIcon
@@ -157,13 +227,10 @@ export default function ProgramUI() {
         </Card>
       </div>
       <div className="flex flex-row gap-2">
-        <Card className="grow shrink">
+        <Card className="grow shrink max-w-84">
           <PieChart
             style={{
               width: "100%",
-              height: "100%",
-              maxWidth: "350px",
-              maxHeight: "350px",
               aspectRatio: 1,
             }}
             responsive
@@ -173,7 +240,7 @@ export default function ProgramUI() {
               dataKey="value"
               cx="50%"
               cy="50%"
-              outerRadius={72}
+              outerRadius="80%"
               label={({ percent }) =>
                 percent && `${(percent * 100).toFixed(0)}%`
               }

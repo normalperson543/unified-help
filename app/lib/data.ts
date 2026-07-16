@@ -64,11 +64,15 @@ export async function getProgram(id: string) {
           },
         },
       },
-      usersOrganizing: true
+      usersOrganizing: true,
     },
   });
 }
-export async function getProgramStatistics(id: string) {
+export async function getProgramStatistics(
+  id: string,
+  oldest: Date,
+  newest: Date,
+) {
   const session = await auth.api.getSession({
     // from better auth docs bc too lazy :
     headers: await headers(), // you need to pass the headers object.
@@ -79,61 +83,9 @@ export async function getProgramStatistics(id: string) {
     where: {
       programId: id,
       status: 2,
-    },
-  });
-  const ticketsAssigned = await prisma.ticket.count({
-    where: {
-      programId: id,
-      status: 1,
-    },
-  });
-  const ticketsOpen = await prisma.ticket.count({
-    where: {
-      programId: id,
-      status: 0,
-    },
-  });
-  let ticketsAssignedToMe = 0;
-  if (session?.user.slackId) {
-    ticketsAssignedToMe = await prisma.ticket.count({
-      where: {
-        programId: id,
-        status: 1,
-        assignees: {
-          some: {
-            id: session.user.slackUserId as string,
-          },
-        },
-      },
-    });
-  }
-  const totalTickets = await prisma.ticket.count({
-    where: { programId: id },
-  });
-  return {
-    total: totalTickets,
-    open: ticketsOpen,
-    assigned: ticketsAssigned,
-    assignedToMe: ticketsAssignedToMe,
-    resolved: ticketsResolved,
-  };
-}
-export async function getProgramStatisticsInLastDays(id: string, days: number) {
-  const session = await auth.api.getSession({
-    // from better auth docs bc too lazy :
-    headers: await headers(), // you need to pass the headers object.
-  });
-  console.log(session?.user.slackUserId);
-
-  const lastDays = new Date();
-  lastDays.setDate(lastDays.getDate() - days);
-
-  const ticketsResolved = await prisma.ticket.count({
-    where: {
-      programId: id,
-      status: 2,
       dateCreated: {
-        gte: lastDays,
+        gte: oldest,
+        lte: newest,
       },
     },
   });
@@ -142,7 +94,8 @@ export async function getProgramStatisticsInLastDays(id: string, days: number) {
       programId: id,
       status: 1,
       dateCreated: {
-        gte: lastDays,
+        gte: oldest,
+        lte: newest,
       },
     },
   });
@@ -151,7 +104,8 @@ export async function getProgramStatisticsInLastDays(id: string, days: number) {
       programId: id,
       status: 0,
       dateCreated: {
-        gte: lastDays,
+        gte: oldest,
+        lte: newest,
       },
     },
   });
@@ -166,11 +120,21 @@ export async function getProgramStatisticsInLastDays(id: string, days: number) {
             id: session.user.slackUserId as string,
           },
         },
+        dateCreated: {
+          gte: oldest,
+          lte: newest,
+        },
       },
     });
   }
   const totalTickets = await prisma.ticket.count({
-    where: { programId: id },
+    where: {
+      programId: id,
+      dateCreated: {
+        gte: oldest,
+        lte: newest,
+      },
+    },
   });
   return {
     total: totalTickets,
@@ -231,23 +195,26 @@ export async function getResolvedTicketsCount(programId: string, days: number) {
     },
   });
 }
-export async function getHangTime(programId: string, days: number) {
-  const lastDays = new Date();
-  lastDays.setDate(lastDays.getDate() - days);
-
+export async function getHangTime(
+  programId: string,
+  oldest: Date,
+  newest: Date,
+) {
   const res = await prisma.ticket.aggregate({
     _avg: {
       responseTime: true,
     },
     where: {
+      programId: programId,
       responseTime: {
-        not: 0
+        not: 0,
       },
       dateCreated: {
-        gte: lastDays
-      }
-    }
-  })
+        gte: oldest,
+        lte: newest,
+      },
+    },
+  });
   console.log(res);
   return res._avg.responseTime;
 }

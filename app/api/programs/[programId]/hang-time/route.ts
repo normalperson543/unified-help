@@ -1,4 +1,5 @@
-import { getProgramStatistics, getUserAuthStatus } from "@/app/lib/data";
+import { getHangTime, getUserAuthStatus } from "@/app/lib/data";
+
 import { type NextRequest } from "next/server";
 
 export async function GET(
@@ -6,7 +7,6 @@ export async function GET(
   ctx: RouteContext<"/api/programs/[programId]">,
 ) {
   const { programId } = await ctx.params;
-
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
     return new Response(JSON.stringify({ status: "Unauthorized" }), {
@@ -31,12 +31,8 @@ export async function GET(
   } else {
     newestDate = new Date()
   }
-
-  const stats = await getProgramStatistics(programId, oldestDate, newestDate);
-
-  if (!stats)
-    return new Response(JSON.stringify({ status: "Not found" }), {
-      status: 404,
-    });
-  return new Response(JSON.stringify(stats));
+  console.log(oldestDate);
+  console.log(newestDate);
+  const hangTime = await getHangTime(programId, oldestDate, newestDate);
+  return new Response(JSON.stringify({ time: hangTime }));
 }
