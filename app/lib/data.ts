@@ -218,4 +218,49 @@ export async function getHangTime(
   console.log(res);
   return res._avg.responseTime;
 }
+export async function isOrg(programId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    return false;
+  }
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    include: {
+      programsOrganizing: true,
+    },
+  });
+  console.log("bloop!");
+  console.log(user);
+  console.log(user?.programsOrganizing.some((p) => p.id === programId));
+  return (
+    user?.isAdmin || user?.programsOrganizing.some((p) => p.id === programId)
+  );
+}
+
+export async function getAllStats() {
+  const tickets = await prisma.ticket.count();
+  const replies = await prisma.reply.count();
+  const slackUsers = await prisma.slackUser.count();
+  const helpers = await prisma.slackUser.count({
+    where: {
+      programs: {
+        some: {},
+      },
+    },
+  });
+  const registered = await prisma.user.count();
+  const programs = await prisma.program.count();
+  return {
+    programs: programs,
+    tickets: tickets,
+    replies: replies,
+    helpers: helpers,
+    registered: registered,
+    slackUsers: slackUsers,
+  };
+}
 //todo: move all of the route data stuff into this file so it's more organized

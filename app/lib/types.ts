@@ -91,3 +91,21 @@ export type RouteError = {
   },
   status: number
 }
+export type GlobalStats = {
+  programs: number;
+  tickets: number;
+  replies: number;
+  helpers: number;
+  registered: number;
+  slackUsers: number;
+}
+export type ProgramWithCount = Prisma.ProgramGetPayload<{
+  include: {
+    _count: {
+      select: {
+        tickets: true,
+        assignedUsers: true
+      }
+    }
+  }
+}>

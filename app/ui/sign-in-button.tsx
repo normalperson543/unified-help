@@ -4,7 +4,11 @@ import { LogInIcon } from "lucide-react";
 import { authClient } from "../lib/auth-client";
 import { useState } from "react";
 
-export default function SignInButton() {
+export default function SignInButton({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   const [signingIn, setSigningIn] = useState(false);
   async function handleSignIn() {
     setSigningIn(true);
@@ -17,12 +21,14 @@ export default function SignInButton() {
     <Button onClick={handleSignIn} isPending={signingIn}>
       {signingIn ? (
         <>
-          <Spinner color="accent" /> Signing in
+          <Spinner color="current" /> Signing in
         </>
       ) : (
-        <>
-          <LogInIcon /> Sign in
-        </>
+        (children ?? (
+          <>
+            <LogInIcon /> Sign in
+          </>
+        ))
       )}
     </Button>
   );

@@ -7,6 +7,7 @@ import { prisma } from "./prisma";
 import { createUser, indexUsersFromUserGroup } from "./slack";
 import { group } from "console";
 import { redirect } from "next/navigation";
+import { isOrg } from "./data";
 
 async function throwIfNoAuth() {
   const session = await auth.api.getSession({
@@ -22,6 +23,8 @@ export async function startBacklog(
   backlogFrom?: string | null,
 ) {
   throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -86,6 +89,8 @@ export async function addAsHelper(
   revalidate: boolean = true,
 ) {
   throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   await createUser(slackId);
   await prisma.slackUser.update({
     where: {
@@ -106,6 +111,8 @@ export async function addAsHelper(
 
 export async function removeHelper(slackId: string, programId: string) {
   throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   await prisma.slackUser.update({
     where: {
       id: slackId,
@@ -123,6 +130,8 @@ export async function removeHelper(slackId: string, programId: string) {
 
 export async function saveUserGroup(groupId: string, programId: string) {
   throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   await prisma.program.update({
     where: {
       id: programId,
@@ -140,6 +149,8 @@ export async function updateInfo(
   canAutoIndex: boolean,
 ) {
   throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   await prisma.program.update({
     where: {
       id: programId,

@@ -28,7 +28,9 @@ export default async function Header({
             unified<b>help</b>
           </h2>
         </Link>
-        <ProgramSelector />
+        {session?.user &&
+          <ProgramSelector />
+        }
         <ProgramTabs />
       </div>
 
