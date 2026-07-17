@@ -24,6 +24,7 @@ model Ticket {
   assignees    SlackUser[] @relation("ticketAssignees")
   status       Int         @default(0)
   responseTime Float       @default(0)
+  resolveTime  Float       @default(0)
 
   programId   String
   slackUserId String

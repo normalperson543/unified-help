@@ -24,8 +24,8 @@ export default async function RootLayout({
       className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark`}
     >
       <Toast.Provider placement="top" />
-      <body className="h-full flex flex-col bg-background text-foreground">
-        <div className="flex flex-col h-full">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <div className="flex flex-col h-screen">
           <Header />
           {children}
         </div>

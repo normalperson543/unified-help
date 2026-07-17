@@ -91,7 +91,7 @@ export default function RootLayout({
         onScroll={(e) => {
           savedSidebarScrollTop = e.currentTarget.scrollTop; // this was also Claude
         }}
-        className="flex flex-col gap-2 w-1/2 h-full overflow-scroll border-r border-accent-background relative"
+        className="flex flex-col gap-2 w-1/2 min-h-0 overflow-y-auto border-r border-accent-background relative"
       >
         <div className="bg-background px-4 py-2 flex flex-col gap-1 sticky top-0 z-10">
           <div className="flex gap-2 items-center">
@@ -291,7 +291,7 @@ export default function RootLayout({
             ))}
         </div>
       </div>
-      <div className="flex flex-col p-4 gap-4 w-full h-full overflow-scroll">
+      <div className="flex flex-col p-4 gap-4 w-full min-h-0 overflow-y-auto">
         {children}
       </div>
     </div>

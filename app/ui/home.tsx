@@ -15,8 +15,8 @@ export default function HomeUI({
   programs: ProgramWithCount[];
 }) {
   return (
-    <div className="flex flex-col gap-2  w-full h-full">
-      <div className="bg-radial-[at_25%_25%] dark:from-[#133856] light:from-[#338eda] to-transparent to-75%">
+    <div className="flex flex-col gap-2 w-full flex-1 min-h-0 overflow-y-auto">
+      <div className="grow bg-radial-[at_25%_25%] dark:from-[#133856] light:from-[#338eda] to-transparent to-75%">
         <div className="flex flex-row w-full justify-between items-center bg-radial-[at_75%_25%] dark:from-[#3e0e15] light:from-[#ec3750] to-transparent to-75% p-12">
           <div className="flex flex-col gap-12">
             <div className="flex flex-col gap-6">
@@ -29,27 +29,33 @@ export default function HomeUI({
               <div className="flex flex-row gap-2">
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic"><AnimatedCounter end={stats.tickets} /></p>
+                    <p className="text-4xl font-bold italic">
+                      <AnimatedCounter end={stats.tickets} />
+                    </p>
                     <p className="text-muted">tickets</p>
                   </div>
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">{stats.replies}</p>
+                    <p className="text-4xl font-bold italic">
+                      <AnimatedCounter end={stats.replies} />
+                    </p>
                     <p className="text-muted">tracked replies</p>
                   </div>
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
                     <p className="text-4xl font-bold italic">
-                      {stats.slackUsers}
+                      <AnimatedCounter end={stats.slackUsers} />
                     </p>
                     <p className="text-muted">tracked users</p>
                   </div>
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">{stats.helpers}</p>
+                    <p className="text-4xl font-bold italic">
+                      <AnimatedCounter end={stats.helpers} />
+                    </p>
                     <p className="text-muted">helpers</p>
                   </div>
                 </Card>
