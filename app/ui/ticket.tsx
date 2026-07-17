@@ -189,7 +189,7 @@ export default function TicketUI({
           />
           {ticket.replies.map((r) => {
             if (r.slackUser.isBot) {
-              if (r.message.includes("marked as resolved")) {
+              if (r.message.includes("marked as resolved") || r.message.includes("marked resolved")) {
                 const resolver = r.resolver;
                 return (
                   <div
@@ -247,7 +247,7 @@ export default function TicketUI({
                   </div>
                 );
               }
-              if (r.message.includes("someone")) {
+              if (r.message.includes("someone")|| r.message.includes("received")) {
                 return;
               }
             }

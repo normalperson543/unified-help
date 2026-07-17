@@ -13,23 +13,25 @@ datasource db {
 }
 
 model Ticket {
-  id           String      @id @unique @default(uuid())
-  messageId    String      @unique
-  program      Program     @relation(fields: [programId], references: [id])
-  message      String
-  dateCreated  DateTime
-  dateIndexed  DateTime    @default(now())
-  slackUser    SlackUser   @relation("ticketAuthor", fields: [slackUserId], references: [id])
-  resolver     SlackUser?  @relation("ticketResolver", fields: [resolverId], references: [id])
-  assignees    SlackUser[] @relation("ticketAssignees")
-  status       Int         @default(0)
-  responseTime Float       @default(0)
-  resolveTime  Float       @default(0)
+  id                String      @id @unique @default(uuid())
+  messageId         String      @unique
+  program           Program     @relation(fields: [programId], references: [id])
+  message           String
+  dateCreated       DateTime
+  dateIndexed       DateTime    @default(now())
+  slackUser         SlackUser   @relation("ticketAuthor", fields: [slackUserId], references: [id])
+  resolver          SlackUser?  @relation("ticketResolver", fields: [resolverId], references: [id])
+  assignees         SlackUser[] @relation("ticketAssignees")
+  status            Int         @default(0)
+  responseTime      Float       @default(0)
+  firstResponseUser User?       @relation(fields: [firstResponseUserId], references: [id])
+  resolveTime       Float       @default(0)
 
-  programId   String
-  slackUserId String
-  resolverId  String?
-  replies     Reply[]
+  programId           String
+  slackUserId         String
+  resolverId          String?
+  replies             Reply[]
+  firstResponseUserId String?
 }
 
 model Program {
@@ -86,6 +88,7 @@ model User {
   slackUser   SlackUser? @relation(fields: [slackUserId], references: [id])
 
   programsOrganizing Program[] @relation("programsOrganizing")
+  tickets            Ticket[]
 
   @@unique([email])
   @@map("user")

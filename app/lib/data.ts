@@ -13,6 +13,83 @@ export async function getSlackUser(id: string) {
     },
   });
 }
+export async function getSlackUserDetailed(id: string) {
+  return await prisma.slackUser.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      programs: true,
+      createdTickets: true,
+      resolvedTickets: true,
+      assignedTickets: true,
+      replies: true,
+      _count: {
+        select: {
+          programs: true,
+          createdTickets: true,
+          resolvedTickets: true,
+          assignedTickets: true,
+          replies: true,
+        },
+      },
+    },
+  });
+}
+export async function getUserFirstResponseTime(
+  userId: string,
+  oldest: Date,
+  newest: Date,
+) {
+  // just to clarify:
+  // i count any ticket that has been claimed FIRST by the assigned user.
+  // what is NOT counted: if you reply to a post after someone already claimed it
+  const res = await prisma.ticket.aggregate({
+    _avg: {
+      responseTime: true,
+    },
+    where: {
+      firstResponseUserId: userId,
+      responseTime: {
+        not: 0,
+      },
+      dateCreated: {
+        gte: oldest,
+        lte: newest,
+      },
+    },
+  });
+  console.log(res);
+  return res._avg.responseTime;
+}
+export async function getUserResolveTime(
+  userId: string,
+  oldest: Date,
+  newest: Date,
+) {
+  const res = await prisma.ticket.aggregate({
+    _avg: {
+      resolveTime: true,
+    },
+    where: {
+      resolverId: userId,
+      responseTime: {
+        not: 0,
+      },
+      assignees: {
+        some: {
+          id: userId
+        },
+      },
+      dateCreated: {
+        gte: oldest,
+        lte: newest,
+      },
+    },
+  });
+  console.log(res);
+  return res._avg.resolveTime;
+}
 export async function getUser(id: string) {
   return await prisma.user.findUnique({
     where: {
@@ -231,6 +308,9 @@ export async function getResolveTime(
       programId: programId,
       responseTime: {
         not: 0,
+      },
+      assignees: {
+        some: {},
       },
       dateCreated: {
         gte: oldest,
