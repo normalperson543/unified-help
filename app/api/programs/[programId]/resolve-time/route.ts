@@ -1,10 +1,10 @@
-import { getHangTime, getUserAuthStatus } from "@/app/lib/data";
+import { getResolveTime, getUserAuthStatus } from "@/app/lib/data";
 
 import { type NextRequest } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  ctx: RouteContext<"/api/programs/[programId]/hang-time">,
+  ctx: RouteContext<"/api/programs/[programId]/resolve-time">,
 ) {
   const { programId } = await ctx.params;
   const authStatus = await getUserAuthStatus();
@@ -33,6 +33,6 @@ export async function GET(
   }
   console.log(oldestDate);
   console.log(newestDate);
-  const hangTime = await getHangTime(programId, oldestDate, newestDate);
+  const hangTime = await getResolveTime(programId, oldestDate, newestDate);
   return new Response(JSON.stringify({ time: hangTime }));
 }

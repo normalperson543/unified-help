@@ -13,6 +13,7 @@ import {
   Input,
   Label,
   Modal,
+  ProgressBar,
   Spinner,
   Switch,
   TextField,
@@ -46,13 +47,13 @@ import {
 } from "../lib/actions";
 import { getLocalTimeZone } from "@internationalized/date";
 import { createUser } from "../lib/slack";
+import { fetcher } from "../lib/swr";
+import useSWR from "swr";
 
 export default function ProgramSettings({
   program,
-  backlogStatus,
 }: {
   program: ProgramWithAssignees;
-  backlogStatus: BacklogStatus;
 }) {
   const [programName, setProgramName] = useState(program.name);
   const [channelId, setChannelId] = useState(program.channelId);
@@ -60,6 +61,29 @@ export default function ProgramSettings({
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
 
+  const {
+    data: backlogStatus,
+    error: backlogStatusError,
+    isLoading: backlogStatusIsLoading,
+  } = useSWR<BacklogStatus>(
+    `/api/programs/${program.id}/backlog-status`,
+    fetcher,
+    {
+      refreshInterval: (latest) => (latest?.status === "pending" ? 3000 : 0),
+    },
+  );
+
+  let backlogPercent;
+  if (backlogStatus && backlogStatus.job && backlogStatus.job.ts) {
+    backlogPercent =
+      ((Number(backlogStatus.job.ts.current) * 1000 -
+        Number(backlogStatus.job.ts.start)) /
+        (Number(backlogStatus.job.ts.end) -
+          Number(backlogStatus.job.ts.start))) *
+      100;
+    console.log(backlogPercent);
+    console.log(backlogStatus.job.ts);
+  }
   async function handleStopBacklog() {
     stopBacklog(program.id);
   }
@@ -109,7 +133,7 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(program.id, programName, autoIndex)
+    await updateInfo(program.id, programName, autoIndex);
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",
@@ -156,45 +180,62 @@ export default function ProgramSettings({
           You can choose to index previous tickets from your support channel so
           that they&apos;ll appear on Unified Help.
         </p>
-        <div className="flex flex-row gap-2 items-center">
-          {backlogStatus.status === "unqueued" && (
-            <>
-              <InfoIcon width={16} />
-              No active backlog tasks
-              <StartButton programId={program.id} />
-            </>
-          )}
-          {backlogStatus.status === "pending" && (
-            <>
-              <Spinner size="sm" />
-              Backlog job started
-              <Button onClick={handleStopBacklog}>
-                <SquareIcon /> Stop
-              </Button>
-            </>
-          )}
-          {backlogStatus.status === "success" && (
-            <>
-              <CheckIcon width={16} />
-              Backlog job completed
-              <StartButton programId={program.id} />
-            </>
-          )}
-          {backlogStatus.status === "failed" && (
-            <>
-              <WarningIcon width={16} />
-              Backlog job failed
-              <StartButton programId={program.id} />
-            </>
-          )}
-          {backlogStatus.status === "stopped" && (
-            <>
-              <SquareIcon width={16} />
-              Backlog job stopped
-              <StartButton programId={program.id} />
-            </>
-          )}
-        </div>
+        {backlogStatusIsLoading && (
+          <div className="flex flex-row gap-2 items-center">
+            <Spinner />
+            Loading backlog status...
+          </div>
+        )}
+        {backlogStatus && (
+          <div className="flex flex-row gap-2 items-center">
+            {backlogStatus.status === "unqueued" && (
+              <>
+                <InfoIcon width={16} />
+                No active backlog tasks
+                <StartButton programId={program.id} />
+              </>
+            )}
+            {backlogStatus.status === "pending" && (
+              <>
+                <ProgressBar
+                  aria-label="Indexing"
+                  className="w-64"
+                  value={backlogPercent}
+                >
+                  <Label>Indexing</Label>
+                  <ProgressBar.Output />
+                  <ProgressBar.Track>
+                    <ProgressBar.Fill />
+                  </ProgressBar.Track>
+                </ProgressBar>
+                <Button onClick={handleStopBacklog}>
+                  <SquareIcon /> Stop
+                </Button>
+              </>
+            )}
+            {backlogStatus.status === "success" && (
+              <>
+                <CheckIcon width={16} />
+                Backlog job completed
+                <StartButton programId={program.id} />
+              </>
+            )}
+            {backlogStatus.status === "failed" && (
+              <>
+                <WarningIcon width={16} />
+                Backlog job failed
+                <StartButton programId={program.id} />
+              </>
+            )}
+            {backlogStatus.status === "stopped" && (
+              <>
+                <SquareIcon width={16} />
+                Backlog job stopped
+                <StartButton programId={program.id} />
+              </>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex gap-1 items-center">

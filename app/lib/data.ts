@@ -218,6 +218,29 @@ export async function getHangTime(
   console.log(res);
   return res._avg.responseTime;
 }
+export async function getResolveTime(
+  programId: string,
+  oldest: Date,
+  newest: Date,
+) {
+  const res = await prisma.ticket.aggregate({
+    _avg: {
+      resolveTime: true,
+    },
+    where: {
+      programId: programId,
+      responseTime: {
+        not: 0,
+      },
+      dateCreated: {
+        gte: oldest,
+        lte: newest,
+      },
+    },
+  });
+  console.log(res);
+  return res._avg.resolveTime;
+}
 export async function isOrg(programId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),

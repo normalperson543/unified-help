@@ -17,10 +17,8 @@ export default async function SettingsPage({
   if (!org) return <Unauthorized />
   
   const program = await getProgram(programId);
-
-  const backlogStatus: BacklogStatus = await getBacklogStatus(programId);
   
   if (!program) notFound();
 
-  return <ProgramSettings program={program} backlogStatus={backlogStatus} />;
+  return <ProgramSettings program={program} />;
 }

@@ -8,6 +8,7 @@ import {
   CircleDashedIcon,
   CircleIcon,
   ClockIcon,
+  ReplyIcon,
   SquareArrowOutUpRightIcon,
 } from "lucide-react";
 import useSWR from "swr";
@@ -103,7 +104,7 @@ export default function TicketUI({
                   )}
                   {ticket.responseTime !== 0 && ticket.status > 0 && (
                     <div className="flex items-center gap-2">
-                      <ClockIcon width={16} className="text-muted" />
+                      <ReplyIcon width={16} className="text-muted" />
                       <p className="text-muted">
                         {ticket.responseTime < 60 && (
                           <>
@@ -113,7 +114,54 @@ export default function TicketUI({
                         )}
                         {ticket.responseTime >= 60 && (
                           <>
-                            {Math.round((ticket.responseTime / 60) * 100) / 100} {" "}
+                            {Math.round((ticket.responseTime / 60) * 100) / 100}{" "}
+                            minutes
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {ticket.resolveTime !== 0 &&
+                    ticket.responseTime !== 0 &&
+                    ticket.status == 2 && (
+                      <div className="flex items-center gap-2 text-muted">
+                        {ticket.resolveTime > ticket.responseTime &&
+                          ticket.resolveTime - ticket.responseTime < 60 && (
+                            <>
+                              <ClockIcon width={16} className="text-muted" />
+                              {Math.round(
+                                (ticket.resolveTime - ticket.responseTime) *
+                                  100,
+                              ) / 100}{" "}
+                              seconds
+                            </>
+                          )}
+
+                        {ticket.resolveTime - ticket.responseTime >= 60 && (
+                          <>
+                            <ClockIcon width={16} className="text-muted" />
+                            {Math.round(
+                              ((ticket.resolveTime - ticket.responseTime) /
+                                60) *
+                                100,
+                            ) / 100}{" "}
+                            minutes
+                          </>
+                        )}
+                      </div>
+                    )}
+                  {ticket.resolveTime !== 0 && ticket.status == 2 && (
+                    <div className="flex items-center gap-2">
+                      <CheckIcon width={16} className="text-muted" />
+                      <p className="text-muted">
+                        {ticket.resolveTime < 60 && (
+                          <>
+                            {Math.round(ticket.resolveTime * 100) / 100} seconds
+                          </>
+                        )}
+                        {ticket.resolveTime >= 60 && (
+                          <>
+                            {Math.round((ticket.resolveTime / 60) * 100) / 100}{" "}
                             minutes
                           </>
                         )}

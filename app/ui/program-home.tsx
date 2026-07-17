@@ -24,6 +24,7 @@ import {
   CheckIcon,
   CircleDashedIcon,
   CircleIcon,
+  ClockCheckIcon,
   ClockIcon,
   SquareArrowOutUpRightIcon,
   TicketIcon,
@@ -86,6 +87,15 @@ export default function ProgramUI() {
   } = useSWR<HangTime>(
     programId &&
       `/api/programs/${programId}/hang-time/?oldest=${fStartDate}&newest=${fEndDate}`,
+    fetcher,
+    );
+  const {
+    data: resolveTime,
+    error: resolveTimeError,
+    isLoading: resolveTimeIsLoading,
+  } = useSWR<HangTime>(
+    programId &&
+      `/api/programs/${programId}/resolve-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
 
@@ -220,6 +230,19 @@ export default function ProgramUI() {
             </p>
             <p>minutes</p>
             <ClockIcon
+              width={64}
+              className="bottom-2 -right-2 absolute opacity-30"
+            />
+          </div>
+        </Card>
+        <Card className="basis-50 grow shrink relative">
+          <div className="flex flex-col gap-1">
+            <p className="text-muted uppercase">Resolve time</p>
+            <p className="font-bold text-3xl">
+              {resolveTime ? Math.round((resolveTime.time / 60) * 100) / 100 : 0}
+            </p>
+            <p>minutes</p>
+            <ClockCheckIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
             />
