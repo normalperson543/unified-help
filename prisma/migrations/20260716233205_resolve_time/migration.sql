@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Ticket" ADD COLUMN     "resolveTime" DOUBLE PRECISION NOT NULL DEFAULT 0;
