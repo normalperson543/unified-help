@@ -1,4 +1,4 @@
-import { getSlackUser } from "@/app/lib/data";
+import { getSlackUserDetailed } from "@/app/lib/data";
 import ProfileUI from "@/app/ui/profile";
 
 export default async function ProfilePage({
@@ -7,6 +7,6 @@ export default async function ProfilePage({
   params: Promise<{ profileId: string }>;
 }) {
   const { profileId } = await params;
-  const profile = await getSlackUser(profileId)
+  const profile = await getSlackUserDetailed(profileId)
   return <ProfileUI profile={profile} />
 }

@@ -47,15 +47,19 @@ export default function TicketUI({
         <>
           <div className="flex justify-between">
             <div className="flex gap-4 flex-1">
-              <Avatar>
-                <Avatar.Image
-                  src={`https://cachet.dunkirk.sh/users/${ticket.slackUser.id}/r`}
-                  alt="Profile picture"
-                />
-                <Avatar.Fallback>
-                  {ticket.slackUser.username.substring(0, 1)}
-                </Avatar.Fallback>
-              </Avatar>
+              <Link
+                href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
+              >
+                <Avatar>
+                  <Avatar.Image
+                    src={`https://cachet.dunkirk.sh/users/${ticket.slackUser.id}/r`}
+                    alt="Profile picture"
+                  />
+                  <Avatar.Fallback>
+                    {ticket.slackUser.username.substring(0, 1)}
+                  </Avatar.Fallback>
+                </Avatar>
+              </Link>
 
               <div className="flex flex-col gap-2">
                 <h2 className="font-bold text-xl">
@@ -82,15 +86,19 @@ export default function TicketUI({
                       {ticket.assignees.map((user) => (
                         <Tooltip delay={0} key={user.id}>
                           <Tooltip.Trigger>
-                            <Avatar size="sm">
-                              <Avatar.Image
-                                src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
-                                alt="Profile picture"
-                              />
-                              <Avatar.Fallback>
-                                {user.username.substring(0, 1)}
-                              </Avatar.Fallback>
-                            </Avatar>
+                            <Link
+                              href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
+                            >
+                              <Avatar size="sm">
+                                <Avatar.Image
+                                  src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
+                                  alt="Profile picture"
+                                />
+                                <Avatar.Fallback>
+                                  {user.username.substring(0, 1)}
+                                </Avatar.Fallback>
+                              </Avatar>
+                            </Link>
                           </Tooltip.Trigger>
                           <Tooltip.Content>
                             <p>{user.username}</p>
@@ -185,11 +193,15 @@ export default function TicketUI({
             message={ticket.message}
             slackId={ticket.slackUserId}
             dateCreated={ticket.dateCreated}
+            programId={ticket.programId}
             op
           />
           {ticket.replies.map((r) => {
             if (r.slackUser.isBot) {
-              if (r.message.includes("marked as resolved") || r.message.includes("marked resolved")) {
+              if (
+                r.message.includes("marked as resolved") ||
+                r.message.includes("marked resolved")
+              ) {
                 const resolver = r.resolver;
                 return (
                   <div
@@ -247,7 +259,10 @@ export default function TicketUI({
                   </div>
                 );
               }
-              if (r.message.includes("someone")|| r.message.includes("received")) {
+              if (
+                r.message.includes("someone") ||
+                r.message.includes("received")
+              ) {
                 return;
               }
             }
@@ -260,6 +275,7 @@ export default function TicketUI({
                 op={ticket.slackUserId === r.slackUserId}
                 isHelper={r.slackUser.programs.some((p) => p.id === programId)}
                 dateCreated={r.dateCreated}
+                programId={ticket.programId}
               />
             );
           })}

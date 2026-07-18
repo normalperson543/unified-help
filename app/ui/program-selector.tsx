@@ -1,10 +1,11 @@
 "use client";
-import { Label, ListBox, Select, Spinner } from "@heroui/react";
+import { ComboBox, Input, Key, ListBox, Select, Spinner } from "@heroui/react";
 import useSWR from "swr";
 import { Program } from "@/generated/prisma/client";
 import { fetcher } from "../lib/swr";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
 
 export default function ProgramSelector() {
   const {
@@ -12,26 +13,31 @@ export default function ProgramSelector() {
     error: programsError,
     isLoading: programsIsLoading,
   } = useSWR<Program[]>(`/api/programs`, fetcher);
+  const { programId } = useParams();
+  
+  const [selectedKey, setSelectedKey] = useState<Key | null>(programId as string);
 
   const router = useRouter();
-  const { programId } = useParams();
+  
 
   if (programsError) return;
   if (!programs) return <Spinner />;
 
-  function handleSelectProgram(id: string) {
-    router.push(`/programs/${id}`);
+  function handleSelectProgram(key: Key | null) {
+    if (!key) return;
+    setSelectedKey(key);
+    router.push(`/programs/${key}`);
   }
   return (
-    <Select
-      onChange={(e) => handleSelectProgram(e?.toString() as string)}
-      value={(programId as string) ?? ""}
+    <ComboBox
+      selectedKey={selectedKey}
+      onSelectionChange={(key) => handleSelectProgram(key)}
     >
-      <Select.Trigger>
-        <Select.Value />
-        <Select.Indicator />
-      </Select.Trigger>
-      <Select.Popover>
+      <ComboBox.InputGroup>
+        <Input placeholder="Search programs..." />
+        <ComboBox.Trigger />
+      </ComboBox.InputGroup>
+      <ComboBox.Popover>
         <ListBox>
           {!programsIsLoading &&
             programs &&
@@ -52,7 +58,7 @@ export default function ProgramSelector() {
               </ListBox.Item>
             ))}
         </ListBox>
-      </Select.Popover>
-    </Select>
+      </ComboBox.Popover>
+    </ComboBox>
   );
 }

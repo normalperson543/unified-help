@@ -24,7 +24,7 @@ model Ticket {
   assignees         SlackUser[] @relation("ticketAssignees")
   status            Int         @default(0)
   responseTime      Float       @default(0)
-  firstResponseUser User?       @relation(fields: [firstResponseUserId], references: [id])
+  firstResponseUser SlackUser?  @relation("firstResponded", fields: [firstResponseUserId], references: [id])
   resolveTime       Float       @default(0)
 
   programId           String
@@ -52,11 +52,12 @@ model SlackUser {
   replies  Reply[]
   isBot    Boolean @default(false)
 
-  programs        Program[]
-  createdTickets  Ticket[]  @relation("ticketAuthor")
-  resolvedTickets Ticket[]  @relation("ticketResolver")
-  assignedTickets Ticket[]  @relation("ticketAssignees")
-  users           User[]
+  programs              Program[]
+  createdTickets        Ticket[]  @relation("ticketAuthor")
+  resolvedTickets       Ticket[]  @relation("ticketResolver")
+  assignedTickets       Ticket[]  @relation("ticketAssignees")
+  users                 User[]
+  firstRespondedTickets Ticket[]  @relation("firstResponded")
 }
 
 model Reply {
@@ -88,7 +89,6 @@ model User {
   slackUser   SlackUser? @relation(fields: [slackUserId], references: [id])
 
   programsOrganizing Program[] @relation("programsOrganizing")
-  tickets            Ticket[]
 
   @@unique([email])
   @@map("user")

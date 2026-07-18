@@ -13,24 +13,47 @@ export async function getSlackUser(id: string) {
     },
   });
 }
-export async function getSlackUserDetailed(id: string) {
+export async function getSlackUserDetailed(id: string, programId?: string) {
   return await prisma.slackUser.findUnique({
     where: {
       id: id,
     },
     include: {
       programs: true,
-      createdTickets: true,
-      resolvedTickets: true,
-      assignedTickets: true,
-      replies: true,
+      createdTickets: {
+        where: {
+          programId: programId,
+        },
+      },
+      resolvedTickets: {
+        where: {
+          programId: programId,
+        },
+      },
+      assignedTickets: {
+        where: {
+          programId: programId,
+        },
+      },
       _count: {
         select: {
           programs: true,
-          createdTickets: true,
-          resolvedTickets: true,
-          assignedTickets: true,
-          replies: true,
+          createdTickets: {
+            where: {
+              programId: programId,
+            },
+          },
+          resolvedTickets: {
+            where: {
+              programId: programId,
+            },
+          },
+          assignedTickets: {
+            where: {
+              programId: programId,
+            },
+          },
+          users: true
         },
       },
     },
@@ -78,7 +101,7 @@ export async function getUserResolveTime(
       },
       assignees: {
         some: {
-          id: userId
+          id: userId,
         },
       },
       dateCreated: {
