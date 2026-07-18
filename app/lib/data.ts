@@ -53,7 +53,7 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
               programId: programId,
             },
           },
-          users: true
+          users: true,
         },
       },
     },
@@ -63,6 +63,7 @@ export async function getUserFirstResponseTime(
   userId: string,
   oldest: Date,
   newest: Date,
+  programId?: string,
 ) {
   // just to clarify:
   // i count any ticket that has been claimed FIRST by the assigned user.
@@ -73,6 +74,7 @@ export async function getUserFirstResponseTime(
     },
     where: {
       firstResponseUserId: userId,
+      programId: programId,
       responseTime: {
         not: 0,
       },
@@ -89,14 +91,16 @@ export async function getUserResolveTime(
   userId: string,
   oldest: Date,
   newest: Date,
+  programId?: string,
 ) {
   const res = await prisma.ticket.aggregate({
     _avg: {
       resolveTime: true,
     },
     where: {
+      programId: programId,
       resolverId: userId,
-      responseTime: {
+      resolveTime: {
         not: 0,
       },
       assignees: {
@@ -110,6 +114,7 @@ export async function getUserResolveTime(
       },
     },
   });
+  console.log("resolve time")
   console.log(res);
   return res._avg.resolveTime;
 }

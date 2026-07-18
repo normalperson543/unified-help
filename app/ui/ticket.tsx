@@ -87,7 +87,8 @@ export default function TicketUI({
                         <Tooltip delay={0} key={user.id}>
                           <Tooltip.Trigger>
                             <Link
-                              href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
+                              href={`/profile/${user.id}/program/${ticket.programId}`}
+                              target="_blank"
                             >
                               <Avatar size="sm">
                                 <Avatar.Image

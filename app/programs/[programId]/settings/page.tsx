@@ -15,9 +15,9 @@ export default async function SettingsPage({
   console.log("bloop! 2")
   console.log(org)
   if (!org) return <Unauthorized />
-  
+
   const program = await getProgram(programId);
-  
+
   if (!program) notFound();
 
   return <ProgramSettings program={program} />;

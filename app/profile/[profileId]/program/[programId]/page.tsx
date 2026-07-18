@@ -1,4 +1,4 @@
-import { getProgram, getSlackUserDetailed } from "@/app/lib/data";
+import { getProgram, getSlackUserDetailed, getUserFirstResponseTime, getUserResolveTime } from "@/app/lib/data";
 import ProfileUI from "@/app/ui/profile";
 
 export default async function ProfilePage({
@@ -9,5 +9,7 @@ export default async function ProfilePage({
   const { profileId, programId} = await params;
   const profile = await getSlackUserDetailed(profileId, programId)
   const program = await getProgram(programId)
-  return <ProfileUI profile={profile} program={program} />
+  const frt = await getUserFirstResponseTime(profileId, new Date(0), new Date(), programId) //lmao this is temporary
+  const resolveTime = await getUserResolveTime(profileId, new Date(0), new Date(), programId)
+  return <ProfileUI profile={profile} program={program} frt={frt} resolveTime={resolveTime} />
 }
