@@ -8,15 +8,8 @@ import { createUser, indexUsersFromUserGroup } from "./slack";
 import { group } from "console";
 import { redirect } from "next/navigation";
 import { isOrg } from "./data";
+import { throwIfNoAuth } from "./data";
 
-async function throwIfNoAuth() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session || !session.user || !session.user.id) {
-    throw new Error("unauthenticated");
-  }
-}
 export async function startBacklog(
   programId: string,
   backlogTo?: string | null,

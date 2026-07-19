@@ -1,14 +1,16 @@
 "use client";
 
 import { LogOutIcon } from "lucide-react";
-import { Avatar, Dropdown, Label } from "@heroui/react";
+import { Avatar, Dropdown, Label, Link } from "@heroui/react";
 import { authClient } from "../lib/auth-client";
 export default function SignOutButton({
   username,
   pfp,
+  userId,
 }: {
   username: string;
   pfp: string;
+  userId: string;
 }) {
   return (
     <Dropdown>
@@ -25,11 +27,14 @@ export default function SignOutButton({
           }}
         >
           <Dropdown.Item id="profile">
-            <Label>
-              <p className="text-muted">Signed in as </p>
-              {username}
-            </Label>
+            <Link href={`/profile/${userId}`}>
+              <Label>
+                <p className="text-muted">Signed in as </p>
+                {username}
+              </Label>
+            </Link>
           </Dropdown.Item>
+
           <Dropdown.Item id="signOut">
             <LogOutIcon width={16} />
             <Label>Sign out</Label>

@@ -5,19 +5,23 @@ import {
   Card,
   Chip,
   ComboBox,
+  EmptyState,
   Input,
   Key,
   ListBox,
+  Table,
+  Tabs,
+  Tooltip,
 } from "@heroui/react";
-import { SlackUserDetailed } from "../lib/types";
+import { SlackUserDetailed, TicketWithAssigneesAndProgram } from "../lib/types";
 import {
-  CalendarIcon,
   CheckIcon,
   CircleIcon,
   CircleQuestionMarkIcon,
   ClockCheckIcon,
   ReplyIcon,
   SquareArrowOutUpRightIcon,
+  CircleDashedIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -53,7 +57,7 @@ export default function ProfileUI({
     router.push(`/profile/${profile.id}/program/${key}`);
   }
   return (
-    <div className="flex flex-col gap-6 px-36 py-4 w-full h-full">
+    <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between">
         <div className="flex gap-4 items-center">
           <Avatar size="lg">
@@ -78,8 +82,16 @@ export default function ProfileUI({
       </div>
 
       <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-row gap-1">
+        <div className="flex flex-row gap-1 items-center">
           <p>Showing data for</p>
+          {program?.logo && (
+            <Image
+              src={program.logo}
+              width={16}
+              height={16}
+              alt="Program logo"
+            />
+          )}
           <b>{program ? program.name : "all programs"}</b>
         </div>
         <div className="flex flex-row gap-2 items-center">
@@ -121,9 +133,29 @@ export default function ProfileUI({
       <div className="flex flex-row gap-2">
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Assigned tickets</p>
+            <p className="text-muted uppercase">Total assigned tickets</p>
             <p className="font-bold text-3xl">
               {profile._count.assignedTickets}
+            </p>
+            <CircleIcon
+              width={64}
+              className="bottom-2 -right-2 absolute opacity-30"
+            />
+          </div>
+        </Card>
+        <Card className="basis-50 grow shrink relative">
+          <div className="flex flex-col gap-1">
+            <p className="text-muted uppercase">In progress tickets</p>
+            <p className="font-bold text-3xl">
+              {profile._count.assignedTickets - profile._count.resolvedTickets}
+            </p>
+            <p className="text-muted">
+              {Math.round(
+                (profile._count.resolvedTickets /
+                  profile._count.assignedTickets) *
+                  1000,
+              ) / 10}
+              % resolve rate
             </p>
             <CircleIcon
               width={64}
@@ -182,6 +214,192 @@ export default function ProfileUI({
           </div>
         </Card>
       </div>
+      <Tabs variant="secondary">
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="Options">
+            <Tabs.Tab id="assigned">
+              Assigned and resolved tickets
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="created">
+              Created tickets
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <Tabs.Panel id="assigned">
+          <TicketTable tickets={profile.assignedTickets} />
+        </Tabs.Panel>
+        <Tabs.Panel id="created">
+          <TicketTable tickets={profile.createdTickets} />
+        </Tabs.Panel>
+        <Tabs.Panel className="pt-4" id="reports">
+          <p>Generate and download detailed reports.</p>
+        </Tabs.Panel>
+      </Tabs>
     </div>
+  );
+}
+function TicketTable({
+  tickets,
+}: {
+  tickets: TicketWithAssigneesAndProgram[];
+}) {
+  return (
+    <Table>
+      <Table.ScrollContainer className="max-h-96">
+        <Table.Content aria-label="Assigned tickets">
+          <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
+            <Table.Column isRowHeader>Program</Table.Column>
+            <Table.Column>Date created</Table.Column>
+            <Table.Column>Message</Table.Column>
+            <Table.Column>Status</Table.Column>
+            <Table.Column>Assignees</Table.Column>
+            <Table.Column>First response</Table.Column>
+            <Table.Column>Resolve time</Table.Column>
+            <Table.Column>Open</Table.Column>
+          </Table.Header>
+          <Table.Body
+            renderEmptyState={() => (
+              <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+                <CircleQuestionMarkIcon className="text-muted" />
+                <span className="text-sm text-muted">No tickets found</span>
+              </EmptyState>
+            )}
+          >
+            {tickets.map((t) => (
+              <Table.Row key={t.id}>
+                <Table.Cell>{t.program.name}</Table.Cell>
+                <Table.Cell>{t.dateCreated.toLocaleString()}</Table.Cell>
+                <Table.Cell>{t.message.substring(0, 30)}</Table.Cell>
+                <Table.Cell>
+                  {t.status === 0 && (
+                    <Chip color="warning" variant="primary">
+                      <CircleDashedIcon width={16} /> Open
+                    </Chip>
+                  )}
+                  {t.status === 1 && (
+                    <Chip color="accent" variant="primary">
+                      <CircleIcon width={16} /> Assigned
+                    </Chip>
+                  )}
+                  {t.status === 2 && (
+                    <Chip color="success" variant="primary">
+                      <CheckIcon width={16} /> Resolved
+                    </Chip>
+                  )}
+                </Table.Cell>
+                <Table.Cell>
+                  <div className="flex -space-x-2">
+                    {t.assignees.map((user) => (
+                      <Tooltip delay={0} key={user.id}>
+                        <Tooltip.Trigger>
+                          <Link
+                            href={`/profile/${user.id}/program/${t.programId}`}
+                          >
+                            <Avatar size="sm">
+                              <Avatar.Image
+                                src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
+                                alt="Profile picture"
+                              />
+                              <Avatar.Fallback>
+                                {user.username.substring(0, 1)}
+                              </Avatar.Fallback>
+                            </Avatar>
+                          </Link>
+                        </Tooltip.Trigger>
+                        <Tooltip.Content>
+                          <p>{user.username}</p>
+                        </Tooltip.Content>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </Table.Cell>
+                <Table.Cell>
+                  {t.firstResponseUser ? (
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/profile/${t.firstResponseUser?.id}/program/${t.program?.id}`}
+                      >
+                        <Tooltip delay={0}>
+                          <Tooltip.Trigger>
+                            <Avatar size="sm">
+                              <Avatar.Image
+                                src={`https://cachet.dunkirk.sh/users/${t.firstResponseUser?.id}/r`}
+                                alt="Profile picture"
+                              />
+                              <Avatar.Fallback>
+                                {t.firstResponseUser?.username.substring(0, 1)}
+                              </Avatar.Fallback>
+                            </Avatar>{" "}
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p>{t.firstResponseUser?.username}</p>
+                          </Tooltip.Content>
+                        </Tooltip>
+                      </Link>{" "}
+                      <p className="text-muted">
+                        in{" "}
+                        {t.responseTime
+                          ? Math.round((t.responseTime / 60) * 100) / 100
+                          : "N/A"}
+                        m
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted">N/A</p>
+                  )}
+                </Table.Cell>
+                <Table.Cell>
+                  {t.resolver ? (
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/profile/${t.resolver?.id}/program/${t.program?.id}`}
+                      >
+                        <Tooltip delay={0}>
+                          <Tooltip.Trigger>
+                            <Avatar size="sm">
+                              <Avatar.Image
+                                src={`https://cachet.dunkirk.sh/users/${t.resolver?.id}/r`}
+                                alt="Profile picture"
+                              />
+                              <Avatar.Fallback>
+                                {t.resolver?.username.substring(0, 1)}
+                              </Avatar.Fallback>
+                            </Avatar>{" "}
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p>{t.resolver?.username}</p>
+                          </Tooltip.Content>
+                        </Tooltip>
+                      </Link>{" "}
+                      <p className="text-muted">
+                        in{" "}
+                        {t.resolveTime
+                          ? Math.round((t.resolveTime / 60) * 100) / 100
+                          : "N/A"}
+                        m
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted">N/A</p>
+                  )}
+                </Table.Cell>
+                <Table.Cell>
+                  <Link
+                    href={`/programs/${t.program.id}/ticket/${t.id}`}
+                    target="_blank"
+                  >
+                    <Button variant="tertiary">
+                      <SquareArrowOutUpRightIcon />
+                    </Button>
+                  </Link>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
+    </Table>
   );
 }

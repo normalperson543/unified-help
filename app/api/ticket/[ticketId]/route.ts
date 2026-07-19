@@ -27,6 +27,9 @@ export async function GET(
             },
           },
         },
+        orderBy: {
+          dateCreated: "asc"
+        }
       },
       slackUser: true,
       assignees: true,

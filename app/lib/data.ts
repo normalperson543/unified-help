@@ -3,7 +3,23 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
 
+export async function getUserAuthStatus() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id)
+    return { status: "unauthenticated" };
+  return { status: "authenticated" };
+}
+export async function throwIfNoAuth() {
+  const authStatus = await getUserAuthStatus();
+  if (authStatus.status !== "authenticated") {
+    throw new Error("unauthenticated");
+  }
+}
+
 export async function getSlackUser(id: string) {
+  await throwIfNoAuth();
   return await prisma.slackUser.findUnique({
     where: {
       id: id,
@@ -14,6 +30,7 @@ export async function getSlackUser(id: string) {
   });
 }
 export async function getSlackUserDetailed(id: string, programId?: string) {
+  await throwIfNoAuth();
   return await prisma.slackUser.findUnique({
     where: {
       id: id,
@@ -24,16 +41,39 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
         where: {
           programId: programId,
         },
+        include: {
+          program: true,
+          assignees: true,
+          resolver: true,
+          firstResponseUser: true
+        }
       },
       resolvedTickets: {
         where: {
           programId: programId,
+          assignees: {
+            some: {
+              id: id
+            }
+          }
         },
+        include: {
+          program: true,
+          assignees: true,
+          resolver: true,
+          firstResponseUser: true
+        }
       },
       assignedTickets: {
         where: {
           programId: programId,
         },
+        include: {
+          program: true,
+          assignees: true,
+          resolver: true,
+          firstResponseUser: true
+        }
       },
       _count: {
         select: {
@@ -65,6 +105,7 @@ export async function getUserFirstResponseTime(
   newest: Date,
   programId?: string,
 ) {
+  await throwIfNoAuth();
   // just to clarify:
   // i count any ticket that has been claimed FIRST by the assigned user.
   // what is NOT counted: if you reply to a post after someone already claimed it
@@ -93,6 +134,7 @@ export async function getUserResolveTime(
   newest: Date,
   programId?: string,
 ) {
+  await throwIfNoAuth();
   const res = await prisma.ticket.aggregate({
     _avg: {
       resolveTime: true,
@@ -119,6 +161,7 @@ export async function getUserResolveTime(
   return res._avg.resolveTime;
 }
 export async function getUser(id: string) {
+  await throwIfNoAuth();
   return await prisma.user.findUnique({
     where: {
       id: id,
@@ -143,6 +186,7 @@ export async function getUser(id: string) {
   });
 }
 export async function getPrograms() {
+  await throwIfNoAuth();
   return await prisma.program.findMany({
     include: {
       _count: {
@@ -155,6 +199,7 @@ export async function getPrograms() {
   });
 }
 export async function getProgram(id: string) {
+  await throwIfNoAuth();
   return await prisma.program.findUnique({
     where: {
       id: id,
@@ -178,6 +223,7 @@ export async function getProgramStatistics(
   oldest: Date,
   newest: Date,
 ) {
+  await throwIfNoAuth();
   const session = await auth.api.getSession({
     // from better auth docs bc too lazy :
     headers: await headers(), // you need to pass the headers object.
@@ -249,14 +295,6 @@ export async function getProgramStatistics(
     resolved: ticketsResolved,
   };
 }
-export async function getUserAuthStatus() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session || !session.user || !session.user.id)
-    return { status: "unauthenticated" };
-  return { status: "authenticated" };
-}
 export async function getBacklogStatus(programId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -276,6 +314,7 @@ export async function getBacklogStatus(programId: string) {
 }
 
 export async function getResolvedTicketsCount(programId: string, days: number) {
+  
   const lastDays = new Date();
   lastDays.setDate(lastDays.getDate() - days);
 
@@ -328,6 +367,12 @@ export async function getResolveTime(
   oldest: Date,
   newest: Date,
 ) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    return false;
+  }
   const res = await prisma.ticket.aggregate({
     _avg: {
       resolveTime: true,

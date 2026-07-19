@@ -119,17 +119,46 @@ export type ProgramWithCount = Prisma.ProgramGetPayload<{
 export type SlackUserDetailed = Prisma.SlackUserGetPayload<{
   include: {
     programs: true;
-    createdTickets: true;
-    resolvedTickets: true;
-    assignedTickets: true;
+    createdTickets: {
+      include: {
+        program: true;
+        assignees: true;
+        resolver: true;
+        firstResponseUser: true;
+      };
+    };
+    resolvedTickets: {
+      include: {
+        program: true;
+        assignees: true;
+        resolver: true;
+        firstResponseUser: true;
+      };
+    };
+    assignedTickets: {
+      include: {
+        program: true;
+        assignees: true;
+        resolver: true;
+        firstResponseUser: true;
+      };
+    };
     _count: {
       select: {
         programs: true;
         createdTickets: true;
         resolvedTickets: true;
         assignedTickets: true;
-        users: true
+        users: true;
       };
     };
   };
 }>;
+export type TicketWithAssigneesAndProgram = Prisma.TicketGetPayload<{
+  include: {
+    program: true;
+    assignees: true;
+    resolver: true;
+    firstResponseUser: true;
+  };
+}>

@@ -42,6 +42,7 @@ export default async function Header({
           <SignOutButton
             username={user?.slackUser?.username ?? ""}
             pfp={`https://cachet.dunkirk.sh/users/${user?.slackUser?.id}/r`}
+            userId={session.user.slackId!}
           />
         )}
       </div>
