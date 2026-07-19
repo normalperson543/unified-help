@@ -21,6 +21,7 @@ import {
   DateValue,
   Label,
   NumberField,
+  ScrollShadow,
 } from "@heroui/react";
 import {
   CheckIcon,
@@ -349,7 +350,7 @@ export default function ProgramUI() {
         <Card className="grow shrink">
           <div className="flex flex-col gap-4">
             <p className="text-lg font-bold">Leaderboard</p>
-            <div className="max-h-96 overflow-auto flex flex-col gap-2">
+            <ScrollShadow className="max-h-96 overflow-auto flex flex-col gap-2">
               {lb && lb.length > 0 ? (
                 lb
                   .sort(
@@ -396,7 +397,7 @@ export default function ProgramUI() {
                   </p>
                 </div>
               )}
-            </div>
+            </ScrollShadow>
           </div>
         </Card>
       </div>

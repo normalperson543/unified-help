@@ -4,6 +4,7 @@ import { fetcher } from "@/app/lib/swr";
 import { getShortTitle } from "@/app/lib/tools";
 import { ProgramWithAssignees, TicketWithReplies } from "@/app/lib/types";
 import {
+  Alert,
   Autocomplete,
   Avatar,
   Card,
@@ -43,7 +44,7 @@ export default function RootLayout({
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
-  
+
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
     if (sidebarRef.current) {
@@ -253,9 +254,17 @@ export default function RootLayout({
               </div>
             )}
           {programError && (
-            <div className="flex justify-center items-center w-full h-full">
-              <p className="text-muted">Problem fetching tickets</p>
-            </div>
+            <Alert status="danger">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>
+                  There was a problem fetching these tickets
+                </Alert.Title>
+                <Alert.Description>
+                  Please try again by refreshing.
+                </Alert.Description>
+              </Alert.Content>
+            </Alert>
           )}
           {programTickets &&
             !programTicketsIsLoading &&

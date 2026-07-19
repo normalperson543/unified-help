@@ -305,7 +305,6 @@ export async function getUser(id: string) {
   });
 }
 export async function getPrograms() {
-  await throwIfNoAuth();
   return await prisma.program.findMany({
     include: {
       _count: {

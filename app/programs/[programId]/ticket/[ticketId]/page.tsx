@@ -3,6 +3,8 @@ import { getUser } from "@/app/lib/data";
 import TicketUI from "@/app/ui/ticket";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import Loading from "@/app/ui/loading";
+import { Suspense } from "react";
 
 export default async function ThreadUI({
   params,
@@ -11,12 +13,9 @@ export default async function ThreadUI({
 }) {
   const { ticketId, programId } = await params;
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  let user;
-  if (session?.user.id) user = await getUser(session?.user.id);
-  if (!user) notFound();
-
-  return <TicketUI id={ticketId} programId={programId} />;
+  return (
+    <Suspense fallback={<Loading />}>
+      <TicketUI id={ticketId} programId={programId} />
+    </Suspense>
+  );
 }

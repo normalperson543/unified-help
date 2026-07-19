@@ -11,6 +11,10 @@ import { createUser } from "./slack";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   baseURL: "http://localhost:3000/",
+  cookieCache: {
+    enabled: true,
+    maxAge: 5 * 60,
+  },
   user: {
     additionalFields: {
       slackId: {
@@ -40,7 +44,7 @@ export const auth = betterAuth({
             const slackId = profile.slack_id; // whatever field your OAuth puts it in
 
             const user = await createUser(profile.slack_id);
-            console.log(user)
+            console.log(user);
 
             return {
               slackId,

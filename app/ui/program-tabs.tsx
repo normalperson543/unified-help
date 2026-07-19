@@ -1,13 +1,13 @@
 "use client";
 
-import { Button, Link, Tabs } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
-import { Program } from "@/generated/prisma/browser";
 import { ProgramWithAssignees } from "../lib/types";
 import { useParams } from "next/navigation";
 import { HomeIcon, SettingsIcon } from "lucide-react";
 import { authClient } from "../lib/auth-client";
+import Link from "next/link";
 
 export default function ProgramTabs() {
   const { programId } = useParams();

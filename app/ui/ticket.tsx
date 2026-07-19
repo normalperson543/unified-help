@@ -1,7 +1,15 @@
 "use client";
 
 import { fetcher } from "@/app/lib/swr";
-import { Avatar, Chip, Button, Card, Tooltip, Spinner } from "@heroui/react";
+import {
+  Avatar,
+  Chip,
+  Button,
+  Card,
+  Tooltip,
+  Spinner,
+  Alert,
+} from "@heroui/react";
 import {
   CheckIcon,
   CircleAlertIcon,
@@ -17,6 +25,7 @@ import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import { Ticket } from "@/generated/prisma/client";
+import Loading from "./loading";
 
 export default function TicketUI({
   id,
@@ -33,15 +42,17 @@ export default function TicketUI({
 
   return (
     <>
-      {(ticketIsLoading || !ticket) && !ticketError && (
-        <div className="flex justify-center items-center w-full h-full">
-          <Spinner />
-        </div>
-      )}
+      {(ticketIsLoading || !ticket) && !ticketError && <Loading />}
       {ticketError && (
-        <div className="flex justify-center items-center w-full h-full">
-          <p className="text-muted">Problem fetching ticket</p>
-        </div>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>There was a problem fetching this ticket</Alert.Title>
+            <Alert.Description>
+              Please try again by refreshing.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
       {!ticketIsLoading && ticket && (
         <>
@@ -63,7 +74,13 @@ export default function TicketUI({
 
               <div className="flex flex-col gap-2">
                 <h2 className="font-bold text-xl">
-                  {getShortTitle(ticket.message).length > 0 ? getShortTitle(ticket.message) : <span className="text-muted italic">[No title provided]</span>}
+                  {getShortTitle(ticket.message).length > 0 ? (
+                    getShortTitle(ticket.message)
+                  ) : (
+                    <span className="text-muted italic">
+                      [No title provided]
+                    </span>
+                  )}
                 </h2>
                 <div className="flex flex-row gap-4 items-center">
                   {ticket.status === 0 && (
