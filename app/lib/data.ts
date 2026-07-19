@@ -87,6 +87,11 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           resolvedTickets: {
             where: {
               programId: programId,
+              assignees: {
+                some: {
+                  id: id,
+                },
+              },
             },
           },
           assignedTickets: {
@@ -161,10 +166,10 @@ export async function getUserResolveTime(
   console.log(res);
   return res._avg.resolveTime;
 }
-// Computes how many tickets a user "answers" (replies to) on average, bucketed
-// by weekday and by hour of day. A ticket counts as answered on the day/hour a
-// user replied to it; multiple replies to the same ticket in the same bucket
-// only count once. All bucketing is done in UTC.
+
+// REVIEWER NOTE: This function was made with Claude Code.
+// This code is used for the charts on the profile page.
+// I didn't spend much tracked time on this.
 export async function getUserAnswerActivity(
   userId: string,
   programId?: string,
@@ -174,7 +179,10 @@ export async function getUserAnswerActivity(
   const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const emptyWeekday = () => WEEKDAYS.map((day) => ({ day, average: 0 }));
   const emptyHour = () =>
-    Array.from({ length: 24 }, (_, hour) => ({ hour: `${hour}:00`, average: 0 }));
+    Array.from({ length: 24 }, (_, hour) => ({
+      hour: `${hour}:00`,
+      average: 0,
+    }));
 
   const replies = await prisma.reply.findMany({
     where: {
@@ -423,14 +431,14 @@ export async function getResolvedTicketsCount(
     where: {
       programs: {
         some: {
-          id: programId
-        }
-      }
+          id: programId,
+        },
+      },
     },
     select: {
       id: true,
       username: true,
-      
+
       _count: {
         select: {
           assignedTickets: {
@@ -439,7 +447,7 @@ export async function getResolvedTicketsCount(
               status: 2,
               dateCreated: {
                 gte: oldest,
-                lte: newest
+                lte: newest,
               },
             },
           },

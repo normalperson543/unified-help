@@ -70,7 +70,7 @@ export default function ProfileUI({
     }
     router.push(`/profile/${profile.id}/program/${key}`);
   }
-  
+
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between">
@@ -164,14 +164,16 @@ export default function ProfileUI({
             <p className="font-bold text-3xl">
               {profile._count.assignedTickets - profile._count.resolvedTickets}
             </p>
-            <p className="text-muted">
-              {Math.round(
-                (profile._count.resolvedTickets /
-                  profile._count.assignedTickets) *
-                  1000,
-              ) / 10}
-              % resolve rate
-            </p>
+            {profile._count.assignedTickets > 0 && (
+              <p className="text-muted">
+                {Math.round(
+                  (profile._count.resolvedTickets /
+                    profile._count.assignedTickets) *
+                    1000,
+                ) / 10}
+                % resolve rate
+              </p>
+            )}
             <CircleIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -229,12 +231,14 @@ export default function ProfileUI({
           </div>
         </Card>
       </div>
-      <div className="flex flex-row gap-2"> {/* REVIEWER NOTE: The charts are all made with Claude Code */}
+      <div className="flex flex-row gap-2">
+        {" "}
+        {/* REVIEWER NOTE: The charts are all made with Claude Code */}
         <Card className="grow shrink basis-0">
           <div className="flex flex-col gap-2">
-            <p className="text-lg font-bold">Tickets answered per weekday</p>
+            <p className="text-lg font-bold">Tickets replied to per weekday</p>
             <p className="text-muted text-sm">
-              Average tickets answered on each day of the week{" "}
+              Average tickets replied to on each day of the week{" "}
               {program ? "for this program" : "across all programs"} (UTC).
             </p>
             <AnswerBarChart
@@ -246,9 +250,9 @@ export default function ProfileUI({
         </Card>
         <Card className="grow shrink basis-0">
           <div className="flex flex-col gap-2">
-            <p className="text-lg font-bold">Tickets answered per hour</p>
+            <p className="text-lg font-bold">Tickets replied to per hour</p>
             <p className="text-muted text-sm">
-              Average tickets answered during each hour of the day{" "}
+              Average tickets replied to during each hour of the day{" "}
               {program ? "for this program" : "across all programs"} (UTC).
             </p>
             <AnswerBarChart
