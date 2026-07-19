@@ -10,8 +10,10 @@ import {
   Key,
   ListBox,
   Table,
+  TableLayout,
   Tabs,
   Tooltip,
+  Virtualizer,
 } from "@heroui/react";
 import {
   AnswerActivity,
@@ -27,6 +29,9 @@ import {
   ReplyIcon,
   SquareArrowOutUpRightIcon,
   CircleDashedIcon,
+  UserCheckIcon,
+  TicketIcon,
+  MessageCircleIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,12 +45,16 @@ export default function ProfileUI({
   frt,
   resolveTime,
   activity,
+  assignedAndResolvedCount,
+  repliesCount,
 }: {
   profile: SlackUserDetailed;
   program?: Program;
-  frt?: number | undefined;
-  resolveTime?: number | undefined;
+  frt?: number | null | undefined;
+  resolveTime?: number | null | undefined;
   activity: AnswerActivity;
+  assignedAndResolvedCount: number;
+  repliesCount: number;
 }) {
   const [selectedKey, setSelectedKey] = useState<Key | null>(
     program ? (program.id as string) : "all",
@@ -145,7 +154,7 @@ export default function ProfileUI({
             <p className="font-bold text-3xl">
               {profile._count.assignedTickets}
             </p>
-            <CircleIcon
+            <TicketIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
             />
@@ -166,15 +175,27 @@ export default function ProfileUI({
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Resolved tickets</p>
-            <p className="font-bold text-3xl">
-              {profile._count.resolvedTickets}
-            </p>
+            <p className="font-bold text-3xl">{assignedAndResolvedCount}</p>
             <CheckIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
             />
           </div>
         </Card>
+        <Card className="basis-50 grow shrink relative">
+          <div className="flex flex-col gap-1">
+            <p className="text-muted uppercase">Resolved by user</p>
+            <p className="font-bold text-3xl">
+              {profile._count.resolvedTickets}
+            </p>
+            <UserCheckIcon
+              width={64}
+              className="bottom-2 -right-2 absolute opacity-30"
+            />
+          </div>
+        </Card>
+      </div>
+      <div className="flex flex-row gap-2">
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Created tickets</p>
@@ -208,6 +229,16 @@ export default function ProfileUI({
             </p>
             <p>minutes</p>
             <ClockCheckIcon
+              width={64}
+              className="bottom-2 -right-2 absolute opacity-30"
+            />
+          </div>
+        </Card>
+        <Card className="basis-50 grow shrink relative">
+          <div className="flex flex-col gap-1">
+            <p className="text-muted uppercase">Total replies</p>
+            <p className="font-bold text-3xl">{repliesCount}</p>
+            <MessageCircleIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
             />
@@ -276,160 +307,174 @@ function TicketTable({
   tickets: TicketWithAssigneesAndProgram[];
 }) {
   return (
-    <Table>
-      <Table.ScrollContainer className="max-h-96">
-        <Table.Content aria-label="Assigned tickets">
-          <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
-            <Table.Column isRowHeader>Program</Table.Column>
-            <Table.Column>Date created</Table.Column>
-            <Table.Column>Message</Table.Column>
-            <Table.Column>Status</Table.Column>
-            <Table.Column>Assignees</Table.Column>
-            <Table.Column>First response</Table.Column>
-            <Table.Column>Resolve time</Table.Column>
-            <Table.Column>Open</Table.Column>
-          </Table.Header>
-          <Table.Body
-            renderEmptyState={() => (
-              <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-                <CircleQuestionMarkIcon className="text-muted" />
-                <span className="text-sm text-muted">No tickets found</span>
-              </EmptyState>
-            )}
+    <Virtualizer
+      layout={TableLayout}
+      layoutOptions={{
+        headingHeight: 42,
+        rowHeight: 64,
+      }}
+    >
+      <Table>
+        <Table.ScrollContainer>
+          <Table.Content
+            aria-label="Assigned tickets"
+            className="max-h-96 overflow-auto"
           >
-            {tickets.map((t) => (
-              <Table.Row key={t.id}>
-                <Table.Cell>{t.program.name}</Table.Cell>
-                <Table.Cell>{t.dateCreated.toLocaleString()}</Table.Cell>
-                <Table.Cell>{t.message.substring(0, 30)}</Table.Cell>
-                <Table.Cell>
-                  {t.status === 0 && (
-                    <Chip color="warning" variant="primary">
-                      <CircleDashedIcon width={16} /> Open
-                    </Chip>
-                  )}
-                  {t.status === 1 && (
-                    <Chip color="accent" variant="primary">
-                      <CircleIcon width={16} /> Assigned
-                    </Chip>
-                  )}
-                  {t.status === 2 && (
-                    <Chip color="success" variant="primary">
-                      <CheckIcon width={16} /> Resolved
-                    </Chip>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  <div className="flex -space-x-2">
-                    {t.assignees.map((user) => (
-                      <Tooltip delay={0} key={user.id}>
-                        <Tooltip.Trigger>
-                          <Link
-                            href={`/profile/${user.id}/program/${t.programId}`}
-                          >
-                            <Avatar size="sm">
-                              <Avatar.Image
-                                src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
-                                alt="Profile picture"
-                              />
-                              <Avatar.Fallback>
-                                {user.username.substring(0, 1)}
-                              </Avatar.Fallback>
-                            </Avatar>
-                          </Link>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>
-                          <p>{user.username}</p>
-                        </Tooltip.Content>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </Table.Cell>
-                <Table.Cell>
-                  {t.firstResponseUser ? (
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/profile/${t.firstResponseUser?.id}/program/${t.program?.id}`}
-                      >
-                        <Tooltip delay={0}>
+            <Table.Header className="h-full w-full">
+              <Table.Column isRowHeader>Program</Table.Column>
+              <Table.Column>Date created</Table.Column>
+              <Table.Column>Message</Table.Column>
+              <Table.Column>Status</Table.Column>
+              <Table.Column>Assignees</Table.Column>
+              <Table.Column>First response</Table.Column>
+              <Table.Column>Resolve time</Table.Column>
+              <Table.Column>Open</Table.Column>
+            </Table.Header>
+            <Table.Body
+              renderEmptyState={() => (
+                <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+                  <CircleQuestionMarkIcon className="text-muted" />
+                  <span className="text-sm text-muted">No tickets found</span>
+                </EmptyState>
+              )}
+            >
+              {tickets.map((t) => (
+                <Table.Row key={t.id}>
+                  <Table.Cell>{t.program.name}</Table.Cell>
+                  <Table.Cell>{t.dateCreated.toLocaleString()}</Table.Cell>
+                  <Table.Cell>{t.message.substring(0, 30)}</Table.Cell>
+                  <Table.Cell>
+                    {t.status === 0 && (
+                      <Chip color="warning" variant="primary">
+                        <CircleDashedIcon width={16} /> Open
+                      </Chip>
+                    )}
+                    {t.status === 1 && (
+                      <Chip color="accent" variant="primary">
+                        <CircleIcon width={16} /> Assigned
+                      </Chip>
+                    )}
+                    {t.status === 2 && (
+                      <Chip color="success" variant="primary">
+                        <CheckIcon width={16} /> Resolved
+                      </Chip>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="flex -space-x-2">
+                      {t.assignees.map((user) => (
+                        <Tooltip delay={0} key={user.id}>
                           <Tooltip.Trigger>
-                            <Avatar size="sm">
-                              <Avatar.Image
-                                src={`https://cachet.dunkirk.sh/users/${t.firstResponseUser?.id}/r`}
-                                alt="Profile picture"
-                              />
-                              <Avatar.Fallback>
-                                {t.firstResponseUser?.username.substring(0, 1)}
-                              </Avatar.Fallback>
-                            </Avatar>{" "}
+                            <Link
+                              href={`/profile/${user.id}/program/${t.programId}`}
+                            >
+                              <Avatar size="sm">
+                                <Avatar.Image
+                                  src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
+                                  alt="Profile picture"
+                                />
+                                <Avatar.Fallback>
+                                  {user.username.substring(0, 1)}
+                                </Avatar.Fallback>
+                              </Avatar>
+                            </Link>
                           </Tooltip.Trigger>
                           <Tooltip.Content>
-                            <p>{t.firstResponseUser?.username}</p>
+                            <p>{user.username}</p>
                           </Tooltip.Content>
                         </Tooltip>
-                      </Link>{" "}
-                      <p className="text-muted">
-                        in{" "}
-                        {t.responseTime
-                          ? Math.round((t.responseTime / 60) * 100) / 100
-                          : "N/A"}
-                        m
-                      </p>
+                      ))}
                     </div>
-                  ) : (
-                    <p className="text-muted">N/A</p>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  {t.resolver ? (
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/profile/${t.resolver?.id}/program/${t.program?.id}`}
-                      >
-                        <Tooltip delay={0}>
-                          <Tooltip.Trigger>
-                            <Avatar size="sm">
-                              <Avatar.Image
-                                src={`https://cachet.dunkirk.sh/users/${t.resolver?.id}/r`}
-                                alt="Profile picture"
-                              />
-                              <Avatar.Fallback>
-                                {t.resolver?.username.substring(0, 1)}
-                              </Avatar.Fallback>
-                            </Avatar>{" "}
-                          </Tooltip.Trigger>
-                          <Tooltip.Content>
-                            <p>{t.resolver?.username}</p>
-                          </Tooltip.Content>
-                        </Tooltip>
-                      </Link>{" "}
-                      <p className="text-muted">
-                        in{" "}
-                        {t.resolveTime
-                          ? Math.round((t.resolveTime / 60) * 100) / 100
-                          : "N/A"}
-                        m
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-muted">N/A</p>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  <Link
-                    href={`/programs/${t.program.id}/ticket/${t.id}`}
-                    target="_blank"
-                  >
-                    <Button variant="tertiary">
-                      <SquareArrowOutUpRightIcon />
-                    </Button>
-                  </Link>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Content>
-      </Table.ScrollContainer>
-    </Table>
+                  </Table.Cell>
+                  <Table.Cell>
+                    {t.firstResponseUser ? (
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/profile/${t.firstResponseUser?.id}/program/${t.program?.id}`}
+                        >
+                          <Tooltip delay={0}>
+                            <Tooltip.Trigger>
+                              <Avatar size="sm">
+                                <Avatar.Image
+                                  src={`https://cachet.dunkirk.sh/users/${t.firstResponseUser?.id}/r`}
+                                  alt="Profile picture"
+                                />
+                                <Avatar.Fallback>
+                                  {t.firstResponseUser?.username.substring(
+                                    0,
+                                    1,
+                                  )}
+                                </Avatar.Fallback>
+                              </Avatar>{" "}
+                            </Tooltip.Trigger>
+                            <Tooltip.Content>
+                              <p>{t.firstResponseUser?.username}</p>
+                            </Tooltip.Content>
+                          </Tooltip>
+                        </Link>{" "}
+                        <p className="text-muted">
+                          in{" "}
+                          {t.responseTime
+                            ? Math.round((t.responseTime / 60) * 100) / 100
+                            : "N/A"}
+                          m
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-muted">N/A</p>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {t.resolver ? (
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/profile/${t.resolver?.id}/program/${t.program?.id}`}
+                        >
+                          <Tooltip delay={0}>
+                            <Tooltip.Trigger>
+                              <Avatar size="sm">
+                                <Avatar.Image
+                                  src={`https://cachet.dunkirk.sh/users/${t.resolver?.id}/r`}
+                                  alt="Profile picture"
+                                />
+                                <Avatar.Fallback>
+                                  {t.resolver?.username.substring(0, 1)}
+                                </Avatar.Fallback>
+                              </Avatar>{" "}
+                            </Tooltip.Trigger>
+                            <Tooltip.Content>
+                              <p>{t.resolver?.username}</p>
+                            </Tooltip.Content>
+                          </Tooltip>
+                        </Link>{" "}
+                        <p className="text-muted">
+                          in{" "}
+                          {t.resolveTime
+                            ? Math.round((t.resolveTime / 60) * 100) / 100
+                            : "N/A"}
+                          m
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-muted">N/A</p>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Link
+                      href={`/programs/${t.program.id}/ticket/${t.id}`}
+                      target="_blank"
+                    >
+                      <Button variant="tertiary">
+                        <SquareArrowOutUpRightIcon />
+                      </Button>
+                    </Link>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+      </Table>
+    </Virtualizer>
   );
 }

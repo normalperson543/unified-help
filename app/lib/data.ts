@@ -105,6 +105,29 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
     },
   });
 }
+export async function getAllAssignedAndResolvedTicketsCount(userId: string, programId?: string) {
+  return await prisma.ticket.count({
+    where: {
+      programId: programId,
+      status: 2,
+      assignees: {
+        some: {
+          id: userId
+        }
+      }
+    }
+  })
+}
+export async function getUserRepliesCount(userId: string, programId?: string) {
+  return await prisma.reply.count({
+    where: {
+      slackUserId: userId,
+      ticket: {
+        programId: programId
+      }
+    }
+  })
+}
 export async function getUserFirstResponseTime(
   userId: string,
   oldest: Date,
