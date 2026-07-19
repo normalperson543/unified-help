@@ -157,16 +157,6 @@ export default function ProfileUI({
             <p className="font-bold text-3xl">
               {profile._count.assignedTickets - profile._count.resolvedTickets}
             </p>
-            {profile._count.assignedTickets > 0 && (
-              <p className="text-muted">
-                {Math.round(
-                  (profile._count.resolvedTickets /
-                    profile._count.assignedTickets) *
-                    1000,
-                ) / 10}
-                % resolve rate
-              </p>
-            )}
             <CircleIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"

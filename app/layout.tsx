@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import { Google_Sans_Flex } from "next/font/google";
 import "./globals.css";
 import Header from "./ui/header";
 import { Toast } from "@heroui/react";
 
-const ibmPlexSans = IBM_Plex_Sans({
+const ibmPlexSans = Google_Sans_Flex({
   subsets: ["latin"],
 });
 

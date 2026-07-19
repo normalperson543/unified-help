@@ -10,12 +10,14 @@ import {
   DateField,
   DateValue,
   Description,
+  EmptyState,
   Input,
   Label,
   Modal,
   ProgressBar,
   Spinner,
   Switch,
+  Table,
   TextField,
   toast,
   WarningIcon,
@@ -24,6 +26,7 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CircleQuestionMarkIcon,
   InfoIcon,
   PlayIcon,
   PlusIcon,
@@ -49,6 +52,7 @@ import { getLocalTimeZone } from "@internationalized/date";
 import { createUser } from "../lib/slack";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
+import Link from "next/link";
 
 export default function ProgramSettings({
   program,
@@ -140,9 +144,9 @@ export default function ProgramSettings({
     });
   }
   return (
-    <div className="flex flex-col gap-4 p-4 w-full min-h-full">
+    <div className="flex flex-col gap-4 p-4 w-full">
       <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         <TextField type="text">
           <Label htmlFor="programName">Program name</Label>
           <Input
@@ -288,165 +292,196 @@ export default function ProgramSettings({
             </Modal.Backdrop>
           </Modal>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {program.assignedUsers.map((u) => (
-            <Card key={u.id} className="basis-50 grow shrink">
-              <div className="flex flex-col gap-2 items-center justify-center">
-                <Avatar size="sm">
-                  <Avatar.Image
-                    src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
-                    alt="Profile picture"
-                  />
-                  <Avatar.Fallback>
-                    {u.username.substring(0, 1)}
-                  </Avatar.Fallback>
-                </Avatar>
-                <p className="font-bold text-lg">{u.username}</p>
-                <p className="text-muted font-mono">{u.id}</p>
-                {u.users.length > 0 &&
-                  u.users[0].programsOrganizing.filter(
-                    (p) => p.id === program.id,
-                  ).length === 0 && (
-                    <>
-                      <Chip>
-                        <UserIcon width={12} />
-                        Registered helper
-                      </Chip>
-                      <Button>
-                        <ChevronUpIcon /> Make org
-                      </Button>
-                    </>
-                  )}
-                {u.users.length > 0 &&
-                  u.users[0].programsOrganizing.filter(
-                    (p) => p.id === program.id,
-                  ).length > 0 && (
-                    <>
-                      <Chip>
-                        <ShieldIcon width={12} />
-                        Organizer
-                      </Chip>
-                      <Modal>
-                        <Button variant="danger">
-                          <ChevronDownIcon /> Demote
-                        </Button>
-                        <Modal.Backdrop>
-                          <Modal.Container>
-                            <Modal.Dialog>
-                              <Modal.CloseTrigger />
-                              <Modal.Header>
-                                <Modal.Heading>
-                                  Demote {u.username} from {program.name}?
-                                </Modal.Heading>
-                              </Modal.Header>
-                              <Modal.Body>
-                                <div className="flex flex-row gap-2 items-center">
-                                  <Badge.Anchor>
-                                    <Avatar size="sm">
-                                      <Avatar.Image
-                                        src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
-                                        alt="Profile picture"
-                                      />
-                                      <Avatar.Fallback>
-                                        {u.username.substring(0, 1)}
-                                      </Avatar.Fallback>
-                                    </Avatar>
-                                    <Badge
-                                      color="danger"
-                                      placement="bottom-right"
-                                      size="sm"
-                                    >
-                                      <ChevronDownIcon className="size-2.5" />
-                                    </Badge>
-                                  </Badge.Anchor>
-                                  <p>
-                                    Confirm you would like to demote{" "}
-                                    <b>{u.username}</b> to a helper role in{" "}
-                                    <b>{program.name}</b>?
-                                  </p>
-                                </div>
-                              </Modal.Body>
-                              <Modal.Footer>
-                                <Button slot="close" variant="danger">
-                                  <ChevronDownIcon />
-                                  Demote
-                                </Button>
-                              </Modal.Footer>
-                            </Modal.Dialog>
-                          </Modal.Container>
-                        </Modal.Backdrop>
-                      </Modal>
-                    </>
-                  )}
-                {u.users.length === 0 && (
-                  <>
-                    <Chip>
-                      <WarningIcon width={12} />
-                      Unregistered on Unified Help
-                    </Chip>
-                    <Button isDisabled={true}>
-                      <ChevronUpIcon /> Awaiting signup
-                    </Button>
-                  </>
+        <Table>
+          <Table.ScrollContainer className="max-h-96">
+            <Table.Content aria-label="Assigned tickets">
+              <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
+                <Table.Column isRowHeader>Username</Table.Column>
+                <Table.Column>User ID</Table.Column>
+                <Table.Column>Role</Table.Column>
+                <Table.Column>Actions</Table.Column>
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() => (
+                  <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+                    <CircleQuestionMarkIcon className="text-muted" />
+                    <span className="text-sm text-muted">No users found</span>
+                  </EmptyState>
                 )}
-                <Modal>
-                  <Button variant="danger">
-                    <XIcon /> Remove
-                  </Button>
-                  <Modal.Backdrop>
-                    <Modal.Container>
-                      <Modal.Dialog>
-                        <Modal.CloseTrigger />
-                        <Modal.Header>
-                          <Modal.Heading>
-                            Remove {u.username} from {program.name}?
-                          </Modal.Heading>
-                        </Modal.Header>
-                        <Modal.Body>
-                          <div className="flex flex-row gap-2 items-center">
-                            <Badge.Anchor>
-                              <Avatar size="sm">
-                                <Avatar.Image
-                                  src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
-                                  alt="Profile picture"
-                                />
-                                <Avatar.Fallback>
-                                  {u.username.substring(0, 1)}
-                                </Avatar.Fallback>
-                              </Avatar>
-                              <Badge
-                                color="danger"
-                                placement="bottom-right"
-                                size="sm"
-                              >
-                                <XIcon className="size-2.5" />
-                              </Badge>
-                            </Badge.Anchor>
-                            <p>
-                              Confirm you would like to remove{" "}
-                              <b>{u.username}</b> from helping in{" "}
-                              <b>{program.name}</b>?
-                            </p>
-                          </div>
-                        </Modal.Body>
-                        <Modal.Footer>
-                          <Button
-                            slot="close"
-                            variant="danger"
-                            onClick={() => handleRemoveHelper(u.id)}
-                          >
-                            <XIcon />
-                            Remove
+              >
+                {program.assignedUsers.map((u) => (
+                  <Table.Row key={u.id}>
+                    <Table.Cell>
+                      <div className="flex gap-2 items-center">
+                        <Link
+                          href={`/profile/${u.id}/program/${program.id}`}
+                          target="_blank"
+                        >
+                          <Avatar size="sm">
+                            <Avatar.Image
+                              src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                              alt="Profile picture"
+                            />
+                            <Avatar.Fallback>
+                              {u.username.substring(0, 1)}
+                            </Avatar.Fallback>
+                          </Avatar>
+                        </Link>
+                        <Link href={`/profile/${u.id}/program/${program.id}`}>
+                          {u.username}
+                        </Link>
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <pre>{u.id}</pre>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="flex gap-2 items-center">
+                        {u.users.length > 0 &&
+                          u.users[0].programsOrganizing.filter(
+                            (p) => p.id === program.id,
+                          ).length === 0 && (
+                            <>
+                              <UserIcon width={12} />
+                              Registered helper
+                            </>
+                          )}
+                        {u.users.length > 0 &&
+                          u.users[0].programsOrganizing.filter(
+                            (p) => p.id === program.id,
+                          ).length > 0 && (
+                            <>
+                              <ShieldIcon width={12} />
+                              Organizer
+                            </>
+                          )}
+                        {u.users.length === 0 && (
+                          <>
+                            <WarningIcon width={12} />
+                            Unregistered on Unified Help
+                          </>
+                        )}
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="flex items-center justify-end gap-2">
+                        {u.users.length > 0 &&
+                          u.users[0].programsOrganizing.filter(
+                            (p) => p.id === program.id,
+                          ).length > 0 && (
+                            <Modal>
+                              <Button variant="danger">
+                                <ChevronDownIcon /> Demote
+                              </Button>
+                              <Modal.Backdrop>
+                                <Modal.Container>
+                                  <Modal.Dialog>
+                                    <Modal.CloseTrigger />
+                                    <Modal.Header>
+                                      <Modal.Heading>
+                                        Demote {u.username} from {program.name}?
+                                      </Modal.Heading>
+                                    </Modal.Header>
+                                    <Modal.Body>
+                                      <div className="flex flex-row gap-2 items-center">
+                                        <Badge.Anchor>
+                                          <Avatar size="sm">
+                                            <Avatar.Image
+                                              src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                              alt="Profile picture"
+                                            />
+                                            <Avatar.Fallback>
+                                              {u.username.substring(0, 1)}
+                                            </Avatar.Fallback>
+                                          </Avatar>
+                                          <Badge
+                                            color="danger"
+                                            placement="bottom-right"
+                                            size="sm"
+                                          >
+                                            <ChevronDownIcon className="size-2.5" />
+                                          </Badge>
+                                        </Badge.Anchor>
+                                        <p>
+                                          Confirm you would like to demote{" "}
+                                          <b>{u.username}</b> to a helper role
+                                          in <b>{program.name}</b>?
+                                        </p>
+                                      </div>
+                                    </Modal.Body>
+                                    <Modal.Footer>
+                                      <Button slot="close" variant="danger">
+                                        <ChevronDownIcon />
+                                        Demote
+                                      </Button>
+                                    </Modal.Footer>
+                                  </Modal.Dialog>
+                                </Modal.Container>
+                              </Modal.Backdrop>
+                            </Modal>
+                          )}
+                        <Modal>
+                          <Button variant="danger">
+                            <XIcon /> Remove
                           </Button>
-                        </Modal.Footer>
-                      </Modal.Dialog>
-                    </Modal.Container>
-                  </Modal.Backdrop>
-                </Modal>
-              </div>
-            </Card>
-          ))}
-        </div>
+                          <Modal.Backdrop>
+                            <Modal.Container>
+                              <Modal.Dialog>
+                                <Modal.CloseTrigger />
+                                <Modal.Header>
+                                  <Modal.Heading>
+                                    Remove {u.username} from {program.name}?
+                                  </Modal.Heading>
+                                </Modal.Header>
+                                <Modal.Body>
+                                  <div className="flex flex-row gap-2 items-center">
+                                    <Badge.Anchor>
+                                      <Avatar size="sm">
+                                        <Avatar.Image
+                                          src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                          alt="Profile picture"
+                                        />
+                                        <Avatar.Fallback>
+                                          {u.username.substring(0, 1)}
+                                        </Avatar.Fallback>
+                                      </Avatar>
+                                      <Badge
+                                        color="danger"
+                                        placement="bottom-right"
+                                        size="sm"
+                                      >
+                                        <XIcon className="size-2.5" />
+                                      </Badge>
+                                    </Badge.Anchor>
+                                    <p>
+                                      Confirm you would like to remove{" "}
+                                      <b>{u.username}</b> from helping in{" "}
+                                      <b>{program.name}</b>?
+                                    </p>
+                                  </div>
+                                </Modal.Body>
+                                <Modal.Footer>
+                                  <Button
+                                    slot="close"
+                                    variant="danger"
+                                    onClick={() => handleRemoveHelper(u.id)}
+                                  >
+                                    <XIcon />
+                                    Remove
+                                  </Button>
+                                </Modal.Footer>
+                              </Modal.Dialog>
+                            </Modal.Container>
+                          </Modal.Backdrop>
+                        </Modal>
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
 
         <TextField type="text">
           <Label htmlFor="programName">Linked user group</Label>
