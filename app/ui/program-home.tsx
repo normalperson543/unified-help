@@ -83,7 +83,8 @@ export default function ProgramUI() {
     error: lbError,
     isLoading: lbIsLoading,
   } = useSWR<Leaderboard>(
-    programId && `/api/programs/${programId}/leaderboard/?oldest=${fStartDate}&newest=${fEndDate}`,
+    programId &&
+      `/api/programs/${programId}/leaderboard/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
   const {
@@ -94,7 +95,7 @@ export default function ProgramUI() {
     programId &&
       `/api/programs/${programId}/hang-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
-    );
+  );
   const {
     data: resolveTime,
     error: resolveTimeError,
@@ -104,6 +105,8 @@ export default function ProgramUI() {
       `/api/programs/${programId}/resolve-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
+
+  console.log(lb);
 
   let statsPieData;
   if (stats) {
@@ -124,7 +127,7 @@ export default function ProgramUI() {
   }
 
   return (
-    <div className="flex flex-col p-4 gap-6 w-full h-full">
+    <div className="flex flex-col p-4 gap-6 w-full min-h-full">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
@@ -245,7 +248,9 @@ export default function ProgramUI() {
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">Resolve time</p>
             <p className="font-bold text-3xl">
-              {resolveTime ? Math.round((resolveTime.time / 60) * 100) / 100 : 0}
+              {resolveTime
+                ? Math.round((resolveTime.time / 60) * 100) / 100
+                : 0}
             </p>
             <p>minutes</p>
             <ClockCheckIcon
@@ -255,93 +260,106 @@ export default function ProgramUI() {
           </div>
         </Card>
       </div>
-      <div className="flex flex-row gap-2">
-        <Card className="grow shrink max-w-84"> {/* I asked Claude to make the pie chart better */}
-          <div className="flex flex-col gap-2">
-            <p className="text-lg font-bold">Ticket status breakdown</p>
-            <p className="text-muted text-sm">
-              Distribution of tickets in the selected date range.
-            </p>
-            <PieChart
-              style={{
-                width: "100%",
-                aspectRatio: 1,
+      <Card className="grow shrink max-w-84">
+        {/* I asked Claude to make the pie chart better */}
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-bold">Ticket status breakdown</p>
+          <p className="text-muted text-sm">
+            Distribution of tickets in the selected date range.
+          </p>
+          <PieChart
+            style={{
+              width: "100%",
+              aspectRatio: 1,
+            }}
+            responsive
+          >
+            <Pie
+              data={statsPieData}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              outerRadius="80%"
+              label={({ percent }) =>
+                percent ? `${(percent * 100).toFixed(0)}%` : ""
+              }
+              isAnimationActive={false}
+              shape={StatsCustomPie}
+            />
+            <Tooltip
+              contentStyle={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
               }}
-              responsive
-            >
-              <Pie
-                data={statsPieData}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius="80%"
-                label={({ percent }) =>
-                  percent ? `${(percent * 100).toFixed(0)}%` : ""
-                }
-                isAnimationActive={false}
-                shape={StatsCustomPie}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                }}
-              />
-            </PieChart>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {statsPieData?.map((slice, i) => (
-                <div
-                  key={slice.name}
-                  className="flex items-center gap-2 text-sm"
-                >
-                  <span
-                    className="size-2.5 rounded-full"
-                    style={{ background: STATS_COLORS[i % STATS_COLORS.length] }}
-                  />
-                  <span className="text-muted">{slice.name}</span>
-                  <span className="font-bold">{slice.value}</span>
-                </div>
-              ))}
-            </div>
+            />
+          </PieChart>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {statsPieData?.map((slice, i) => (
+              <div key={slice.name} className="flex items-center gap-2 text-sm">
+                <span
+                  className="size-2.5 rounded-full"
+                  style={{ background: STATS_COLORS[i % STATS_COLORS.length] }}
+                />
+                <span className="text-muted">{slice.name}</span>
+                <span className="font-bold">{slice.value}</span>
+              </div>
+            ))}
           </div>
-        </Card>
+        </div>
+      </Card>
+      <div className="flex flex-row gap-2">
         <Card className="grow shrink">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <p className="text-lg font-bold">Leaderboard</p>
-            {lb &&
-              lb
-                .sort(
-                  (a, b) => b._count.assignedTickets - a._count.assignedTickets,
-                )
-                .filter((l) => l._count.assignedTickets > 0)
-                .map((l) => (
-                  <div
-                    className="flex flex-row justify-between items-center gap-4"
-                    key={l.id}
-                  >
-                    <div className="flex gap-2 items-center">
-                      <Link href={`/profile/${l.id}/program/${programId}`} target="_blank">
-                        <Avatar size="sm">
-                          <Avatar.Image
-                            src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
-                            alt="Profile picture"
-                          />
-                          <Avatar.Fallback>
-                            {l.username.substring(0, 1)}
-                          </Avatar.Fallback>
-                        </Avatar>
-                      </Link>
-                      <Link href={`/profile/${l.id}/program/${programId}`} target="_blank">
-                        <b>{l.username}</b>
-                      </Link>
+            <div className="max-h-96 overflow-auto flex flex-col gap-2">
+              {lb && lb.length > 0 ? (
+                lb
+                  .sort(
+                    (a, b) =>
+                      b._count.assignedTickets - a._count.assignedTickets,
+                  )
+                  .map((l) => (
+                    <div
+                      className="flex flex-row justify-between items-center gap-4"
+                      key={l.id}
+                    >
+                      <div className="flex gap-2 items-center">
+                        <Link
+                          href={`/profile/${l.id}/program/${programId}`}
+                          target="_blank"
+                        >
+                          <Avatar size="sm">
+                            <Avatar.Image
+                              src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
+                              alt="Profile picture"
+                            />
+                            <Avatar.Fallback>
+                              {l.username.substring(0, 1)}
+                            </Avatar.Fallback>
+                          </Avatar>
+                        </Link>
+                        <Link
+                          href={`/profile/${l.id}/program/${programId}`}
+                          target="_blank"
+                        >
+                          <b>{l.username}</b>
+                        </Link>
+                      </div>
+                      <div className="flex gap-2 items-center font-bold">
+                        <CheckIcon width={16} />
+                        {l._count.assignedTickets}
+                      </div>
                     </div>
-                    <div className="flex gap-2 items-center font-bold">
-                      <CheckIcon width={16} />
-                      {l._count.assignedTickets}
-                    </div>
-                  </div>
-                ))}
+                  ))
+              ) : (
+                <div className="w-full p-12 flex flex-col gap-2 items-center justify-center">
+                  <p className="text-muted">
+                    There doesn&apos;t seem to be anyone on the leaderboard?
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </Card>
       </div>

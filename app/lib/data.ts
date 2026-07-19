@@ -420,9 +420,17 @@ export async function getResolvedTicketsCount(
 ) {
   return await prisma.slackUser.findMany({
     // this was made with help from claude
+    where: {
+      programs: {
+        some: {
+          id: programId
+        }
+      }
+    },
     select: {
       id: true,
       username: true,
+      
       _count: {
         select: {
           assignedTickets: {
