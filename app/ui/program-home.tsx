@@ -2,12 +2,14 @@
 
 import { Pie, PieChart, PieSectorShapeProps, Sector, Tooltip } from "recharts";
 import {
+  AnswerActivity,
   HangTime,
   Leaderboard,
   ProgramStatistics,
   ProgramWithAssignees,
   RouteError,
 } from "../lib/types";
+import AnswerBarChart from "./answer-bar-chart";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { notFound, useParams } from "next/navigation";
@@ -103,6 +105,11 @@ export default function ProgramUI() {
   } = useSWR<HangTime>(
     programId &&
       `/api/programs/${programId}/resolve-time/?oldest=${fStartDate}&newest=${fEndDate}`,
+    fetcher,
+  );
+  const { data: activity } = useSWR<AnswerActivity>(
+    programId &&
+      `/api/programs/${programId}/reply-activity/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
 
@@ -308,6 +315,36 @@ export default function ProgramUI() {
           </div>
         </div>
       </Card>
+      <div className="flex flex-row gap-2">
+        <Card className="grow shrink basis-0">
+          <div className="flex flex-col gap-2">
+            <p className="text-lg font-bold">Tickets replied to per weekday</p>
+            <p className="text-muted text-sm">
+              Average tickets replied to on each day of the week across the whole
+              program, in the selected date range (UTC).
+            </p>
+            <AnswerBarChart
+              data={activity?.byWeekday ?? []}
+              categoryKey="day"
+              categoryLabel="Weekday"
+            />
+          </div>
+        </Card>
+        <Card className="grow shrink basis-0">
+          <div className="flex flex-col gap-2">
+            <p className="text-lg font-bold">Tickets replied to per hour</p>
+            <p className="text-muted text-sm">
+              Average tickets replied to during each hour of the day across the
+              whole program, in the selected date range (UTC).
+            </p>
+            <AnswerBarChart
+              data={activity?.byHour ?? []}
+              categoryKey="hour"
+              categoryLabel="Hour"
+            />
+          </div>
+        </Card>
+      </div>
       <div className="flex flex-row gap-2">
         <Card className="grow shrink">
           <div className="flex flex-col gap-4">

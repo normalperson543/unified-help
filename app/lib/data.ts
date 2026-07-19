@@ -167,33 +167,22 @@ export async function getUserResolveTime(
   return res._avg.resolveTime;
 }
 
-// REVIEWER NOTE: This function was made with Claude Code.
-// This code is used for the charts on the profile page.
+// REVIEWER NOTE: The activity-bucketing code below was made with Claude Code.
 // I didn't spend much tracked time on this.
-export async function getUserAnswerActivity(
-  userId: string,
-  programId?: string,
-): Promise<AnswerActivity> {
-  await throwIfNoAuth();
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_MS = 86400000;
 
-  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function bucketReplyActivity(
+  replies: { dateCreated: Date; ticketId: string }[],
+  spanStart?: Date,
+  spanEnd?: Date,
+): AnswerActivity {
   const emptyWeekday = () => WEEKDAYS.map((day) => ({ day, average: 0 }));
   const emptyHour = () =>
     Array.from({ length: 24 }, (_, hour) => ({
       hour: `${hour}:00`,
       average: 0,
     }));
-
-  const replies = await prisma.reply.findMany({
-    where: {
-      slackUserId: userId,
-      ticket: programId ? { programId } : undefined,
-    },
-    select: {
-      dateCreated: true,
-      ticketId: true,
-    },
-  });
 
   if (replies.length === 0) {
     return { byWeekday: emptyWeekday(), byHour: emptyHour() };
@@ -220,22 +209,11 @@ export async function getUserAnswerActivity(
     perHour.get(hourKey)!.add(reply.ticketId);
   }
 
-  // Denominators: count every occurrence of each weekday (and every day) that
-  // falls within the span of activity, so quiet days pull the average down.
-  const DAY_MS = 86400000;
-  const start = new Date(minTime);
-  const end = new Date(maxTime);
-  const startDay = Date.UTC(
-    start.getUTCFullYear(),
-    start.getUTCMonth(),
-    start.getUTCDate(),
-  );
-  const endDay = Date.UTC(
-    end.getUTCFullYear(),
-    end.getUTCMonth(),
-    end.getUTCDate(),
-  );
-  const totalDays = Math.round((endDay - startDay) / DAY_MS) + 1;
+  const utcDayStart = (d: Date) =>
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const startDay = utcDayStart(spanStart ?? new Date(minTime));
+  const endDay = utcDayStart(spanEnd ?? new Date(maxTime));
+  const totalDays = Math.max(1, Math.round((endDay - startDay) / DAY_MS) + 1);
 
   const weekdayOccurrences = new Array(7).fill(0);
   for (let t = startDay; t <= endDay; t += DAY_MS) {
@@ -264,9 +242,42 @@ export async function getUserAnswerActivity(
     })),
     byHour: hourTotals.map((total, hour) => ({
       hour: `${hour}:00`,
-      average: totalDays ? round(total / totalDays) : 0,
+      average: round(total / totalDays),
     })),
   };
+}
+
+// REVIEWER NOTE: This function below used for the answer activity charts was made with Claude Code.
+export async function getUserAnswerActivity(
+  userId: string,
+  programId?: string,
+): Promise<AnswerActivity> {
+  await throwIfNoAuth();
+  const replies = await prisma.reply.findMany({
+    where: {
+      slackUserId: userId,
+      ticket: programId ? { programId } : undefined,
+    },
+    select: { dateCreated: true, ticketId: true },
+  });
+  return bucketReplyActivity(replies);
+}
+
+// REVIEWER NOTE: This function below used for the answer activity charts was made with Claude Code.
+export async function getProgramReplyActivity(
+  programId: string,
+  oldest: Date,
+  newest: Date,
+): Promise<AnswerActivity> {
+  await throwIfNoAuth();
+  const replies = await prisma.reply.findMany({
+    where: {
+      ticket: { programId },
+      dateCreated: { gte: oldest, lte: newest },
+    },
+    select: { dateCreated: true, ticketId: true },
+  });
+  return bucketReplyActivity(replies, oldest, newest);
 }
 export async function getUser(id: string) {
   await throwIfNoAuth();

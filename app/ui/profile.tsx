@@ -18,14 +18,7 @@ import {
   SlackUserDetailed,
   TicketWithAssigneesAndProgram,
 } from "../lib/types";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Tooltip as ChartTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import AnswerBarChart from "./answer-bar-chart";
 import {
   CheckIcon,
   CircleIcon,
@@ -287,51 +280,6 @@ export default function ProfileUI({
   );
 }
 // REVIEWER NOTE: This was made with Claude Code
-function AnswerBarChart({
-  data,
-  categoryKey,
-  categoryLabel,
-}: {
-  data: Record<string, string | number>[];
-  categoryKey: string;
-  categoryLabel: string;
-}) {
-  return (
-    <BarChart
-      data={data}
-      style={{ width: "100%", height: 260 }}
-      responsive
-      margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-    >
-      <CartesianGrid
-        strokeDasharray="3 3"
-        stroke="var(--border)"
-        vertical={false}
-      />
-      <XAxis
-        dataKey={categoryKey}
-        tick={{ fontSize: 12, fill: "var(--muted)" }}
-        interval="preserveStartEnd"
-      />
-      <YAxis
-        tick={{ fontSize: 12, fill: "var(--muted)" }}
-        allowDecimals
-        width={40}
-      />
-      <ChartTooltip
-        cursor={{ fill: "var(--accent)", opacity: 0.1 }}
-        contentStyle={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: 8,
-        }}
-        formatter={(value) => [value, "Avg. answered"]}
-        labelFormatter={(label) => `${categoryLabel}: ${label}`}
-      />
-      <Bar dataKey="average" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-    </BarChart>
-  );
-}
 function TicketTable({
   tickets,
 }: {
