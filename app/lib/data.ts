@@ -45,24 +45,24 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           program: true,
           assignees: true,
           resolver: true,
-          firstResponseUser: true
-        }
+          firstResponseUser: true,
+        },
       },
       resolvedTickets: {
         where: {
           programId: programId,
           assignees: {
             some: {
-              id: id
-            }
-          }
+              id: id,
+            },
+          },
         },
         include: {
           program: true,
           assignees: true,
           resolver: true,
-          firstResponseUser: true
-        }
+          firstResponseUser: true,
+        },
       },
       assignedTickets: {
         where: {
@@ -72,8 +72,8 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           program: true,
           assignees: true,
           resolver: true,
-          firstResponseUser: true
-        }
+          firstResponseUser: true,
+        },
       },
       _count: {
         select: {
@@ -156,7 +156,7 @@ export async function getUserResolveTime(
       },
     },
   });
-  console.log("resolve time")
+  console.log("resolve time");
   console.log(res);
   return res._avg.resolveTime;
 }
@@ -313,11 +313,11 @@ export async function getBacklogStatus(programId: string) {
   return await respJson;
 }
 
-export async function getResolvedTicketsCount(programId: string, days: number) {
-  
-  const lastDays = new Date();
-  lastDays.setDate(lastDays.getDate() - days);
-
+export async function getResolvedTicketsCount(
+  programId: string,
+  oldest: Date,
+  newest: Date,
+) {
   return await prisma.slackUser.findMany({
     // this was made with help from claude
     select: {
@@ -330,7 +330,8 @@ export async function getResolvedTicketsCount(programId: string, days: number) {
               programId: programId,
               status: 2,
               dateCreated: {
-                gte: lastDays,
+                gte: oldest,
+                lte: newest
               },
             },
           },

@@ -34,6 +34,7 @@ import { useState } from "react";
 import NotLoggedIn from "./not-logged-in";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
+import Link from "next/link";
 
 const STATS_COLORS = ["#f00", "#00f", "#0f0"];
 
@@ -51,8 +52,12 @@ export default function ProgramUI() {
     today(getLocalTimeZone()),
   );
 
+  // Start at midnight of the selected start day, end at the last millisecond of
+  // the selected end day so the full end day is included (API filters with lte).
   const fStartDate = startDate?.toDate(getLocalTimeZone()).getTime();
-  const fEndDate = endDate?.toDate(getLocalTimeZone()).getTime();
+  const fEndDate = endDate
+    ? endDate.add({ days: 1 }).toDate(getLocalTimeZone()).getTime() - 1
+    : undefined;
 
   const {
     data: info,
@@ -77,7 +82,7 @@ export default function ProgramUI() {
     error: lbError,
     isLoading: lbIsLoading,
   } = useSWR<Leaderboard>(
-    programId && `/api/programs/${programId}/leaderboard/days/${lastDays}`,
+    programId && `/api/programs/${programId}/leaderboard/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
   const {
@@ -288,16 +293,20 @@ export default function ProgramUI() {
                     key={l.id}
                   >
                     <div className="flex gap-2 items-center">
-                      <Avatar size="sm">
-                        <Avatar.Image
-                          src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
-                          alt="Profile picture"
-                        />
-                        <Avatar.Fallback>
-                          {l.username.substring(0, 1)}
-                        </Avatar.Fallback>
-                      </Avatar>
-                      <b>{l.username}</b>
+                      <Link href={`/profile/${l.id}/program/${programId}`} target="_blank">
+                        <Avatar size="sm">
+                          <Avatar.Image
+                            src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
+                            alt="Profile picture"
+                          />
+                          <Avatar.Fallback>
+                            {l.username.substring(0, 1)}
+                          </Avatar.Fallback>
+                        </Avatar>
+                      </Link>
+                      <Link href={`/profile/${l.id}/program/${programId}`} target="_blank">
+                        <b>{l.username}</b>
+                      </Link>
                     </div>
                     <div className="flex gap-2 items-center font-bold">
                       <CheckIcon width={16} />

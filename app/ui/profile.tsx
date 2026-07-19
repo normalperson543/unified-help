@@ -56,6 +56,7 @@ export default function ProfileUI({
     }
     router.push(`/profile/${profile.id}/program/${key}`);
   }
+  
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between">

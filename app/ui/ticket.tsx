@@ -63,7 +63,7 @@ export default function TicketUI({
 
               <div className="flex flex-col gap-2">
                 <h2 className="font-bold text-xl">
-                  {getShortTitle(ticket.message)}
+                  {getShortTitle(ticket.message).length > 0 ? getShortTitle(ticket.message) : <span className="text-muted italic">[No title provided]</span>}
                 </h2>
                 <div className="flex flex-row gap-4 items-center">
                   {ticket.status === 0 && (
@@ -236,11 +236,11 @@ export default function TicketUI({
                 return (
                   <div
                     key={r.id}
-                    className="flex flex-row gap-2 items-center p-4 bg-orange-50 border border-orange-200 dark:bg-orange-950 dark:border-orange-700 rounded-md"
+                    className="flex flex-row gap-1 items-center p-4 bg-orange-50 border border-orange-200 dark:bg-orange-950 dark:border-orange-700 rounded-md"
                   >
                     <CircleAlertIcon />
                     <b>Reopened</b> on{" "}
-                    {new Date(r.dateCreated).toLocaleDateString()} by{" "}
+                    {new Date(r.dateCreated).toLocaleString()} by{" "}
                     {reopener ? (
                       <b>{reopener.username}</b>
                     ) : (

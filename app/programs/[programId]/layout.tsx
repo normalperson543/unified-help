@@ -18,6 +18,7 @@ import {
   Spinner,
   Tag,
   TagGroup,
+  toast,
   ToggleButton,
   useFilter,
 } from "@heroui/react";
@@ -42,7 +43,7 @@ export default function RootLayout({
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
-
+  
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
     if (sidebarRef.current) {
@@ -99,7 +100,7 @@ export default function RootLayout({
             <Input
               type="text"
               className="w-full"
-              placeholder="Search by name or ID"
+              placeholder="Search by name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -267,6 +268,9 @@ export default function RootLayout({
               >
                 <Card
                   className={`flex flex-row gap-2 items-center border-l-4 ${ticket.status === 0 && "border-orange-700"} ${ticket.status === 1 && "border-blue-700"} ${ticket.status === 2 && "border-green-700"}`}
+                  variant={
+                    params.ticketId === ticket.id ? "secondary" : "default"
+                  }
                 >
                   <Avatar size="sm">
                     <Avatar.Image
