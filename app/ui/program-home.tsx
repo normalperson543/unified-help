@@ -36,7 +36,8 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
 import Link from "next/link";
 
-const STATS_COLORS = ["#f00", "#00f", "#0f0"];
+// Open, Assigned, Resolved — matching the ticket status chip colors.
+const STATS_COLORS = ["var(--warning)", "var(--accent)", "var(--success)"];
 
 const StatsCustomPie = (props: PieSectorShapeProps) => (
   <Sector {...props} fill={STATS_COLORS[props.index % STATS_COLORS.length]} />
@@ -255,28 +256,55 @@ export default function ProgramUI() {
         </Card>
       </div>
       <div className="flex flex-row gap-2">
-        <Card className="grow shrink max-w-84">
-          <PieChart
-            style={{
-              width: "100%",
-              aspectRatio: 1,
-            }}
-            responsive
-          >
-            <Pie
-              data={statsPieData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              outerRadius="80%"
-              label={({ percent }) =>
-                percent && `${(percent * 100).toFixed(0)}%`
-              }
-              isAnimationActive={false}
-              shape={StatsCustomPie}
-            />
-            <Tooltip />
-          </PieChart>
+        <Card className="grow shrink max-w-84"> {/* I asked Claude to make the pie chart better */}
+          <div className="flex flex-col gap-2">
+            <p className="text-lg font-bold">Ticket status breakdown</p>
+            <p className="text-muted text-sm">
+              Distribution of tickets in the selected date range.
+            </p>
+            <PieChart
+              style={{
+                width: "100%",
+                aspectRatio: 1,
+              }}
+              responsive
+            >
+              <Pie
+                data={statsPieData}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                label={({ percent }) =>
+                  percent ? `${(percent * 100).toFixed(0)}%` : ""
+                }
+                isAnimationActive={false}
+                shape={StatsCustomPie}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                }}
+              />
+            </PieChart>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {statsPieData?.map((slice, i) => (
+                <div
+                  key={slice.name}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <span
+                    className="size-2.5 rounded-full"
+                    style={{ background: STATS_COLORS[i % STATS_COLORS.length] }}
+                  />
+                  <span className="text-muted">{slice.name}</span>
+                  <span className="font-bold">{slice.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </Card>
         <Card className="grow shrink">
           <div className="flex flex-col gap-2">

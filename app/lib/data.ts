@@ -2,6 +2,7 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
+import { AnswerActivity } from "./types";
 
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
@@ -159,6 +160,105 @@ export async function getUserResolveTime(
   console.log("resolve time");
   console.log(res);
   return res._avg.resolveTime;
+}
+// Computes how many tickets a user "answers" (replies to) on average, bucketed
+// by weekday and by hour of day. A ticket counts as answered on the day/hour a
+// user replied to it; multiple replies to the same ticket in the same bucket
+// only count once. All bucketing is done in UTC.
+export async function getUserAnswerActivity(
+  userId: string,
+  programId?: string,
+): Promise<AnswerActivity> {
+  await throwIfNoAuth();
+
+  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const emptyWeekday = () => WEEKDAYS.map((day) => ({ day, average: 0 }));
+  const emptyHour = () =>
+    Array.from({ length: 24 }, (_, hour) => ({ hour: `${hour}:00`, average: 0 }));
+
+  const replies = await prisma.reply.findMany({
+    where: {
+      slackUserId: userId,
+      ticket: programId ? { programId } : undefined,
+    },
+    select: {
+      dateCreated: true,
+      ticketId: true,
+    },
+  });
+
+  if (replies.length === 0) {
+    return { byWeekday: emptyWeekday(), byHour: emptyHour() };
+  }
+
+  const perDay = new Map<string, Set<string>>(); // dateKey -> distinct ticketIds
+  const perHour = new Map<string, Set<string>>(); // dateKey|hour -> distinct ticketIds
+
+  let minTime = Infinity;
+  let maxTime = -Infinity;
+
+  for (const reply of replies) {
+    const d = reply.dateCreated;
+    const time = d.getTime();
+    if (time < minTime) minTime = time;
+    if (time > maxTime) maxTime = time;
+
+    const dateKey = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+    const hourKey = `${dateKey}|${d.getUTCHours()}`;
+
+    if (!perDay.has(dateKey)) perDay.set(dateKey, new Set());
+    perDay.get(dateKey)!.add(reply.ticketId);
+    if (!perHour.has(hourKey)) perHour.set(hourKey, new Set());
+    perHour.get(hourKey)!.add(reply.ticketId);
+  }
+
+  // Denominators: count every occurrence of each weekday (and every day) that
+  // falls within the span of activity, so quiet days pull the average down.
+  const DAY_MS = 86400000;
+  const start = new Date(minTime);
+  const end = new Date(maxTime);
+  const startDay = Date.UTC(
+    start.getUTCFullYear(),
+    start.getUTCMonth(),
+    start.getUTCDate(),
+  );
+  const endDay = Date.UTC(
+    end.getUTCFullYear(),
+    end.getUTCMonth(),
+    end.getUTCDate(),
+  );
+  const totalDays = Math.round((endDay - startDay) / DAY_MS) + 1;
+
+  const weekdayOccurrences = new Array(7).fill(0);
+  for (let t = startDay; t <= endDay; t += DAY_MS) {
+    weekdayOccurrences[new Date(t).getUTCDay()]++;
+  }
+
+  const weekdayTotals = new Array(7).fill(0);
+  for (const [dateKey, ticketIds] of perDay) {
+    const [y, m, day] = dateKey.split("-").map(Number);
+    weekdayTotals[new Date(Date.UTC(y, m, day)).getUTCDay()] += ticketIds.size;
+  }
+
+  const hourTotals = new Array(24).fill(0);
+  for (const [hourKey, ticketIds] of perHour) {
+    hourTotals[Number(hourKey.split("|")[1])] += ticketIds.size;
+  }
+
+  const round = (n: number) => Math.round(n * 100) / 100;
+
+  return {
+    byWeekday: WEEKDAYS.map((day, i) => ({
+      day,
+      average: weekdayOccurrences[i]
+        ? round(weekdayTotals[i] / weekdayOccurrences[i])
+        : 0,
+    })),
+    byHour: hourTotals.map((total, hour) => ({
+      hour: `${hour}:00`,
+      average: totalDays ? round(total / totalDays) : 0,
+    })),
+  };
 }
 export async function getUser(id: string) {
   await throwIfNoAuth();
