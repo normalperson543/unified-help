@@ -1,6 +1,6 @@
 "use client";
 
-import { Pie, PieChart, PieSectorShapeProps, Sector, Tooltip } from "recharts";
+import { Pie, PieChart, PieSectorShapeProps, Sector } from "recharts";
 import {
   AnswerActivity,
   HangTime,
@@ -12,21 +12,23 @@ import {
 import AnswerBarChart from "./answer-bar-chart";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Avatar,
   Button,
   Card,
   DateField,
   DateValue,
+  EmptyState,
   Label,
-  NumberField,
-  ScrollShadow,
+  Tooltip,
+  Table,
 } from "@heroui/react";
 import {
   CheckIcon,
   CircleDashedIcon,
   CircleIcon,
+  CircleQuestionMarkIcon,
   ClockCheckIcon,
   ClockIcon,
   SquareArrowOutUpRightIcon,
@@ -321,8 +323,8 @@ export default function ProgramUI() {
           <div className="flex flex-col gap-2">
             <p className="text-lg font-bold">Tickets replied to per weekday</p>
             <p className="text-muted text-sm">
-              Average tickets replied to on each day of the week across the whole
-              program, in the selected date range (UTC).
+              Average tickets replied to on each day of the week across the
+              whole program, in the selected date range (UTC).
             </p>
             <AnswerBarChart
               data={activity?.byWeekday ?? []}
@@ -347,59 +349,84 @@ export default function ProgramUI() {
         </Card>
       </div>
       <div className="flex flex-row gap-2">
-        <Card className="grow shrink">
-          <div className="flex flex-col gap-4">
-            <p className="text-lg font-bold">Leaderboard</p>
-            <ScrollShadow className="max-h-96 overflow-auto flex flex-col gap-2">
-              {lb && lb.length > 0 ? (
-                lb
-                  .sort(
-                    (a, b) =>
-                      b._count.assignedTickets - a._count.assignedTickets,
-                  )
-                  .map((l) => (
-                    <div
-                      className="flex flex-row justify-between items-center gap-4"
-                      key={l.id}
+        {lb && lb.length > 0 && (
+          <Card className="grow shrink">
+            <div className="flex flex-col gap-4">
+              <p className="text-lg font-bold">Leaderboard</p>
+              <Table>
+                <Table.ScrollContainer className="max-h-96">
+                  <Table.Content aria-label="Assigned tickets">
+                    <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
+                      <Table.Column isRowHeader>Username</Table.Column>
+                      <Table.Column>Assigned</Table.Column>
+                      <Table.Column>Resolved</Table.Column>
+                    </Table.Header>
+                    <Table.Body
+                      renderEmptyState={() => (
+                        <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+                          <CircleQuestionMarkIcon className="text-muted" />
+                          <span className="text-sm text-muted">
+                            No users found
+                          </span>
+                        </EmptyState>
+                      )}
                     >
-                      <div className="flex gap-2 items-center">
-                        <Link
-                          href={`/profile/${l.id}/program/${programId}`}
-                          target="_blank"
-                        >
-                          <Avatar size="sm">
-                            <Avatar.Image
-                              src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
-                              alt="Profile picture"
-                            />
-                            <Avatar.Fallback>
-                              {l.username.substring(0, 1)}
-                            </Avatar.Fallback>
-                          </Avatar>
-                        </Link>
-                        <Link
-                          href={`/profile/${l.id}/program/${programId}`}
-                          target="_blank"
-                        >
-                          <b>{l.username}</b>
-                        </Link>
-                      </div>
-                      <div className="flex gap-2 items-center font-bold">
-                        <CheckIcon width={16} />
-                        {l._count.assignedTickets}
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <div className="w-full p-12 flex flex-col gap-2 items-center justify-center">
-                  <p className="text-muted">
-                    There doesn&apos;t seem to be anyone on the leaderboard?
-                  </p>
-                </div>
-              )}
-            </ScrollShadow>
-          </div>
-        </Card>
+                      {lb &&
+                        lb.length > 0 &&
+                        lb
+                          .sort(
+                            (a, b) =>
+                              b._count.assignedTickets -
+                              a._count.assignedTickets,
+                          )
+                          .map((l) => (
+                            <Table.Row key={l.id}>
+                              <Table.Cell>
+                                <div className="flex gap-2 items-center shrink w-fit">
+                                  <Link
+                                    href={`/profile/${l.id}/program/${programId}`}
+                                    target="_blank"
+                                  >
+                                    <Avatar size="sm">
+                                      <Avatar.Image
+                                        src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
+                                        alt="Profile picture"
+                                      />
+                                      <Avatar.Fallback>
+                                        {l.username.substring(0, 1)}
+                                      </Avatar.Fallback>
+                                    </Avatar>
+                                  </Link>
+                                  <Link
+                                    href={`/profile/${l.id}/program/${programId}`}
+                                    target="_blank"
+                                  >
+                                    <b>{l.username}</b>
+                                  </Link>
+                                </div>
+                              </Table.Cell>
+                              <Table.Cell>
+                                {
+                                  stats?.usersTicketCount.find(
+                                    (u) => u.id === l.id,
+                                  )?._count.assignedTickets
+                                }
+                              </Table.Cell>
+                              <Table.Cell>
+                                <div className="flex gap-2 items-center font-bold">
+                                  <CheckIcon width={16} />
+                                  {l._count.assignedTickets}
+                                </div>
+                              </Table.Cell>
+                            </Table.Row>
+                          ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

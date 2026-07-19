@@ -65,16 +65,30 @@ export type ReplyWithResolver = TicketPayload["replies"][number] & {
   reopener?: SlackUserWithPrograms | null;
 };
 
+export type ProgramTicketsResponse = {
+  tickets: TicketWithReplies[],
+  total: number
+}
 export type TicketWithReplies = Omit<TicketPayload, "replies"> & {
   replies: ReplyWithResolver[];
 };
 
+export type UserWithAssignedCount = Prisma.SlackUserGetPayload<{
+  include: {
+    _count: {
+      select: {
+        assignedTickets: true;
+      };
+    };
+  };
+}>;
 export type ProgramStatistics = {
   total: number;
   open: number;
   assigned: number;
   assignedToMe: number;
   resolved: number;
+  usersTicketCount: UserWithAssignedCount[];
 };
 
 export type Leaderboard = {
@@ -169,4 +183,4 @@ export type TicketWithAssigneesAndProgram = Prisma.TicketGetPayload<{
     resolver: true;
     firstResponseUser: true;
   };
-}>
+}>;

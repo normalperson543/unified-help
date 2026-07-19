@@ -2,7 +2,11 @@
 
 import { fetcher } from "@/app/lib/swr";
 import { getShortTitle } from "@/app/lib/tools";
-import { ProgramWithAssignees, TicketWithReplies } from "@/app/lib/types";
+import {
+  ProgramTicketsResponse,
+  ProgramWithAssignees,
+  TicketWithReplies,
+} from "@/app/lib/types";
 import {
   Alert,
   Autocomplete,
@@ -14,6 +18,7 @@ import {
   Key,
   Label,
   ListBox,
+  Pagination,
   SearchField,
   Select,
   Spinner,
@@ -29,6 +34,7 @@ import { useParams } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { SlackUser } from "@/generated/prisma/client";
+import { ITEMS_PER_PAGE } from "@/app/lib/constants";
 
 let savedSidebarScrollTop = 0;
 
@@ -44,6 +50,7 @@ export default function RootLayout({
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
+  const [page, setPage] = useState(1);
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -56,9 +63,10 @@ export default function RootLayout({
     data: programTickets,
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
-  } = useSWR<TicketWithReplies[]>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}`,
+  } = useSWR<ProgramTicketsResponse>(
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}&page=${page}`,
     fetcher,
+    { keepPreviousData: true },
   );
 
   const {
@@ -69,6 +77,11 @@ export default function RootLayout({
     `/api/programs/${params.programId}/info`,
     fetcher,
   );
+  let totalPages = 1;
+
+  if (programTickets?.total) {
+    totalPages = Math.floor(programTickets.total / 20);
+  }
 
   const { contains } = useFilter({ sensitivity: "base" });
 
@@ -85,6 +98,28 @@ export default function RootLayout({
     //todo: debounce search
     setSort(newValue);
   }
+
+  const getPageNumbers = () => {
+    // from heroui docs
+    const pages: (number | "ellipsis")[] = [];
+    pages.push(1);
+    if (page > 3) {
+      pages.push("ellipsis");
+    }
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (page < totalPages - 2) {
+      pages.push("ellipsis");
+    }
+    pages.push(totalPages);
+    return pages;
+  };
+
+  const startItem = (page - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(page * ITEMS_PER_PAGE, programTickets?.total ?? 0);
 
   return (
     <div className="flex w-full text-sm flex-1 min-h-0">
@@ -241,9 +276,48 @@ export default function RootLayout({
             </div>
           )}
           {programTickets && (
-            <p className="text-muted">
-              {programTickets.length} result{programTickets.length !== 1 && "s"}
-            </p>
+            <Pagination className="w-full"> {/* from heroUI docs */}
+              <Pagination.Summary>
+                Showing {startItem}-{endItem} of {programTickets.total ?? 0}{" "}
+                results
+              </Pagination.Summary>
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={page === 1}
+                    onPress={() => setPage((p) => p - 1)}
+                  >
+                    <Pagination.PreviousIcon />
+                    <span>Previous</span>
+                  </Pagination.Previous>
+                </Pagination.Item>
+                {getPageNumbers().map((p, i) =>
+                  p === "ellipsis" ? (
+                    <Pagination.Item key={`ellipsis-${i}`}>
+                      <Pagination.Ellipsis />
+                    </Pagination.Item>
+                  ) : (
+                    <Pagination.Item key={p}>
+                      <Pagination.Link
+                        isActive={p === page}
+                        onPress={() => setPage(p)}
+                      >
+                        {p}
+                      </Pagination.Link>
+                    </Pagination.Item>
+                  ),
+                )}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={page === totalPages}
+                    onPress={() => setPage((p) => p + 1)}
+                  >
+                    <span>Next</span>
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
           )}
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">
@@ -269,7 +343,7 @@ export default function RootLayout({
           {programTickets &&
             !programTicketsIsLoading &&
             !programTicketsError &&
-            programTickets.map((ticket) => (
+            programTickets.tickets.map((ticket) => (
               <Link
                 href={`/programs/${ticket.programId}/ticket/${ticket.id}`}
                 key={ticket.id}

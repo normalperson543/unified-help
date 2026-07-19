@@ -405,12 +405,37 @@ export async function getProgramStatistics(
       },
     },
   });
+  const usersTicketCount = await prisma.slackUser.findMany({
+    where: {
+      programs: {
+        some: {
+          id: id,
+        },
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          assignedTickets: {
+            where: {
+              programId: id,
+              dateCreated: {
+                gte: oldest,
+                lte: newest,
+              },
+            },
+          },
+        },
+      },
+    },
+  });
   return {
     total: totalTickets,
     open: ticketsOpen,
     assigned: ticketsAssigned,
     assignedToMe: ticketsAssignedToMe,
     resolved: ticketsResolved,
+    usersTicketCount: usersTicketCount
   };
 }
 export async function getBacklogStatus(programId: string) {
