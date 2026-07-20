@@ -12,7 +12,7 @@ export default function ProgramSelector() {
     data: programs,
     error: programsError,
     isLoading: programsIsLoading,
-  } = useSWR<Program[]>(`/api/programs`, fetcher);
+  } = useSWR<Program[]>(`/api/programs/list`, fetcher);
   const { programId } = useParams();
   
   const [selectedKey, setSelectedKey] = useState<Key | null>(programId as string);

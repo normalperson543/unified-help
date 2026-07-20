@@ -1,3 +1,4 @@
+import { Ticket } from "@/generated/prisma/browser";
 import { Prisma } from "@/generated/prisma/client";
 
 export type SlackUserWithPrograms = Prisma.SlackUserGetPayload<{
@@ -40,6 +41,19 @@ type TicketPayload = Prisma.TicketGetPayload<{
   };
 }>;
 
+type TicketDetailed = Prisma.TicketGetPayload<{
+  include: {
+    slackUser: true;
+    assignees: true;
+    program: true;
+    _count: {
+      select: {
+        replies: true;
+      };
+    };
+  };
+}>;
+
 export type BacklogStatus = {
   status: "unqueued" | "pending" | "failed" | "success" | "stopped";
   job?: BacklogJob;
@@ -66,11 +80,8 @@ export type ReplyWithResolver = TicketPayload["replies"][number] & {
 };
 
 export type ProgramTicketsResponse = {
-  tickets: TicketWithReplies[],
-  total: number
-}
-export type TicketWithReplies = Omit<TicketPayload, "replies"> & {
-  replies: ReplyWithResolver[];
+  tickets: TicketDetailed[];
+  total: number;
 };
 
 export type UserWithAssignedCount = Prisma.SlackUserGetPayload<{

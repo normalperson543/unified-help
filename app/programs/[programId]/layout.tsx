@@ -376,8 +376,8 @@ export default function RootLayout({
                     <div className="text-muted">
                       {ticket.slackUser.username} - Opened{" "}
                       {new Date(ticket.dateCreated).toLocaleDateString()} -{" "}
-                      {ticket.replies.length} repl
-                      {ticket.replies.length === 1 ? "y" : "ies"}
+                      {ticket._count.replies} repl
+                      {ticket._count.replies === 1 ? "y" : "ies"}
                     </div>
                   </div>
                 </Card>

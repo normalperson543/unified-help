@@ -15,6 +15,7 @@ export async function GET(
     });
   }
   const { programId } = await ctx.params;
+  const id = programId !== "all" ? programId : undefined;
   const params = req.nextUrl.searchParams; //todo: searching stuff
   console.log(params);
   const searchTerm = params.get("searchTerm");
@@ -39,17 +40,18 @@ export async function GET(
 
   const tickets = await prisma.ticket.findMany({
     where: {
-      programId,
+      programId: id,
       ...(filters.length ? { AND: filters } : {}),
     }, // end of Claude code
     include: {
-      replies: {
-        include: {
-          slackUser: true,
-        },
-      },
       slackUser: true,
       assignees: true,
+      program: true,
+      _count: {
+        select: {
+          replies: true,
+        },
+      },
     },
     orderBy: {
       dateCreated: order as "asc" | "desc",
@@ -59,7 +61,7 @@ export async function GET(
   });
   const count = await prisma.ticket.count({
     where: {
-      programId,
+      programId: id,
       ...(filters.length ? { AND: filters } : {}),
     },
   });

@@ -1,5 +1,6 @@
 import { Avatar, Chip } from "@heroui/react";
 import Link from "next/link";
+import SlackMessage from "./slack-message";
 
 export default function Post({
   username,
@@ -56,7 +57,7 @@ export default function Post({
             {new Date(dateCreated).toLocaleString()}
           </p>
         </div>
-        <p>{message}</p>
+        <SlackMessage text={message} />
       </div>
     </div>
   );
