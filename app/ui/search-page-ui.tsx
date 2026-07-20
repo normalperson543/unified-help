@@ -1,7 +1,7 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ProgramTicketsResponse, SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import {
   Alert,
   Autocomplete,
   EmptyState,
+  Input,
   Key,
   Label,
   ListBox,
@@ -26,8 +27,8 @@ import TicketTable from "./ticket-table";
 import UsersTable from "./users-table";
 
 export default function SearchPageUI() {
-  const { searchTerm } = useParams();
-  const [search, setSearch] = useState("");
+  const params = useSearchParams();
+  const [search, setSearch] = useState(params.get("searchTerm") ?? "");
   const [searchDebounced] = useDebounce(search, 500);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
@@ -53,9 +54,9 @@ export default function SearchPageUI() {
     `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${sortDebounced}&page=${page}`,
     fetcher,
     { keepPreviousData: true },
-    );
+  );
 
-  console.log(users)
+  console.log(users);
 
   let totalPages = 1;
 
@@ -86,34 +87,15 @@ export default function SearchPageUI() {
   }
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
-      <div className="flex gap-4 items-center">
-        <SearchIcon width={32} />
-        <p className="font-bold text-2xl">Global Search</p>
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4 items-center">
+          <SearchIcon width={32} />
+          <p className="font-bold text-2xl">Global Search</p>
+        </div>
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Users</p>
-        <div className="flex gap-2 items-center">
-          <Select
-            onChange={(e) => setSort(e?.toString() as string)}
-            value={sort}
-          >
-            <Label>Sort by</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item id="asc" value="asc">
-                  Ascending
-                </ListBox.Item>
-                <ListBox.Item id="desc" value="desc">
-                  Descending
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
       </div>
       {users && <UsersTable users={users.users} />}
       <div className="flex justify-between items-center">

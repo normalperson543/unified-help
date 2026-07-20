@@ -76,7 +76,7 @@ export default function ProfileUI({
 
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
-      <div className="flex justify-between">
+      <div className="flex justify-between top-0">
         <div className="flex gap-4 items-center">
           <Avatar size="lg">
             <Avatar.Image

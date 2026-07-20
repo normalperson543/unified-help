@@ -385,7 +385,7 @@ export default function RootLayout({
             ))}
         </div>
       </div>
-      <div className="flex flex-col p-4 gap-4 w-full min-h-0 overflow-y-auto">
+      <div className="flex flex-col gap-4 w-full min-h-0 overflow-y-auto">
         {children}
       </div>
     </div>

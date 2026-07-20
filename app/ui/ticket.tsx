@@ -55,8 +55,8 @@ export default function TicketUI({
         </Alert>
       )}
       {!ticketIsLoading && ticket && (
-        <>
-          <div className="flex justify-between">
+        <div className="relative flex flex-col gap-4">
+          <div className="flex justify-between sticky top-0 bg-background p-4 z-10">
             <div className="flex gap-4 flex-1">
               <Link
                 href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
@@ -206,98 +206,102 @@ export default function TicketUI({
               </Button>
             </Link>
           </div>
-          <Post
-            username={ticket.slackUser.username}
-            message={ticket.message}
-            slackId={ticket.slackUserId}
-            dateCreated={ticket.dateCreated}
-            programId={ticket.programId}
-            op
-          />
-          {ticket.replies.map((r) => {
-            if (r.slackUser.isBot) {
-              if (
-                r.message.includes("marked as resolved") ||
-                r.message.includes("marked resolved")
-              ) {
-                const resolver = r.resolver;
-                return (
-                  <div
-                    key={r.id}
-                    className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-700 rounded-md"
-                  >
-                    <CheckIcon />
-                    Marked as <b>resolved</b> on{" "}
-                    {new Date(r.dateCreated).toLocaleString()} by{" "}
-                    {resolver ? (
-                      <b>{resolver.username}</b>
-                    ) : (
-                      "a non-indexed user"
-                    )}
-                    {resolver && resolver.id === ticket.slackUserId && (
-                      <Chip variant="primary" color="accent">
-                        OP
-                      </Chip>
-                    )}
-                    {resolver &&
-                      resolver.programs.some((p) => p.id === programId) && (
-                        <Chip variant="primary" color="success">
-                          Helper
+          <div className="flex flex-col gap-4 p-4 ">
+            <Post
+              username={ticket.slackUser.username}
+              message={ticket.message}
+              slackId={ticket.slackUserId}
+              dateCreated={ticket.dateCreated}
+              programId={ticket.programId}
+              op
+            />
+            {ticket.replies.map((r) => {
+              if (r.slackUser.isBot) {
+                if (
+                  r.message.includes("marked as resolved") ||
+                  r.message.includes("marked resolved")
+                ) {
+                  const resolver = r.resolver;
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-700 rounded-md"
+                    >
+                      <CheckIcon />
+                      Marked as <b>resolved</b> on{" "}
+                      {new Date(r.dateCreated).toLocaleString()} by{" "}
+                      {resolver ? (
+                        <b>{resolver.username}</b>
+                      ) : (
+                        "a non-indexed user"
+                      )}
+                      {resolver && resolver.id === ticket.slackUserId && (
+                        <Chip variant="primary" color="accent">
+                          OP
                         </Chip>
                       )}
-                  </div>
-                );
-              }
-              if (r.message.includes("reopened")) {
-                const reopener = r.reopener;
-                return (
-                  <div
-                    key={r.id}
-                    className="flex flex-row gap-1 items-center p-4 bg-orange-50 border border-orange-200 dark:bg-orange-950 dark:border-orange-700 rounded-md"
-                  >
-                    <CircleAlertIcon />
-                    <b>Reopened</b> on{" "}
-                    {new Date(r.dateCreated).toLocaleString()} by{" "}
-                    {reopener ? (
-                      <b>{reopener.username}</b>
-                    ) : (
-                      "a non-indexed user"
-                    )}
-                    {reopener && reopener.id === ticket.slackUserId && (
-                      <Chip variant="primary" color="accent">
-                        OP
-                      </Chip>
-                    )}
-                    {reopener &&
-                      reopener.programs.some((p) => p.id === programId) && (
-                        <Chip variant="primary" color="success">
-                          Helper
+                      {resolver &&
+                        resolver.programs.some((p) => p.id === programId) && (
+                          <Chip variant="primary" color="success">
+                            Helper
+                          </Chip>
+                        )}
+                    </div>
+                  );
+                }
+                if (r.message.includes("reopened")) {
+                  const reopener = r.reopener;
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-row gap-1 items-center p-4 bg-orange-50 border border-orange-200 dark:bg-orange-950 dark:border-orange-700 rounded-md"
+                    >
+                      <CircleAlertIcon />
+                      <b>Reopened</b> on{" "}
+                      {new Date(r.dateCreated).toLocaleString()} by{" "}
+                      {reopener ? (
+                        <b>{reopener.username}</b>
+                      ) : (
+                        "a non-indexed user"
+                      )}
+                      {reopener && reopener.id === ticket.slackUserId && (
+                        <Chip variant="primary" color="accent">
+                          OP
                         </Chip>
                       )}
-                  </div>
-                );
+                      {reopener &&
+                        reopener.programs.some((p) => p.id === programId) && (
+                          <Chip variant="primary" color="success">
+                            Helper
+                          </Chip>
+                        )}
+                    </div>
+                  );
+                }
+                if (
+                  r.message.includes("someone") ||
+                  r.message.includes("received")
+                ) {
+                  return;
+                }
               }
-              if (
-                r.message.includes("someone") ||
-                r.message.includes("received")
-              ) {
-                return;
-              }
-            }
-            return (
-              <Post
-                username={r.slackUser.username}
-                message={r.message}
-                slackId={r.slackUserId}
-                key={r.id}
-                op={ticket.slackUserId === r.slackUserId}
-                isHelper={r.slackUser.programs.some((p) => p.id === programId)}
-                dateCreated={r.dateCreated}
-                programId={ticket.programId}
-              />
-            );
-          })}
-        </>
+              return (
+                <Post
+                  username={r.slackUser.username}
+                  message={r.message}
+                  slackId={r.slackUserId}
+                  key={r.id}
+                  op={ticket.slackUserId === r.slackUserId}
+                  isHelper={r.slackUser.programs.some(
+                    (p) => p.id === programId,
+                  )}
+                  dateCreated={r.dateCreated}
+                  programId={ticket.programId}
+                />
+              );
+            })}
+          </div>
+        </div>
       )}
     </>
   );

@@ -43,6 +43,7 @@ import Image from "next/image";
 import Link from "next/link";
 import UsersTable from "./users-table";
 
+// Claude changed this line while doing the pie chart
 // Open, Assigned, Resolved — matching the ticket status chip colors.
 const STATS_COLORS = ["var(--warning)", "var(--accent)", "var(--success)"];
 
@@ -60,6 +61,7 @@ export default function ProgramUI() {
     today(getLocalTimeZone()),
   );
 
+  // Claude helped fix a bug in the following fStartDate and fEndDate lines
   // Start at midnight of the selected start day, end at the last millisecond of
   // the selected end day so the full end day is included (API filters with lte).
   const fStartDate = startDate?.toDate(getLocalTimeZone()).getTime();
@@ -360,7 +362,7 @@ export default function ProgramUI() {
                 users={lb.sort(
                   (a, b) => b._count.resolvedTickets - a._count.resolvedTickets,
                 )}
-                programId={programId!}
+                programId={programId}
               />
             </div>
           </Card>

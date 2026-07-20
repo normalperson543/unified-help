@@ -35,7 +35,7 @@ export default function UsersTable({
                 <Table.Cell>
                   <div className="flex gap-2 items-center shrink w-fit">
                     <Link
-                      href={`/profile/${u.id}/${programId ? `/program/${programId}` : ""}`}
+                      href={`/profile/${u.id}${programId ? `/program/${programId}` : ""}`}
                     >
                       <Avatar size="sm">
                         <Avatar.Image
@@ -48,7 +48,7 @@ export default function UsersTable({
                       </Avatar>
                     </Link>
                     <Link
-                      href={`/profile/${u.id}/${programId && `/program/${programId}`}`}
+                      href={`/profile/${u.id}${programId ? `/program/${programId}` : ""}`}
                     >
                       <b>{u.username}</b>
                     </Link>
@@ -60,7 +60,7 @@ export default function UsersTable({
                 </Table.Cell>
                 <Table.Cell>{u._count.createdTickets}</Table.Cell>
                 <Table.Cell>{u._count.assignedTickets}</Table.Cell>
-                <Table.Cell>{u._count.resolvedTickets}</Table.Cell>
+                <Table.Cell>{u.resolvedAssignedCount}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
