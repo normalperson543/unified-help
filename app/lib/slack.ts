@@ -29,20 +29,4 @@ export async function createUser(id: string) {
   }
   return dbUser;
 }
-export async function indexUsersFromUserGroup(
-  groupId: string,
-  programId: string,
-) {
-  const users = await web.usergroups.users.list({
-    usergroup: groupId,
-  });
-  if (!users || !users.users) return;
-  for (let i = 0; i < users.users.length; i++) {
-    try {
-      await addAsHelper(users.users[i], programId, false);
-    } catch (e) {
-      console.error(e)
-      console.warn(`could not add user ${users.users[i]}`);
-    }
-  }
-}
+

@@ -11,7 +11,8 @@ export const LOADING_TEXT = [
   "colon three",
   "i will hack this club",
   "i want to cheese",
-  "zach latta is my god"
+  "zach latta is my god",
+  "this project is dedicated to all of the folks who've helped me at hc, love ya <3",
 ]
 
 export function randomLoadingText(): string { // claude code :sob: because of stupid type checks

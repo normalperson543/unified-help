@@ -54,7 +54,7 @@ export async function GET(
     orderBy: {
       dateCreated: order as "asc" | "desc",
     },
-    skip: (Number(page) ?? 1 - 1) * ITEMS_PER_PAGE,
+    skip: ((Number(page) || 1) - 1) * ITEMS_PER_PAGE,
     take: 20,
   });
   const count = await prisma.ticket.count({

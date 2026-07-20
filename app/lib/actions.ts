@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { createUser, indexUsersFromUserGroup } from "./slack";
+import { createUser } from "./slack";
 import { group } from "console";
 import { redirect } from "next/navigation";
 import { isOrg } from "./data";
@@ -184,4 +184,36 @@ export async function createProgram(
     },
   });
   redirect(`/programs/${program.id}`);
+}
+export async function indexUsersFromUserGroup(
+  groupId: string,
+  programId: string,
+) {
+  throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+  const resp = await fetch(
+    `${process.env["SCRAPER_API_URL"]}/api/index-user-group/${programId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        usergroupId: groupId
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    },
+  );
+  if (!resp.ok) {
+    const respText = await resp.text();
+    console.log(respText);
+    throw new Error("Could not start user indexing");
+  }
+  revalidatePath(`/programs/${programId}/settings`);
 }

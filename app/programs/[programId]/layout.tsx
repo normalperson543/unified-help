@@ -11,6 +11,7 @@ import {
   Alert,
   Autocomplete,
   Avatar,
+  Button,
   Card,
   ComboBox,
   EmptyState,
@@ -35,7 +36,7 @@ import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { SlackUser } from "@/generated/prisma/client";
 import { ITEMS_PER_PAGE } from "@/app/lib/constants";
-
+import { useDebounce } from "use-debounce";
 let savedSidebarScrollTop = 0;
 
 export default function RootLayout({
@@ -46,10 +47,14 @@ export default function RootLayout({
   const params = useParams();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTermDebounced] = useDebounce(searchTerm, 500);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
+  const [statusFilterDebounced] = useDebounce(statusFilter, 500);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
+  const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
+  const [sortDebounced] = useDebounce(sort, 500);
   const [page, setPage] = useState(1);
 
   // this useLayoutEffect thing was created with Claude
@@ -64,7 +69,7 @@ export default function RootLayout({
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTerm)}&assigneeIds=${(selectedUsers as string[]).join(",")}&statuses=${statusFilter}&order=${sort}&page=${page}`,
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTermDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -80,7 +85,7 @@ export default function RootLayout({
   let totalPages = 1;
 
   if (programTickets?.total) {
-    totalPages = Math.floor(programTickets.total / 20);
+    totalPages = Math.floor(programTickets.total / 20) + 1;
   }
 
   const { contains } = useFilter({ sensitivity: "base" });
@@ -276,7 +281,9 @@ export default function RootLayout({
             </div>
           )}
           {programTickets && (
-            <Pagination className="w-full"> {/* from heroUI docs */}
+            <Pagination className="w-full">
+              {" "}
+              {/* from heroUI docs */}
               <Pagination.Summary>
                 Showing {startItem}-{endItem} of {programTickets.total ?? 0}{" "}
                 results

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
 import { AnswerActivity } from "./types";
+import { desc } from "motion/react-m";
 
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
@@ -48,6 +49,9 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           resolver: true,
           firstResponseUser: true,
         },
+        orderBy: {
+          dateCreated: "desc"
+        }
       },
       resolvedTickets: {
         where: {
