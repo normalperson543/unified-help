@@ -8,6 +8,7 @@ import {
   ProgramStatistics,
   ProgramWithAssignees,
   RouteError,
+  SlackUserWithStats,
 } from "../lib/types";
 import AnswerBarChart from "./answer-bar-chart";
 import useSWR from "swr";
@@ -40,6 +41,7 @@ import NotLoggedIn from "./not-logged-in";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
 import Link from "next/link";
+import UsersTable from "./users-table";
 
 // Open, Assigned, Resolved — matching the ticket status chip colors.
 const STATS_COLORS = ["var(--warning)", "var(--accent)", "var(--success)"];
@@ -87,7 +89,7 @@ export default function ProgramUI() {
     data: lb,
     error: lbError,
     isLoading: lbIsLoading,
-  } = useSWR<Leaderboard>(
+  } = useSWR<SlackUserWithStats[]>(
     programId &&
       `/api/programs/${programId}/leaderboard/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
@@ -353,77 +355,13 @@ export default function ProgramUI() {
           <Card className="grow shrink">
             <div className="flex flex-col gap-4">
               <p className="text-lg font-bold">Leaderboard</p>
-              <Table>
-                <Table.ScrollContainer className="max-h-96">
-                  <Table.Content aria-label="Assigned tickets">
-                    <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
-                      <Table.Column isRowHeader>Username</Table.Column>
-                      <Table.Column>Assigned</Table.Column>
-                      <Table.Column>Resolved</Table.Column>
-                    </Table.Header>
-                    <Table.Body
-                      renderEmptyState={() => (
-                        <EmptyState className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-                          <CircleQuestionMarkIcon className="text-muted" />
-                          <span className="text-sm text-muted">
-                            No users found
-                          </span>
-                        </EmptyState>
-                      )}
-                    >
-                      {lb &&
-                        lb.length > 0 &&
-                        lb
-                          .sort(
-                            (a, b) =>
-                              b._count.assignedTickets -
-                              a._count.assignedTickets,
-                          )
-                          .map((l) => (
-                            <Table.Row key={l.id}>
-                              <Table.Cell>
-                                <div className="flex gap-2 items-center shrink w-fit">
-                                  <Link
-                                    href={`/profile/${l.id}/program/${programId}`}
-                                    target="_blank"
-                                  >
-                                    <Avatar size="sm">
-                                      <Avatar.Image
-                                        src={`https://cachet.dunkirk.sh/users/${l.id}/r`}
-                                        alt="Profile picture"
-                                      />
-                                      <Avatar.Fallback>
-                                        {l.username.substring(0, 1)}
-                                      </Avatar.Fallback>
-                                    </Avatar>
-                                  </Link>
-                                  <Link
-                                    href={`/profile/${l.id}/program/${programId}`}
-                                    target="_blank"
-                                  >
-                                    <b>{l.username}</b>
-                                  </Link>
-                                </div>
-                              </Table.Cell>
-                              <Table.Cell>
-                                {
-                                  stats?.usersTicketCount.find(
-                                    (u) => u.id === l.id,
-                                  )?._count.assignedTickets
-                                }
-                              </Table.Cell>
-                              <Table.Cell>
-                                <div className="flex gap-2 items-center font-bold">
-                                  <CheckIcon width={16} />
-                                  {l._count.assignedTickets}
-                                </div>
-                              </Table.Cell>
-                            </Table.Row>
-                          ))}
-                    </Table.Body>
-                  </Table.Content>
-                </Table.ScrollContainer>
-              </Table>
+
+              <UsersTable
+                users={lb.sort(
+                  (a, b) => b._count.resolvedTickets - a._count.resolvedTickets,
+                )}
+                programId={programId!}
+              />
             </div>
           </Card>
         )}

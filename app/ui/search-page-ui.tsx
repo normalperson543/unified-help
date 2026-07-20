@@ -2,13 +2,28 @@
 
 import { SearchIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import { ProgramTicketsResponse } from "../lib/types";
+import { ProgramTicketsResponse, SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-import { Alert, Autocomplete, EmptyState, Key, Label, ListBox, Pagination, SearchField, Select, Spinner, TagGroup } from "@heroui/react";
+import {
+  Alert,
+  Autocomplete,
+  EmptyState,
+  Key,
+  Label,
+  ListBox,
+  Pagination,
+  SearchField,
+  Select,
+  Spinner,
+  Table,
+  TagGroup,
+} from "@heroui/react";
 import { fetcher } from "../lib/swr";
 import { ITEMS_PER_PAGE } from "../lib/constants";
+import TicketTable from "./ticket-table";
+import UsersTable from "./users-table";
 
 export default function SearchPageUI() {
   const { searchTerm } = useParams();
@@ -18,7 +33,6 @@ export default function SearchPageUI() {
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
-  const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
   const [sortDebounced] = useDebounce(sort, 500);
   const [page, setPage] = useState(1);
@@ -27,17 +41,23 @@ export default function SearchPageUI() {
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
     fetcher,
     { keepPreviousData: true },
   );
+  const {
+    data: users,
+    error: usersError,
+    isLoading: usersIsLoading,
+  } = useSWR<SlackUserApiResponse>(
+    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${sortDebounced}&page=${page}`,
+    fetcher,
+    { keepPreviousData: true },
+    );
+
+  console.log(users)
 
   let totalPages = 1;
-
-  const onRemoveTags = (keys: Set<Key>) => {
-    // from heroUI docs
-    setSelectedUsers((prev) => prev.filter((key) => !keys.has(key)));
-  };
 
   const getPageNumbers = () => {
     // from heroui docs
@@ -70,64 +90,82 @@ export default function SearchPageUI() {
         <SearchIcon width={32} />
         <p className="font-bold text-2xl">Global Search</p>
       </div>
-      <p className="font-bold text-xl">Programs</p>
-      <div className="bg-background px-4 py-2 flex flex-col gap-1 sticky top-0 z-10">
-        {showFilters && (
-          <div className="flex flex-col gap-1 border-b border-accent-background pb-2">
-            <div className="flex gap-4">
-              <Select
-                onChange={(e) =>
-                  setStatusFilter(e?.toString() as string)
-                }
-                value={statusFilter}
-                className="w-1/2"
-              >
-                <Label>Status</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="0,1,2" value="0,1,2">
-                      All statuses
-                    </ListBox.Item>
-                    <ListBox.Item id="0" value="0">
-                      Open
-                    </ListBox.Item>
-                    <ListBox.Item id="1" value="1">
-                      Assigned
-                    </ListBox.Item>
-                    <ListBox.Item id="2" value="2">
-                      Resolved
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <Select
-                onChange={(e) => setSort(e?.toString() as string)}
-                value={sort}
-                className="w-1/2"
-              >
-                <Label>Sort by</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="asc" value="asc">
-                      Ascending
-                    </ListBox.Item>
-                    <ListBox.Item id="desc" value="desc">
-                      Descending
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-            </div>
-          </div>
-        )}
+      <div className="flex justify-between items-center">
+        <p className="font-bold text-xl">Users</p>
+        <div className="flex gap-2 items-center">
+          <Select
+            onChange={(e) => setSort(e?.toString() as string)}
+            value={sort}
+          >
+            <Label>Sort by</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="asc" value="asc">
+                  Ascending
+                </ListBox.Item>
+                <ListBox.Item id="desc" value="desc">
+                  Descending
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        </div>
+      </div>
+      {users && <UsersTable users={users.users} />}
+      <div className="flex justify-between items-center">
+        <p className="font-bold text-xl">Tickets</p>
+        <div className="flex gap-2 items-center">
+          <Select
+            onChange={(e) => setStatusFilter(e?.toString() as string)}
+            value={statusFilter}
+          >
+            <Label>Status</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="0,1,2" value="0,1,2">
+                  All statuses
+                </ListBox.Item>
+                <ListBox.Item id="0" value="0">
+                  Open
+                </ListBox.Item>
+                <ListBox.Item id="1" value="1">
+                  Assigned
+                </ListBox.Item>
+                <ListBox.Item id="2" value="2">
+                  Resolved
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
+          <Select
+            onChange={(e) => setSort(e?.toString() as string)}
+            value={sort}
+          >
+            <Label>Sort by</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="asc" value="asc">
+                  Ascending
+                </ListBox.Item>
+                <ListBox.Item id="desc" value="desc">
+                  Descending
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
+        </div>
       </div>
       {programTickets && (
         <Pagination className="w-full">
@@ -194,12 +232,9 @@ export default function SearchPageUI() {
             </Alert.Content>
           </Alert>
         )}
-        {programTickets &&
-          !programTicketsIsLoading &&
-          !programTicketsError &&
-          programTickets.tickets.map((ticket) => (
-            <p>ticket</p>
-          ))}
+        {programTickets && !programTicketsIsLoading && !programTicketsError && (
+          <TicketTable tickets={programTickets.tickets} />
+        )}
       </div>
     </div>
   );

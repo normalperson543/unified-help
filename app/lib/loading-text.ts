@@ -1,4 +1,5 @@
 export const LOADING_TEXT = [
+  "jetblue 97 -owae",
   "mraowwwww :3",
   "loading...",
   "wait for it...",

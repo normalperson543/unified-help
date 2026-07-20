@@ -1,8 +1,25 @@
 // this was actually not made with claude code mb
 
-import { Avatar, Button, Chip, CircleDashedIcon, EmptyState, Link, Table, TableLayout, Tooltip, Virtualizer } from "@heroui/react";
-import { CircleIcon, SquareArrowOutUpRightIcon, CheckIcon, CircleQuestionMarkIcon } from "lucide-react";
+import {
+  Avatar,
+  Button,
+  Chip,
+  CircleDashedIcon,
+  EmptyState,
+  Link,
+  Table,
+  TableLayout,
+  Tooltip,
+  Virtualizer,
+} from "@heroui/react";
+import {
+  CircleIcon,
+  SquareArrowOutUpRightIcon,
+  CheckIcon,
+  CircleQuestionMarkIcon,
+} from "lucide-react";
 import { TicketWithAssigneesAndProgram } from "../lib/types";
+import Image from "next/image";
 
 export default function TicketTable({
   tickets,
@@ -43,7 +60,22 @@ export default function TicketTable({
             >
               {tickets.map((t) => (
                 <Table.Row key={t.id}>
-                  <Table.Cell>{t.program.name}</Table.Cell>
+                  <Table.Cell>
+                    <Link href={`/programs/${t.program.id}`} target="_blank">
+                      <div className="flex items-center gap-2">
+                        {t.program.logo && (
+                          <Image
+                            src={t.program.logo}
+                            alt="Program icon"
+                            width={16}
+                            height={16}
+                            className="rounded-sm"
+                          />
+                        )}
+                        {t.program.name}
+                      </div>
+                    </Link>
+                  </Table.Cell>
                   <Table.Cell>{t.dateCreated.toLocaleString()}</Table.Cell>
                   <Table.Cell>{t.message.substring(0, 30)}</Table.Cell>
                   <Table.Cell>

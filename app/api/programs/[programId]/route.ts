@@ -16,7 +16,7 @@ export async function GET(
   }
   const { programId } = await ctx.params;
   const id = programId !== "all" ? programId : undefined;
-  const params = req.nextUrl.searchParams; //todo: searching stuff
+  const params = req.nextUrl.searchParams; 
   console.log(params);
   const searchTerm = params.get("searchTerm");
   const assigneeIds = params.get("assigneeIds")?.split(",");
@@ -47,6 +47,8 @@ export async function GET(
       slackUser: true,
       assignees: true,
       program: true,
+      resolver: true,
+      firstResponseUser: true,
       _count: {
         select: {
           replies: true,
