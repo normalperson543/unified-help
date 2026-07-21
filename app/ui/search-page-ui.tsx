@@ -17,6 +17,7 @@ import {
   Pagination,
   SearchField,
   Select,
+  SortDescriptor,
   Spinner,
   Table,
   TagGroup,
@@ -34,16 +35,24 @@ export default function SearchPageUI() {
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
-  const [sort, setSort] = useState("desc");
-  const [sortDebounced] = useDebounce(sort, 500);
+  const [dateSort, setDateSort] = useState("desc");
   const [ticketsPage, setTicketsPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
+  const [userSortDescriptor, setUserSortDescriptor] = useState<SortDescriptor>({
+    column: "username",
+    direction: "ascending",
+  });
+  const [usersSortDebounced] = useDebounce(userSortDescriptor, 500);
+
+  const usersOrder = `${usersSortDebounced.column}.${
+    usersSortDebounced.direction === "ascending" ? "asc" : "desc"
+  }`;
   const {
     data: programTickets,
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${ticketsPage}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -52,23 +61,42 @@ export default function SearchPageUI() {
     error: usersError,
     isLoading: usersIsLoading,
   } = useSWR<SlackUserApiResponse>(
-    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${sortDebounced}&page=${usersPage}`,
+    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${usersOrder}&page=${usersPage}`,
     fetcher,
     { keepPreviousData: true },
   );
 
   console.log(users);
 
-  let totalPages = 1;
+  let totalUsersPages = 1;
 
-  if (programTickets?.total) {
-    totalPages = Math.floor(programTickets.total / 20) + 1;
+  if (users?.total) {
+    totalUsersPages = Math.ceil(users.total / ITEMS_PER_PAGE);
   }
 
-  function handleLoadMore() {
-    if (usersIsLoading) return;
-    setUsersPage(usersPage + 1);
-  }
+  const getPageNumbers = () => {
+    // from heroui docs
+    const pages: (number | "ellipsis")[] = [];
+    pages.push(1);
+    if (usersPage > 3) {
+      pages.push("ellipsis");
+    }
+    const start = Math.max(2, usersPage - 1);
+    const end = Math.min(totalUsersPages - 1, usersPage + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (usersPage < totalUsersPages - 2) {
+      pages.push("ellipsis");
+    }
+    if (totalUsersPages > 1) {
+      pages.push(totalUsersPages);
+    }
+    return pages;
+  };
+
+  const startItem = (usersPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(usersPage * ITEMS_PER_PAGE, users?.total ?? 0);
 
   const handleSearch = useDebouncedCallback(() => {
     setSearchDebounced(search);
@@ -78,6 +106,12 @@ export default function SearchPageUI() {
     setSearch(newTerm);
     handleSearch();
   }
+
+  function handleSetUserSortDescriptor(newSortDescriptor: SortDescriptor) {
+    setUserSortDescriptor(newSortDescriptor);
+    setUsersPage(1);
+  }
+
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between items-center">
@@ -93,13 +127,57 @@ export default function SearchPageUI() {
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Users</p>
       </div>
+      {users && (
+        <Pagination className="w-full">
+          {" "}
+          {/* from heroUI docs */}
+          <Pagination.Summary>
+            Showing {startItem}-{endItem} of {users.total ?? 0} results
+          </Pagination.Summary>
+          <Pagination.Content>
+            <Pagination.Item>
+              <Pagination.Previous
+                isDisabled={usersPage === 1}
+                onPress={() => setUsersPage((p) => p - 1)}
+              >
+                <Pagination.PreviousIcon />
+                <span>Previous</span>
+              </Pagination.Previous>
+            </Pagination.Item>
+            {getPageNumbers().map((p, i) =>
+              p === "ellipsis" ? (
+                <Pagination.Item key={`ellipsis-${i}`}>
+                  <Pagination.Ellipsis />
+                </Pagination.Item>
+              ) : (
+                <Pagination.Item key={p}>
+                  <Pagination.Link
+                    isActive={p === usersPage}
+                    onPress={() => setUsersPage(p)}
+                  >
+                    {p}
+                  </Pagination.Link>
+                </Pagination.Item>
+              ),
+            )}
+            <Pagination.Item>
+              <Pagination.Next
+                isDisabled={usersPage === totalUsersPages}
+                onPress={() => setUsersPage((p) => p + 1)}
+              >
+                <span>Next</span>
+                <Pagination.NextIcon />
+              </Pagination.Next>
+            </Pagination.Item>
+          </Pagination.Content>
+        </Pagination>
+      )}
       <p>{usersPage}</p>
       {users && (
         <UsersTable
           users={users.users}
-          total={users.total}
-          onLoadMore={handleLoadMore}
-          isLoading={usersIsLoading}
+          sortDescriptor={userSortDescriptor}
+          setSortDescriptor={handleSetUserSortDescriptor}
         />
       )}
       <div className="flex justify-between items-center">
@@ -132,10 +210,10 @@ export default function SearchPageUI() {
             </Select.Popover>
           </Select>
           <Select
-            onChange={(e) => setSort(e?.toString() as string)}
-            value={sort}
+            onChange={(e) => setDateSort(e?.toString() as string)}
+            value={dateSort}
           >
-            <Label>Sort by</Label>
+            <Label>Sort date by</Label>
             <Select.Trigger>
               <Select.Value />
               <Select.Indicator />
@@ -153,6 +231,7 @@ export default function SearchPageUI() {
           </Select>
         </div>
       </div>
+
       <div className="flex flex-col gap-2 px-4 py-2">
         {(!programTickets || programTicketsIsLoading) &&
           !programTicketsError && (

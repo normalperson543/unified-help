@@ -8,8 +8,25 @@ export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
 
   const searchTerm = params.get("searchTerm");
-  const page = params.get("page");
+  const page = params.get("page") ?? 1;
   const programs = params.get("programs")?.split(",");
+  const order = params.get("order") ?? "username.asc";
+
+  const field = order.split(".")[0]
+  const direction = order.split(".")[1]
+
+  // coded by claude
+  const dir: Prisma.SortOrder = direction === "desc" ? "desc" : "asc";
+  
+  const orderByMap: Record<string, Prisma.SlackUserOrderByWithRelationInput> = {
+    username: { username: dir },
+    createdTickets: { createdTickets: { _count: dir } },
+    assignedTickets: { assignedTickets: { _count: dir } },
+    resolvedTickets: { resolvedTickets: { _count: dir } },
+  };
+
+  const orderBy = orderByMap[field] ?? { username: "asc" };
+  // end of claude code
 
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
@@ -43,34 +60,10 @@ export async function GET(req: NextRequest) {
         },
       },
     },
-    take: ITEMS_PER_PAGE * (page ?? 1) ,
+    orderBy,
+    skip: ITEMS_PER_PAGE * (Number(page) - 1),
+    take: ITEMS_PER_PAGE,
   });
-
-  // Claude made this part to fix a bug regarding resolved ticket counts
-  const resolvedCounts = await prisma.slackUser.findMany({
-    where: { id: { in: users.map((u) => u.id) } },
-    select: {
-      id: true,
-      _count: {
-        select: {
-          assignedTickets: {
-            where: {
-              status: 2,
-            },
-          },
-        },
-      },
-    },
-  });
-  const resolvedById = new Map(
-    resolvedCounts.map((u) => [u.id, u._count.assignedTickets]),
-  );
-  const usersWithStats = users.map((u) => ({
-    ...u,
-    resolvedAssignedCount: resolvedById.get(u.id) ?? 0,
-  }));
-
-  // End of Claude help
 
   const usersCount = await prisma.slackUser.count({
     where: {
@@ -78,6 +71,6 @@ export async function GET(req: NextRequest) {
     },
   });
   return new Response(
-    JSON.stringify({ users: usersWithStats, total: usersCount }),
+    JSON.stringify({ users: users, total: usersCount }),
   );
 }

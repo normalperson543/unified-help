@@ -205,7 +205,7 @@ export type SlackUserWithStats = Prisma.SlackUserGetPayload<{
       };
     };
   };
-}> & { resolvedAssignedCount: number };
+}>;
 export type SlackUserApiResponse = {
   users: SlackUserWithStats[],
   total: number

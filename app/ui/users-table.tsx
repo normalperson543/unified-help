@@ -1,41 +1,65 @@
 "use client";
-import { Avatar, Chip, EmptyState, Spinner, Table } from "@heroui/react";
+import {
+  Avatar,
+  Chip,
+  EmptyState,
+  SortDescriptor,
+  Spinner,
+  Table,
+} from "@heroui/react";
 import { CheckIcon, CircleQuestionMarkIcon } from "lucide-react";
 import { SlackUserWithStats } from "../lib/types";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
 
 export default function UsersTable({
   users,
-  total,
   programId,
-  onLoadMore,
-  isLoading,
+  sortDescriptor,
+  setSortDescriptor,
 }: {
   users: SlackUserWithStats[];
-  total: number;
   programId?: string;
-  onLoadMore: () => void;
-  isLoading: boolean;
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: (s: SortDescriptor) => void;
 }) {
-  const hasMore = users.length < total;
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Claude bugfixed the below function
-  const handleLoadMore = useCallback(() => {
-    await onLoadMore();
-  }, [isLoading, onLoadMore]);
-
   return (
     <Table>
-      <Table.ScrollContainer ref={scrollRef} className="max-h-96">
-        <Table.Content aria-label="Users">
+      <Table.ScrollContainer className="max-h-96">
+        <Table.Content
+          aria-label="Users"
+          sortDescriptor={sortDescriptor}
+          onSortChange={setSortDescriptor}
+        >
           <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
-            <Table.Column isRowHeader>Username</Table.Column>
+            <Table.Column allowsSorting isRowHeader id="username">
+              {({ sortDirection }) => (
+                <Table.SortableColumnHeader sortDirection={sortDirection}>
+                  Username
+                </Table.SortableColumnHeader>
+              )}
+            </Table.Column>
             <Table.Column>ID</Table.Column>
-            <Table.Column>Created</Table.Column>
-            <Table.Column>Assigned</Table.Column>
-            <Table.Column>Resolved</Table.Column>
+            <Table.Column allowsSorting id="createdTickets">
+              {({ sortDirection }) => (
+                <Table.SortableColumnHeader sortDirection={sortDirection}>
+                  Created
+                </Table.SortableColumnHeader>
+              )}
+            </Table.Column>
+            <Table.Column allowsSorting id="assignedTickets">
+              {({ sortDirection }) => (
+                <Table.SortableColumnHeader sortDirection={sortDirection}>
+                  Assigned
+                </Table.SortableColumnHeader>
+              )}
+            </Table.Column>
+            <Table.Column allowsSorting id="resolvedTickets">
+              {({ sortDirection }) => (
+                <Table.SortableColumnHeader sortDirection={sortDirection}>
+                  Resolved by user
+                </Table.SortableColumnHeader>
+              )}
+            </Table.Column>
           </Table.Header>
           <Table.Body
             renderEmptyState={() => (
@@ -76,21 +100,10 @@ export default function UsersTable({
                   </Table.Cell>
                   <Table.Cell>{u._count.createdTickets}</Table.Cell>
                   <Table.Cell>{u._count.assignedTickets}</Table.Cell>
-                  <Table.Cell>{u.resolvedAssignedCount}</Table.Cell>
+                  <Table.Cell>{u._count.resolvedTickets}</Table.Cell>
                 </Table.Row>
               )}
             </Table.Collection>
-            {!!hasMore && (
-              <Table.LoadMore
-                isLoading={isLoading}
-                scrollOffset={0}
-                onLoadMore={handleLoadMore}
-              >
-                <Table.LoadMoreContent>
-                  <Spinner size="md" />
-                </Table.LoadMoreContent>
-              </Table.LoadMore>
-            )}
           </Table.Body>
         </Table.Content>
       </Table.ScrollContainer>
