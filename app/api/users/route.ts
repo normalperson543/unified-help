@@ -43,8 +43,7 @@ export async function GET(req: NextRequest) {
         },
       },
     },
-    skip: ((Number(page) || 1) - 1) * ITEMS_PER_PAGE,
-    take: 20,
+    take: ITEMS_PER_PAGE * (page ?? 1) ,
   });
 
   // Claude made this part to fix a bug regarding resolved ticket counts

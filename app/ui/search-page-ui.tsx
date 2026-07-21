@@ -4,8 +4,8 @@ import { SearchIcon } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProgramTicketsResponse, SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
-import { useState } from "react";
-import { useDebounce } from "use-debounce";
+import { useRef, useState } from "react";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import {
   Alert,
   Autocomplete,
@@ -29,20 +29,21 @@ import UsersTable from "./users-table";
 export default function SearchPageUI() {
   const params = useSearchParams();
   const [search, setSearch] = useState(params.get("searchTerm") ?? "");
-  const [searchDebounced] = useDebounce(search, 500);
+  const [searchDebounced, setSearchDebounced] = useState(search);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
   const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
   const [sort, setSort] = useState("desc");
   const [sortDebounced] = useDebounce(sort, 500);
-  const [page, setPage] = useState(1);
+  const [ticketsPage, setTicketsPage] = useState(1);
+  const [usersPage, setUsersPage] = useState(1);
   const {
     data: programTickets,
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${ticketsPage}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -51,7 +52,7 @@ export default function SearchPageUI() {
     error: usersError,
     isLoading: usersIsLoading,
   } = useSWR<SlackUserApiResponse>(
-    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${sortDebounced}&page=${page}`,
+    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${sortDebounced}&page=${usersPage}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -60,30 +61,22 @@ export default function SearchPageUI() {
 
   let totalPages = 1;
 
-  const getPageNumbers = () => {
-    // from heroui docs
-    const pages: (number | "ellipsis")[] = [];
-    pages.push(1);
-    if (page > 3) {
-      pages.push("ellipsis");
-    }
-    const start = Math.max(2, page - 1);
-    const end = Math.min(totalPages - 1, page + 1);
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    if (page < totalPages - 2) {
-      pages.push("ellipsis");
-    }
-    pages.push(totalPages);
-    return pages;
-  };
-
-  const startItem = (page - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(page * ITEMS_PER_PAGE, programTickets?.total ?? 0);
-
   if (programTickets?.total) {
     totalPages = Math.floor(programTickets.total / 20) + 1;
+  }
+
+  function handleLoadMore() {
+    if (usersIsLoading) return;
+    setUsersPage(usersPage + 1);
+  }
+
+  const handleSearch = useDebouncedCallback(() => {
+    setSearchDebounced(search);
+    setUsersPage(1);
+  }, 500);
+  function handleChangeSearchTerm(newTerm: string) {
+    setSearch(newTerm);
+    handleSearch();
   }
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
@@ -92,12 +85,23 @@ export default function SearchPageUI() {
           <SearchIcon width={32} />
           <p className="font-bold text-2xl">Global Search</p>
         </div>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input
+          value={search}
+          onChange={(e) => handleChangeSearchTerm(e.target.value)}
+        />
       </div>
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Users</p>
       </div>
-      {users && <UsersTable users={users.users} />}
+      <p>{usersPage}</p>
+      {users && (
+        <UsersTable
+          users={users.users}
+          total={users.total}
+          onLoadMore={handleLoadMore}
+          isLoading={usersIsLoading}
+        />
+      )}
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Tickets</p>
         <div className="flex gap-2 items-center">
@@ -149,51 +153,6 @@ export default function SearchPageUI() {
           </Select>
         </div>
       </div>
-      {programTickets && (
-        <Pagination className="w-full">
-          {" "}
-          {/* from heroUI docs */}
-          <Pagination.Summary>
-            Showing {startItem}-{endItem} of {programTickets.total ?? 0} results
-          </Pagination.Summary>
-          <Pagination.Content>
-            <Pagination.Item>
-              <Pagination.Previous
-                isDisabled={page === 1}
-                onPress={() => setPage((p) => p - 1)}
-              >
-                <Pagination.PreviousIcon />
-                <span>Previous</span>
-              </Pagination.Previous>
-            </Pagination.Item>
-            {getPageNumbers().map((p, i) =>
-              p === "ellipsis" ? (
-                <Pagination.Item key={`ellipsis-${i}`}>
-                  <Pagination.Ellipsis />
-                </Pagination.Item>
-              ) : (
-                <Pagination.Item key={p}>
-                  <Pagination.Link
-                    isActive={p === page}
-                    onPress={() => setPage(p)}
-                  >
-                    {p}
-                  </Pagination.Link>
-                </Pagination.Item>
-              ),
-            )}
-            <Pagination.Item>
-              <Pagination.Next
-                isDisabled={page === totalPages}
-                onPress={() => setPage((p) => p + 1)}
-              >
-                <span>Next</span>
-                <Pagination.NextIcon />
-              </Pagination.Next>
-            </Pagination.Item>
-          </Pagination.Content>
-        </Pagination>
-      )}
       <div className="flex flex-col gap-2 px-4 py-2">
         {(!programTickets || programTicketsIsLoading) &&
           !programTicketsError && (
