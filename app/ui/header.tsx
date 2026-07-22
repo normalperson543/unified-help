@@ -8,6 +8,8 @@ import ProgramStats from "./program-stats";
 import Link from "next/link";
 import SignOutButton from "./sign-out-button";
 import ProgramTabs from "./program-tabs";
+import { Input } from "@heroui/react";
+import SearchBar from "./search-bar";
 
 export default async function Header({
   children,
@@ -32,6 +34,7 @@ export default async function Header({
           <ProgramSelector />
         }
         <ProgramTabs />
+        <SearchBar />
       </div>
 
       <div className="flex flex-row gap-4 items-center">

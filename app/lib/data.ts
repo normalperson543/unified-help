@@ -503,9 +503,21 @@ export async function getResolvedTicketsCount(
 
       _count: {
         select: {
-          programs: true,
-          createdTickets: true,
-          resolvedTickets: true,
+          programs: {
+            where: {
+              id: programId
+            }
+          },
+          createdTickets: {
+            where: {
+              programId: programId
+            }
+          },
+          resolvedTickets: {
+            where: {
+              programId: programId
+            }
+          },
           users: true,
           assignedTickets: {
             where: {

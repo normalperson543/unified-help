@@ -1,7 +1,12 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ProgramTicketsResponse, SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
 import { useRef, useState } from "react";
@@ -29,8 +34,8 @@ import UsersTable from "./users-table";
 
 export default function SearchPageUI() {
   const params = useSearchParams();
-  const [search, setSearch] = useState(params.get("searchTerm") ?? "");
-  const [searchDebounced, setSearchDebounced] = useState(search);
+  const urlSearchTerm = params.get("searchTerm") ?? ""
+  const [search, setSearch] = useState(urlSearchTerm);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
@@ -50,6 +55,16 @@ export default function SearchPageUI() {
   const [usersSortDebounced] = useDebounce(userSortDescriptor, 500);
   const [ticketsSortDebounced] = useDebounce(ticketSortDescriptor, 500);
 
+  // claude code bugfix
+  const [prevSearchTerm, setPrevSearchTerm] = useState(urlSearchTerm);
+  if (urlSearchTerm !== prevSearchTerm) {
+    setPrevSearchTerm(urlSearchTerm);
+    setSearch(urlSearchTerm);
+    setUsersPage(1);
+    setTicketsPage(1);
+  }
+  // end of claude code bugfix
+
   const usersOrder = `${usersSortDebounced.column}.${
     usersSortDebounced.direction === "ascending" ? "asc" : "desc"
   }`;
@@ -61,7 +76,7 @@ export default function SearchPageUI() {
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}&order=${ticketsOrder}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(urlSearchTerm)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}&order=${ticketsOrder}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -70,10 +85,13 @@ export default function SearchPageUI() {
     error: usersError,
     isLoading: usersIsLoading,
   } = useSWR<SlackUserApiResponse>(
-    `/api/users/?searchTerm=${encodeURIComponent(searchDebounced)}&order=${usersOrder}&page=${usersPage}`,
+    `/api/users/?searchTerm=${encodeURIComponent(urlSearchTerm)}&order=${usersOrder}&page=${usersPage}`,
     fetcher,
     { keepPreviousData: true },
   );
+
+  const { replace } = useRouter();
+  const pathname = usePathname();
 
   console.log(users);
 
@@ -83,7 +101,13 @@ export default function SearchPageUI() {
     totalUsersPages = Math.ceil(users.total / ITEMS_PER_PAGE);
   }
 
-  const getPageNumbers = () => {
+  let totalTicketPages = 1;
+
+  if (programTickets?.total) {
+    totalTicketPages = Math.ceil(programTickets.total / ITEMS_PER_PAGE);
+  }
+
+  const getUserPageNumbers = () => {
     // from heroui docs
     const pages: (number | "ellipsis")[] = [];
     pages.push(1);
@@ -104,13 +128,46 @@ export default function SearchPageUI() {
     return pages;
   };
 
-  const startItem = (usersPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(usersPage * ITEMS_PER_PAGE, users?.total ?? 0);
+  const getTicketPageNumbers = () => {
+    // from heroui docs
+    const pages: (number | "ellipsis")[] = [];
+    pages.push(1);
+    if (usersPage > 3) {
+      pages.push("ellipsis");
+    }
+    const start = Math.max(2, usersPage - 1);
+    const end = Math.min(totalTicketPages - 1, usersPage + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (usersPage < totalTicketPages - 2) {
+      pages.push("ellipsis");
+    }
+    if (totalTicketPages > 1) {
+      pages.push(totalTicketPages);
+    }
+    return pages;
+  };
+
+  const startUserItem = (usersPage - 1) * ITEMS_PER_PAGE + 1;
+  const endUserItem = Math.min(usersPage * ITEMS_PER_PAGE, users?.total ?? 0);
+
+  const startTicketItem = (ticketsPage - 1) * ITEMS_PER_PAGE + 1;
+  const endTicketItem = Math.min(
+    ticketsPage * ITEMS_PER_PAGE,
+    programTickets?.total ?? 0,
+  );
 
   const handleSearch = useDebouncedCallback(() => {
-    setSearchDebounced(search);
-    setUsersPage(1);
+    const newParams = new URLSearchParams(params);
+    if (search && search.length > 0) {
+      newParams.set("searchTerm", search);
+    } else {
+      newParams.delete("searchTerm");
+    }
+    replace(`${pathname}?${newParams.toString()}`);
   }, 500);
+
   function handleChangeSearchTerm(newTerm: string) {
     setSearch(newTerm);
     handleSearch();
@@ -145,7 +202,7 @@ export default function SearchPageUI() {
           {" "}
           {/* from heroUI docs */}
           <Pagination.Summary>
-            Showing {startItem}-{endItem} of {users.total ?? 0} results
+            Showing {startUserItem}-{endUserItem} of {users.total ?? 0} results
           </Pagination.Summary>
           <Pagination.Content>
             <Pagination.Item>
@@ -157,7 +214,7 @@ export default function SearchPageUI() {
                 <span>Previous</span>
               </Pagination.Previous>
             </Pagination.Item>
-            {getPageNumbers().map((p, i) =>
+            {getUserPageNumbers().map((p, i) =>
               p === "ellipsis" ? (
                 <Pagination.Item key={`ellipsis-${i}`}>
                   <Pagination.Ellipsis />
@@ -185,7 +242,6 @@ export default function SearchPageUI() {
           </Pagination.Content>
         </Pagination>
       )}
-      <p>{usersPage}</p>
       {users && (
         <UsersTable
           users={users.users}
@@ -195,56 +251,53 @@ export default function SearchPageUI() {
       )}
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Tickets</p>
-        <div className="flex gap-2 items-center">
-          <Select
-            onChange={(e) => setStatusFilter(e?.toString() as string)}
-            value={statusFilter}
-          >
-            <Label>Status</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item id="0,1,2" value="0,1,2">
-                  All statuses
-                </ListBox.Item>
-                <ListBox.Item id="0" value="0">
-                  Open
-                </ListBox.Item>
-                <ListBox.Item id="1" value="1">
-                  Assigned
-                </ListBox.Item>
-                <ListBox.Item id="2" value="2">
-                  Resolved
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-          <Select
-            onChange={(e) => setDateSort(e?.toString() as string)}
-            value={dateSort}
-          >
-            <Label>Sort date by</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item id="asc" value="asc">
-                  Ascending
-                </ListBox.Item>
-                <ListBox.Item id="desc" value="desc">
-                  Descending
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
       </div>
-
+      {users && (
+        <Pagination className="w-full">
+          {" "}
+          {/* from heroUI docs */}
+          <Pagination.Summary>
+            Showing {startTicketItem}-{endTicketItem} of{" "}
+            {programTickets?.total ?? 0} results
+          </Pagination.Summary>
+          <Pagination.Content>
+            <Pagination.Item>
+              <Pagination.Previous
+                isDisabled={ticketsPage === 1}
+                onPress={() => setUsersPage((p) => p - 1)}
+              >
+                <Pagination.PreviousIcon />
+                <span>Previous</span>
+              </Pagination.Previous>
+            </Pagination.Item>
+            {getTicketPageNumbers().map((p, i) =>
+              p === "ellipsis" ? (
+                <Pagination.Item key={`ellipsis-${i}`}>
+                  <Pagination.Ellipsis />
+                </Pagination.Item>
+              ) : (
+                <Pagination.Item key={p}>
+                  <Pagination.Link
+                    isActive={p === ticketsPage}
+                    onPress={() => setUsersPage(p)}
+                  >
+                    {p}
+                  </Pagination.Link>
+                </Pagination.Item>
+              ),
+            )}
+            <Pagination.Item>
+              <Pagination.Next
+                isDisabled={ticketsPage === totalTicketPages}
+                onPress={() => setTicketsPage((p) => p + 1)}
+              >
+                <span>Next</span>
+                <Pagination.NextIcon />
+              </Pagination.Next>
+            </Pagination.Item>
+          </Pagination.Content>
+        </Pagination>
+      )}
       <div className="flex flex-col gap-2 px-4 py-2">
         {(!programTickets || programTicketsIsLoading) &&
           !programTicketsError && (

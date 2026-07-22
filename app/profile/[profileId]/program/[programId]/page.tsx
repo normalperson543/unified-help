@@ -31,7 +31,7 @@ export default async function ProfilePage({
   );
   const activity = await getUserAnswerActivity(profileId, programId);
   const assignedAndResolvedCount =
-    await getAllAssignedAndResolvedTicketsCount(profileId);
+    await getAllAssignedAndResolvedTicketsCount(profileId, programId);
   const repliesCount = await getUserRepliesCount(profileId, programId);
   return (
     <ProfileUI
