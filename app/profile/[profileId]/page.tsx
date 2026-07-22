@@ -1,18 +1,31 @@
+import { auth } from "@/app/lib/auth";
 import {
   getAllAssignedAndResolvedTicketsCount,
+  getPrograms,
   getSlackUserDetailed,
+  getUser,
   getUserAnswerActivity,
   getUserFirstResponseTime,
   getUserRepliesCount,
   getUserResolveTime,
 } from "@/app/lib/data";
+import NotLoggedIn from "@/app/ui/not-logged-in";
 import ProfileUI from "@/app/ui/profile";
+import { headers } from "next/headers";
 
 export default async function ProfilePage({
   params,
 }: {
   params: Promise<{ profileId: string }>;
 }) {
+  const session = await auth.api.getSession({
+    // from better auth docs
+    headers: await headers(), // you need to pass the headers object.
+  });
+  let user;
+  if (session?.user.id) user = await getUser(session?.user.id);
+  if (!user) return <NotLoggedIn />;
+
   const { profileId } = await params;
   const profile = await getSlackUserDetailed(profileId);
   const frt = await getUserFirstResponseTime(

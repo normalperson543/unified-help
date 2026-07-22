@@ -110,6 +110,7 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
   });
 }
 export async function getAllAssignedAndResolvedTicketsCount(userId: string, programId?: string) {
+  await throwIfNoAuth();
   return await prisma.ticket.count({
     where: {
       programId: programId,
@@ -123,6 +124,7 @@ export async function getAllAssignedAndResolvedTicketsCount(userId: string, prog
   })
 }
 export async function getUserRepliesCount(userId: string, programId?: string) {
+  await throwIfNoAuth();
   return await prisma.reply.count({
     where: {
       slackUserId: userId,
@@ -488,6 +490,7 @@ export async function getResolvedTicketsCount(
   oldest: Date,
   newest: Date,
 ) {
+  await throwIfNoAuth();
   return await prisma.slackUser.findMany({
     // this was made with help from claude
     where: {
@@ -539,6 +542,7 @@ export async function getHangTime(
   oldest: Date,
   newest: Date,
 ) {
+  await throwIfNoAuth();
   const res = await prisma.ticket.aggregate({
     _avg: {
       responseTime: true,

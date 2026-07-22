@@ -5,6 +5,13 @@ import { Prisma } from "@/generated/prisma/client";
 import { type NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
+  const authStatus = await getUserAuthStatus();
+  if (authStatus.status === "unauthenticated") {
+    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
+      status: 401,
+    });
+  }
+
   const params = req.nextUrl.searchParams;
 
   const searchTerm = params.get("searchTerm");
@@ -12,12 +19,12 @@ export async function GET(req: NextRequest) {
   const programs = params.get("programs")?.split(",");
   const order = params.get("order") ?? "username.asc";
 
-  const field = order.split(".")[0]
-  const direction = order.split(".")[1]
+  const field = order.split(".")[0];
+  const direction = order.split(".")[1];
 
   // coded by claude
   const dir: Prisma.SortOrder = direction === "desc" ? "desc" : "asc";
-  
+
   const orderByMap: Record<string, Prisma.SlackUserOrderByWithRelationInput> = {
     username: { username: dir },
     createdTickets: { createdTickets: { _count: dir } },
@@ -28,13 +35,6 @@ export async function GET(req: NextRequest) {
   const orderBy = orderByMap[field] ?? { username: "asc" };
   // end of claude code
 
-  const authStatus = await getUserAuthStatus();
-  if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
-      status: 401,
-    });
-  }
-
   const filters: Prisma.SlackUserWhereInput[] = [];
   if (searchTerm && searchTerm.length > 0) {
     filters.push({ username: { contains: searchTerm, mode: "insensitive" } });
@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
   if (programs && programs[0].length > 0) {
     filters.push({ programs: { some: { id: { in: programs } } } });
   }
-  
 
   const users = await prisma.slackUser.findMany({
     where: {
@@ -70,7 +69,5 @@ export async function GET(req: NextRequest) {
       ...(filters.length ? { AND: filters } : {}),
     },
   });
-  return new Response(
-    JSON.stringify({ users: users, total: usersCount }),
-  );
+  return new Response(JSON.stringify({ users: users, total: usersCount }));
 }

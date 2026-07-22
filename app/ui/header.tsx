@@ -31,13 +31,18 @@ export default async function Header({
             unified<b>help</b>
           </h2>
         </Link>
-        {session?.user && <ProgramSelector />}
-        <ProgramTabs />
-        <Button variant="tertiary">
-          <PodiumIcon />
-          Leaderboard
-        </Button>
-        <SearchBar />
+
+        {session?.user && (
+          <>
+            <ProgramSelector />
+            <ProgramTabs />
+            <Button variant="tertiary">
+              <PodiumIcon />
+              Leaderboard
+            </Button>
+            <SearchBar />
+          </>
+        )}
       </div>
 
       <div className="flex flex-row gap-4 items-center">
