@@ -252,7 +252,7 @@ export default function SearchPageUI() {
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Tickets</p>
       </div>
-      {users && (
+      {programTickets && (
         <Pagination className="w-full">
           {" "}
           {/* from heroUI docs */}

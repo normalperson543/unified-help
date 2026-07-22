@@ -8,8 +8,9 @@ import ProgramStats from "./program-stats";
 import Link from "next/link";
 import SignOutButton from "./sign-out-button";
 import ProgramTabs from "./program-tabs";
-import { Input } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import SearchBar from "./search-bar";
+import { PodiumIcon } from "lucide-react";
 
 export default async function Header({
   children,
@@ -30,10 +31,12 @@ export default async function Header({
             unified<b>help</b>
           </h2>
         </Link>
-        {session?.user &&
-          <ProgramSelector />
-        }
+        {session?.user && <ProgramSelector />}
         <ProgramTabs />
+        <Button variant="tertiary">
+          <PodiumIcon />
+          Leaderboard
+        </Button>
         <SearchBar />
       </div>
 

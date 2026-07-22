@@ -16,15 +16,17 @@ export default function UsersTable({
   programId,
   sortDescriptor,
   setSortDescriptor,
+  height = 96
 }: {
   users: SlackUserWithStats[];
   programId?: string;
   sortDescriptor: SortDescriptor;
-  setSortDescriptor: (s: SortDescriptor) => void;
+    setSortDescriptor: (s: SortDescriptor) => void;
+    height: number;
 }) {
   return (
     <Table>
-      <Table.ScrollContainer className="max-h-96">
+      <Table.ScrollContainer className={`max-h-${height}`}>
         <Table.Content
           aria-label="Users"
           sortDescriptor={sortDescriptor}
