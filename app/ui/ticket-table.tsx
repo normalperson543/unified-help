@@ -7,6 +7,7 @@ import {
   CircleDashedIcon,
   EmptyState,
   Link,
+  SortDescriptor,
   Table,
   TableLayout,
   Tooltip,
@@ -23,8 +24,12 @@ import Image from "next/image";
 
 export default function TicketTable({
   tickets,
+  sortDescriptor,
+  setSortDescriptor,
 }: {
   tickets: TicketWithAssigneesAndProgram[];
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: (s: SortDescriptor) => void;
 }) {
   return (
     <Virtualizer
@@ -39,15 +44,47 @@ export default function TicketTable({
           <Table.Content
             aria-label="Assigned tickets"
             className="max-h-96 overflow-auto"
+            sortDescriptor={sortDescriptor}
+            onSortChange={setSortDescriptor}
           >
             <Table.Header className="h-full w-full">
-              <Table.Column isRowHeader>Program</Table.Column>
-              <Table.Column>Date created</Table.Column>
+              <Table.Column isRowHeader allowsSorting id="program">
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Program
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
+              <Table.Column allowsSorting id="dateCreated">
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Date created
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
               <Table.Column>Message</Table.Column>
-              <Table.Column>Status</Table.Column>
+              <Table.Column allowsSorting id="status">
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Status
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
               <Table.Column>Assignees</Table.Column>
-              <Table.Column>First response</Table.Column>
-              <Table.Column>Resolve time</Table.Column>
+              <Table.Column allowsSorting id="frt">
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    First response time
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
+              <Table.Column allowsSorting id="resolveTime">
+                {({ sortDirection }) => (
+                  <Table.SortableColumnHeader sortDirection={sortDirection}>
+                    Resolve time
+                  </Table.SortableColumnHeader>
+                )}
+              </Table.Column>
               <Table.Column>Open</Table.Column>
             </Table.Header>
             <Table.Body

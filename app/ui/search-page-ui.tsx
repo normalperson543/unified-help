@@ -39,20 +39,29 @@ export default function SearchPageUI() {
   const [ticketsPage, setTicketsPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
   const [userSortDescriptor, setUserSortDescriptor] = useState<SortDescriptor>({
-    column: "username",
-    direction: "ascending",
+    column: "resolvedTickets",
+    direction: "descending",
   });
+  const [ticketSortDescriptor, setTicketSortDescriptor] =
+    useState<SortDescriptor>({
+      column: "dateCreated",
+      direction: "ascending",
+    });
   const [usersSortDebounced] = useDebounce(userSortDescriptor, 500);
+  const [ticketsSortDebounced] = useDebounce(ticketSortDescriptor, 500);
 
   const usersOrder = `${usersSortDebounced.column}.${
     usersSortDebounced.direction === "ascending" ? "asc" : "desc"
+  }`;
+  const ticketsOrder = `${ticketsSortDebounced.column}.${
+    ticketsSortDebounced.direction === "ascending" ? "asc" : "desc"
   }`;
   const {
     data: programTickets,
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(searchDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}&order=${ticketsOrder}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -112,6 +121,10 @@ export default function SearchPageUI() {
     setUsersPage(1);
   }
 
+  function handleSetTicketSortDescriptor(newSortDescriptor: SortDescriptor) {
+    setTicketSortDescriptor(newSortDescriptor);
+    setTicketsPage(1);
+  }
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between items-center">
@@ -253,7 +266,11 @@ export default function SearchPageUI() {
           </Alert>
         )}
         {programTickets && !programTicketsIsLoading && !programTicketsError && (
-          <TicketTable tickets={programTickets.tickets} />
+          <TicketTable
+            tickets={programTickets.tickets}
+            sortDescriptor={ticketSortDescriptor}
+            setSortDescriptor={handleSetTicketSortDescriptor}
+          />
         )}
       </div>
     </div>
