@@ -69,5 +69,5 @@ volumes:
   db-data:
 
 networks:
-  app-network:
+  unified-help-network:
     driver: bridge
