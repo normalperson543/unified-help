@@ -29,6 +29,25 @@ export const auth = betterAuth({
       },
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        // Bootstrap the first-ever user as an admin. This runs *after* the
+        // row is inserted, so the first registrant sees a total count of 1.
+        // We deliberately do NOT expose `isAdmin` as an input field (which
+        // would let anyone self-register as admin); we flip it here instead.
+        after: async (user) => {
+          const userCount = await prisma.user.count();
+          if (userCount === 1) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { isAdmin: true },
+            });
+          }
+        },
+      },
+    },
+  },
   plugins: [
     genericOAuth({
       config: [
