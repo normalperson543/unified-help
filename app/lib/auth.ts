@@ -11,9 +11,11 @@ import { createUser } from "./slack";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   baseURL: process.env["BETTER_AUTH_URL"],
-  cookieCache: {
-    enabled: true,
-    maxAge: 5 * 60,
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
   },
   user: {
     additionalFields: {

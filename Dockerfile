@@ -34,14 +34,25 @@ COPY . .
 # The secret is generated per-build rather than hardcoded: better-auth warns on
 # anything under 32 chars or ~120 bits of estimated entropy, and a literal
 # placeholder trips both. 32 random bytes as hex clears them with room to spare.
+# BETTER_AUTH_URL is here only to stop auth.ts (baseURL: process.env.BETTER_AUTH_URL)
+# emitting a "Base URL is not set" warning per build worker, which floods the log
+# and hides real build errors. The runtime value comes from compose.
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
     BETTER_AUTH_SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("hex"))')" \
+    BETTER_AUTH_URL="http://build.invalid" \
     pnpm build
 
 # ---------------------------------------------------------------------------
 # migrator — prisma CLI + migrations, for `prisma migrate deploy` in CI/compose
+#
+# Built FROM deps, not FROM builder: applying migrations needs the prisma CLI,
+# the schema and the migrations directory — not the Next build. Depending on
+# builder made this image 1.7GB and made every `compose up` block on a full
+# production build that it never used.
 # ---------------------------------------------------------------------------
-FROM builder AS migrator
+FROM deps AS migrator
+COPY prisma.config.ts ./
+COPY prisma ./prisma
 CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
 # ---------------------------------------------------------------------------
