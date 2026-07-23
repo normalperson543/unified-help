@@ -2,6 +2,7 @@
   "name": "unified-help",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.2",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
