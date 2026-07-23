@@ -31,8 +31,11 @@ COPY . .
 # The app reads env at request time (every route is dynamic via headers()), but
 # module-level initialisation still runs during the build, so give the build
 # throwaway values. Scoped to this RUN so nothing lands in an image layer.
+# The secret is generated per-build rather than hardcoded: better-auth warns on
+# anything under 32 chars or ~120 bits of estimated entropy, and a literal
+# placeholder trips both. 32 random bytes as hex clears them with room to spare.
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
-    BETTER_AUTH_SECRET="build-time-placeholder" \
+    BETTER_AUTH_SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("hex"))')" \
     pnpm build
 
 # ---------------------------------------------------------------------------
