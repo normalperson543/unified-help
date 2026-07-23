@@ -54,7 +54,7 @@ services:
   
   scraper:
     build:
-      context: ../unified-help-scraper # this should point to the unified help scraper cloned repo!
+      context: ./scraper # this should point to the unified help scraper cloned repo!
       dockerfile: Dockerfile
     env_file: .env
     environment:
