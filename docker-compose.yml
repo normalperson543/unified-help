@@ -56,11 +56,15 @@ services:
       context: ../unified-help-scraper # this should point to the unified help scraper cloned repo!
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/unified_help
     expose:
       - "4000"
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - unified-help-network
 
