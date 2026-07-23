@@ -1,31 +1,17 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProgramTicketsResponse, SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
 import {
   Alert,
-  Autocomplete,
-  EmptyState,
   Input,
-  Key,
-  Label,
-  ListBox,
   Pagination,
-  SearchField,
-  Select,
   SortDescriptor,
   Spinner,
-  Table,
-  TagGroup,
 } from "@heroui/react";
 import { fetcher } from "../lib/swr";
 import { ITEMS_PER_PAGE } from "../lib/constants";
@@ -36,11 +22,6 @@ export default function SearchPageUI() {
   const params = useSearchParams();
   const urlSearchTerm = params.get("searchTerm") ?? "";
   const [search, setSearch] = useState(urlSearchTerm);
-  const [statusFilter, setStatusFilter] = useState("0,1,2");
-  const [statusFilterDebounced] = useDebounce(statusFilter, 500);
-  const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
-  const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
-  const [dateSort, setDateSort] = useState("desc");
   const [ticketsPage, setTicketsPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
   const [userSortDescriptor, setUserSortDescriptor] = useState<SortDescriptor>({
@@ -76,7 +57,7 @@ export default function SearchPageUI() {
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(urlSearchTerm)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&page=${ticketsPage}&order=${ticketsOrder}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(urlSearchTerm)}&assigneeIds=0,1,2&page=${ticketsPage}&order=${ticketsOrder}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -242,7 +223,7 @@ export default function SearchPageUI() {
           </Pagination.Content>
         </Pagination>
       )}
-      {(!users || usersIsLoading) && !programTicketsError && (
+      {(!users || usersIsLoading) && !usersError && (
         <div className="flex justify-center items-center w-full h-full">
           <Spinner />
         </div>

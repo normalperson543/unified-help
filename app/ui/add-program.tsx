@@ -35,8 +35,14 @@ export default function AddProgramUI() {
         <Label htmlFor="programName">Icon</Label>
         <Description>
           Icons must be square.{" "}
-          <a href="https://cdn.hackclub.com" className="underline" target="_blank">Hack Club CDN</a> links are
-          accepted.
+          <a
+            href="https://cdn.hackclub.com"
+            className="underline"
+            target="_blank"
+          >
+            Hack Club CDN
+          </a>{" "}
+          links are accepted.
         </Description>
         <Input
           value={imageLink}

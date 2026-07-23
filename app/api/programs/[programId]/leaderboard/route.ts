@@ -1,7 +1,4 @@
-import {
-  getResolvedTicketsCount,
-  getUserAuthStatus,
-} from "@/app/lib/data";
+import { getResolvedTicketsCount, getUserAuthStatus } from "@/app/lib/data";
 
 import { type NextRequest } from "next/server";
 
@@ -16,7 +13,7 @@ export async function GET(
       status: 401,
     });
   }
-  
+
   const params = req.nextUrl.searchParams;
   console.log(params);
   const oldest = params.get("oldest");
@@ -26,15 +23,19 @@ export async function GET(
   if (oldest) {
     oldestDate = new Date(Number(oldest));
   } else {
-    oldestDate = new Date("01-01-2000") // idk vro
+    oldestDate = new Date("01-01-2000"); // idk vro
   }
   let newestDate;
   if (newest) {
     newestDate = new Date(Number(newest));
   } else {
-    newestDate = new Date()
+    newestDate = new Date();
   }
-  
-  const program = await getResolvedTicketsCount(programId, oldestDate, newestDate);
+
+  const program = await getResolvedTicketsCount(
+    programId,
+    oldestDate,
+    newestDate,
+  );
   return new Response(JSON.stringify(program));
 }

@@ -121,6 +121,6 @@ function AnimatedCounter({ end }: { end: number }) {
 
   useEffect(() => {
     motionValue.set(end);
-  }, [end]);
+  }, [end, motionValue]);
   return <motion.span>{display}</motion.span>;
 }

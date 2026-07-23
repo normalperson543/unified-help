@@ -13,7 +13,7 @@ export default async function AddProgram() {
   let user;
   if (session?.user.id) user = await getUser(session?.user.id);
   if (!user) return <NotLoggedIn />;
-  if (!user.isAdmin) return <Unauthorized />
+  if (!user.isAdmin) return <Unauthorized />;
 
   return <AddProgramUI />;
 }

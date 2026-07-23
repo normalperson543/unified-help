@@ -1,12 +1,10 @@
 "use client";
 
-import { Program } from "@/generated/prisma/client";
 import {
+  Alert,
   Avatar,
   Badge,
   Button,
-  Card,
-  Chip,
   DateField,
   DateValue,
   Description,
@@ -25,7 +23,6 @@ import {
 import {
   CheckIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
   CircleQuestionMarkIcon,
   InfoIcon,
   PlayIcon,
@@ -33,7 +30,6 @@ import {
   SaveIcon,
   ShieldIcon,
   SquareIcon,
-  SquareStopIcon,
   TriangleAlertIcon,
   UserIcon,
   XIcon,
@@ -184,6 +180,15 @@ export default function ProgramSettings({
           You can choose to index previous tickets from your support channel so
           that they&apos;ll appear on Unified Help.
         </p>
+        {backlogStatusError && (
+          <Alert status="danger">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>The backlogger is offline</Alert.Title>
+              <Alert.Description>Please try again later.</Alert.Description>
+            </Alert.Content>
+          </Alert>
+        )}
         {backlogStatusIsLoading && (
           <div className="flex flex-row gap-2 items-center">
             <Spinner />

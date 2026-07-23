@@ -1,15 +1,7 @@
 "use client";
 
 import { fetcher } from "@/app/lib/swr";
-import {
-  Avatar,
-  Chip,
-  Button,
-  Card,
-  Tooltip,
-  Spinner,
-  Alert,
-} from "@heroui/react";
+import { Avatar, Chip, Button, Tooltip, Alert } from "@heroui/react";
 import {
   CheckIcon,
   CircleAlertIcon,
@@ -20,11 +12,9 @@ import {
   SquareArrowOutUpRightIcon,
 } from "lucide-react";
 import useSWR from "swr";
-import { TicketWithReplies } from "../lib/types";
 import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
-import { Ticket } from "@/generated/prisma/client";
 import Loading from "./loading";
 
 export default function TicketUI({

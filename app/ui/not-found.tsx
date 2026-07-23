@@ -1,8 +1,5 @@
 import { Button } from "@heroui/react";
-import {
-  ArrowLeftIcon,
-  StickyNoteOffIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, StickyNoteOffIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {

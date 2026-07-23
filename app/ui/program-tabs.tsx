@@ -11,12 +11,8 @@ import Link from "next/link";
 
 export default function ProgramTabs() {
   const { programId } = useParams();
-  const { data: session, isPending, error, refetch } = authClient.useSession();
-  const {
-    data: stats,
-    error: statsError,
-    isLoading: statsIsLoading,
-  } = useSWR<ProgramWithAssignees>(
+  const { data: session } = authClient.useSession();
+  const { data: stats } = useSWR<ProgramWithAssignees>(
     programId && `/api/programs/${programId}/info`,
     fetcher,
   );

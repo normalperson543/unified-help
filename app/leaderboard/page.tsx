@@ -11,6 +11,6 @@ export default async function LeaderboardPage() {
   let user;
   if (session?.user.id) user = await getUser(session?.user.id);
   if (!user) return <NotLoggedIn />;
-  
+
   return <LeaderboardUI />;
 }

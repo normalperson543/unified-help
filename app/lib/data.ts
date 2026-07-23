@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
 import { AnswerActivity } from "./types";
-import { desc } from "motion/react-m";
 
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
@@ -50,8 +49,8 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           firstResponseUser: true,
         },
         orderBy: {
-          dateCreated: "desc"
-        }
+          dateCreated: "desc",
+        },
       },
       resolvedTickets: {
         where: {
@@ -109,7 +108,10 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
     },
   });
 }
-export async function getAllAssignedAndResolvedTicketsCount(userId: string, programId?: string) {
+export async function getAllAssignedAndResolvedTicketsCount(
+  userId: string,
+  programId?: string,
+) {
   await throwIfNoAuth();
   return await prisma.ticket.count({
     where: {
@@ -117,11 +119,11 @@ export async function getAllAssignedAndResolvedTicketsCount(userId: string, prog
       status: 2,
       assignees: {
         some: {
-          id: userId
-        }
-      }
-    }
-  })
+          id: userId,
+        },
+      },
+    },
+  });
 }
 export async function getUserRepliesCount(userId: string, programId?: string) {
   await throwIfNoAuth();
@@ -129,10 +131,10 @@ export async function getUserRepliesCount(userId: string, programId?: string) {
     where: {
       slackUserId: userId,
       ticket: {
-        programId: programId
-      }
-    }
-  })
+        programId: programId,
+      },
+    },
+  });
 }
 export async function getUserFirstResponseTime(
   userId: string,
@@ -464,7 +466,7 @@ export async function getProgramStatistics(
     assigned: ticketsAssigned,
     assignedToMe: ticketsAssignedToMe,
     resolved: ticketsResolved,
-    usersTicketCount: usersTicketCount
+    usersTicketCount: usersTicketCount,
   };
 }
 export async function getBacklogStatus(programId: string) {
@@ -508,18 +510,18 @@ export async function getResolvedTicketsCount(
         select: {
           programs: {
             where: {
-              id: programId
-            }
+              id: programId,
+            },
           },
           createdTickets: {
             where: {
-              programId: programId
-            }
+              programId: programId,
+            },
           },
           resolvedTickets: {
             where: {
-              programId: programId
-            }
+              programId: programId,
+            },
           },
           users: true,
           assignedTickets: {

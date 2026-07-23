@@ -1,7 +1,8 @@
 @import "tailwindcss";
-@import "@heroui/styles"; 
+@import "@heroui/styles";
 
-html, body {
+html,
+body {
   width: 100%;
 }
 /* all of the following was generated with the Hero UI theme builder thingie */
@@ -14,33 +15,33 @@ html, body {
   /* Theme Colors (Light Mode) */
   --accent: oklch(62.25% 0.2148 19.13);
   --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(97.02% 0.0200 19.13);
-  --border: oklch(90.00% 0.0200 19.13);
+  --background: oklch(97.02% 0.02 19.13);
+  --border: oklch(90% 0.02 19.13);
   --danger: oklch(65.32% 0.2421 357.58);
   --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(94.00% 0.0200 19.13);
+  --default: oklch(94% 0.02 19.13);
   --default-foreground: oklch(21.03% 0.0059 19.13);
-  --field-background: oklch(100.00% 0.0100 19.13);
+  --field-background: oklch(100% 0.01 19.13);
   --field-border: transparent;
-  --field-foreground: oklch(21.03% 0.0200 19.13);
-  --field-placeholder: oklch(55.17% 0.0400 19.13);
+  --field-foreground: oklch(21.03% 0.02 19.13);
+  --field-placeholder: oklch(55.17% 0.04 19.13);
   --focus: oklch(62.25% 0.2148 19.13);
-  --foreground: oklch(21.03% 0.0200 19.13);
-  --muted: oklch(55.17% 0.0400 19.13);
-  --overlay: oklch(100.00% 0.0060 19.13);
-  --overlay-foreground: oklch(21.03% 0.0200 19.13);
-  --scrollbar: oklch(87.10% 0.0200 19.13);
-  --segment: oklch(100.00% 0.0200 19.13);
-  --segment-foreground: oklch(21.03% 0.0200 19.13);
-  --separator: oklch(92.00% 0.0200 19.13);
+  --foreground: oklch(21.03% 0.02 19.13);
+  --muted: oklch(55.17% 0.04 19.13);
+  --overlay: oklch(100% 0.006 19.13);
+  --overlay-foreground: oklch(21.03% 0.02 19.13);
+  --scrollbar: oklch(87.1% 0.02 19.13);
+  --segment: oklch(100% 0.02 19.13);
+  --segment-foreground: oklch(21.03% 0.02 19.13);
+  --separator: oklch(92% 0.02 19.13);
   --success: oklch(73.29% 0.2012 122.65);
   --success-foreground: oklch(21.03% 0.0059 122.65);
-  --surface: oklch(100.00% 0.0100 19.13);
-  --surface-foreground: oklch(21.03% 0.0200 19.13);
-  --surface-secondary: oklch(95.24% 0.0160 19.13);
-  --surface-secondary-foreground: oklch(21.03% 0.0200 19.13);
-  --surface-tertiary: oklch(93.73% 0.0160 19.13);
-  --surface-tertiary-foreground: oklch(21.03% 0.0200 19.13);
+  --surface: oklch(100% 0.01 19.13);
+  --surface-foreground: oklch(21.03% 0.02 19.13);
+  --surface-secondary: oklch(95.24% 0.016 19.13);
+  --surface-secondary-foreground: oklch(21.03% 0.02 19.13);
+  --surface-tertiary: oklch(93.73% 0.016 19.13);
+  --surface-tertiary-foreground: oklch(21.03% 0.02 19.13);
   --warning: #ff8c37;
   --warning-foreground: #2d190a;
 
@@ -59,33 +60,33 @@ html, body {
   /* Theme Colors (Dark Mode) */
   --accent: oklch(62.25% 0.2148 19.13);
   --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(12.00% 0.0200 19.13);
-  --border: oklch(28.00% 0.0200 19.13);
-  --danger: oklch(59.40% 0.2046 356.47);
+  --background: oklch(12% 0.02 19.13);
+  --border: oklch(28% 0.02 19.13);
+  --danger: oklch(59.4% 0.2046 356.47);
   --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(27.40% 0.0200 19.13);
+  --default: oklch(27.4% 0.02 19.13);
   --default-foreground: oklch(99.11% 0 0);
-  --field-background: oklch(21.03% 0.0400 19.13);
+  --field-background: oklch(21.03% 0.04 19.13);
   --field-border: transparent;
-  --field-foreground: oklch(99.11% 0.0200 19.13);
-  --field-placeholder: oklch(70.50% 0.0400 19.13);
+  --field-foreground: oklch(99.11% 0.02 19.13);
+  --field-placeholder: oklch(70.5% 0.04 19.13);
   --focus: oklch(62.25% 0.2148 19.13);
-  --foreground: oklch(99.11% 0.0200 19.13);
-  --muted: oklch(70.50% 0.0400 19.13);
-  --overlay: oklch(21.03% 0.0400 19.13);
-  --overlay-foreground: oklch(99.11% 0.0200 19.13);
-  --scrollbar: oklch(70.50% 0.0200 19.13);
-  --segment: oklch(39.64% 0.0200 19.13);
-  --segment-foreground: oklch(99.11% 0.0200 19.13);
-  --separator: oklch(25.00% 0.0200 19.13);
+  --foreground: oklch(99.11% 0.02 19.13);
+  --muted: oklch(70.5% 0.04 19.13);
+  --overlay: oklch(21.03% 0.04 19.13);
+  --overlay-foreground: oklch(99.11% 0.02 19.13);
+  --scrollbar: oklch(70.5% 0.02 19.13);
+  --segment: oklch(39.64% 0.02 19.13);
+  --segment-foreground: oklch(99.11% 0.02 19.13);
+  --separator: oklch(25% 0.02 19.13);
   --success: #33d6a6;
   --success-foreground: #0b2b21;
-  --surface: oklch(21.03% 0.0400 19.13);
-  --surface-foreground: oklch(99.11% 0.0200 19.13);
-  --surface-secondary: oklch(25.70% 0.0300 19.13);
-  --surface-secondary-foreground: oklch(99.11% 0.0200 19.13);
-  --surface-tertiary: oklch(27.21% 0.0300 19.13);
-  --surface-tertiary-foreground: oklch(99.11% 0.0200 19.13);
+  --surface: oklch(21.03% 0.04 19.13);
+  --surface-foreground: oklch(99.11% 0.02 19.13);
+  --surface-secondary: oklch(25.7% 0.03 19.13);
+  --surface-secondary-foreground: oklch(99.11% 0.02 19.13);
+  --surface-tertiary: oklch(27.21% 0.03 19.13);
+  --surface-tertiary-foreground: oklch(99.11% 0.02 19.13);
   --warning: #ff8c37;
   --warning-foreground: #2d190a;
 }

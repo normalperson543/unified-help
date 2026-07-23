@@ -1,7 +1,6 @@
 import { auth } from "@/app/lib/auth";
 import {
   getAllAssignedAndResolvedTicketsCount,
-  getPrograms,
   getSlackUserDetailed,
   getUser,
   getUserAnswerActivity,

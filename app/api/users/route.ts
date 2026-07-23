@@ -1,5 +1,5 @@
 import { ITEMS_PER_PAGE } from "@/app/lib/constants";
-import { getProgram, getUserAuthStatus } from "@/app/lib/data";
+import { getUserAuthStatus } from "@/app/lib/data";
 import { prisma } from "@/app/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { type NextRequest } from "next/server";

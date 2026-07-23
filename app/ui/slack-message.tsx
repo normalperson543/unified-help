@@ -1,6 +1,6 @@
 // REVIEWER NOTE: This was made with Claude Code
 
-import { Fragment, ReactNode } from 'react';
+import { Fragment, ReactNode } from "react";
 
 // ---------- Types ----------
 
@@ -75,7 +75,8 @@ let keyCounter = 0;
 function parseSlackText(text: string): ReactNode {
   if (!text) return null;
 
-  let earliest: { pattern: SlackPattern; match: RegExpMatchArray } | null = null;
+  let earliest: { pattern: SlackPattern; match: RegExpMatchArray } | null =
+    null;
 
   for (const pattern of patterns) {
     const match = text.match(pattern.re);
@@ -105,13 +106,13 @@ function parseSlackText(text: string): ReactNode {
 // ---------- Component ----------
 
 export function SlackMessage({ text }: SlackMessageProps) {
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   return (
     <div className="slack-message">
       {lines.map((line, i) => {
-        if (line.startsWith('&gt;') || line.startsWith('>')) {
-          const quoteText = line.replace(/^&gt;|^>/, '').trim();
+        if (line.startsWith("&gt;") || line.startsWith(">")) {
+          const quoteText = line.replace(/^&gt;|^>/, "").trim();
           return (
             <blockquote key={i} className="slack-quote">
               {parseSlackText(quoteText)}

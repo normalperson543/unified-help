@@ -202,7 +202,7 @@ export async function indexUsersFromUserGroup(
     {
       method: "POST",
       body: JSON.stringify({
-        usergroupId: groupId
+        usergroupId: groupId,
       }),
       headers: {
         "Content-type": "application/json",

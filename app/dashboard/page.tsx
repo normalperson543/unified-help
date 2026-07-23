@@ -4,7 +4,7 @@ import { getPrograms, getUser } from "../lib/data";
 import { Card } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
-import { PlusSquareIcon, SquareArrowOutUpRightIcon } from "lucide-react";
+import { PlusSquareIcon } from "lucide-react";
 import NotLoggedIn from "../ui/not-logged-in";
 
 export default async function DashboardPage() {

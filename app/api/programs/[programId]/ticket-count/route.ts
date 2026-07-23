@@ -23,13 +23,13 @@ export async function GET(
   if (oldest) {
     oldestDate = new Date(Number(oldest));
   } else {
-    oldestDate = new Date("01-01-2000") // idk vro
+    oldestDate = new Date("01-01-2000"); // idk vro
   }
   let newestDate;
   if (newest) {
     newestDate = new Date(Number(newest));
   } else {
-    newestDate = new Date()
+    newestDate = new Date();
   }
 
   const stats = await getProgramStatistics(programId, oldestDate, newestDate);

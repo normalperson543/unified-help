@@ -1,4 +1,4 @@
-import { getBacklogStatus, getHangTime, getUserAuthStatus, isOrg } from "@/app/lib/data";
+import { getBacklogStatus, getUserAuthStatus, isOrg } from "@/app/lib/data";
 import { BacklogStatus } from "@/app/lib/types";
 
 import { type NextRequest } from "next/server";
@@ -15,7 +15,7 @@ export async function GET(
     });
   }
 
-  const org = await isOrg(programId)
+  const org = await isOrg(programId);
   if (!org) {
     return new Response(JSON.stringify({ status: "Unauthorized" }), {
       status: 401,
@@ -23,6 +23,6 @@ export async function GET(
   }
 
   const backlogStatus: BacklogStatus = await getBacklogStatus(programId);
-  
+
   return new Response(JSON.stringify(backlogStatus));
 }

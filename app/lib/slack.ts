@@ -2,12 +2,11 @@
 
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
-import { addAsHelper } from "./actions";
 
 const web = new WebClient(process.env["SLACK_API_TOKEN"]);
 
 export async function createUser(id: string) {
-  let dbUser
+  let dbUser;
   dbUser = await prisma.slackUser.findUnique({
     where: {
       id: id as string,
@@ -29,4 +28,3 @@ export async function createUser(id: string) {
   }
   return dbUser;
 }
-

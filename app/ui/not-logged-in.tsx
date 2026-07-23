@@ -1,6 +1,4 @@
-import { Button } from "@heroui/react";
-import { ArrowRightIcon, LockIcon } from "lucide-react";
-import Link from "next/link";
+import { LockIcon } from "lucide-react";
 import SignInButton from "./sign-in-button";
 
 export default function NotLoggedIn() {

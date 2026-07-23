@@ -5,5 +5,5 @@ export default async function Home() {
   const stats = await getAllStats();
   const programs = await getPrograms();
 
-  return <HomeUI stats={stats} programs={programs} />
+  return <HomeUI stats={stats} programs={programs} />;
 }

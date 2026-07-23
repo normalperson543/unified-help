@@ -3,23 +3,13 @@ import {
   Avatar,
   Button,
   Card,
-  Chip,
   ComboBox,
-  EmptyState,
   Input,
   Key,
   ListBox,
-  Table,
-  TableLayout,
   Tabs,
-  Tooltip,
-  Virtualizer,
 } from "@heroui/react";
-import {
-  AnswerActivity,
-  SlackUserDetailed,
-  TicketWithAssigneesAndProgram,
-} from "../lib/types";
+import { AnswerActivity, SlackUserDetailed } from "../lib/types";
 import AnswerBarChart from "./answer-bar-chart";
 import {
   CheckIcon,
@@ -28,13 +18,11 @@ import {
   ClockCheckIcon,
   ReplyIcon,
   SquareArrowOutUpRightIcon,
-  CircleDashedIcon,
   UserCheckIcon,
   TicketIcon,
   MessageCircleIcon,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { Program } from "@/generated/prisma/browser";
 import { useState } from "react";
 import { useRouter } from "next/navigation";

@@ -2,18 +2,12 @@
 
 import { fetcher } from "@/app/lib/swr";
 import { getShortTitle } from "@/app/lib/tools";
-import {
-  ProgramTicketsResponse,
-  ProgramWithAssignees,
-  TicketWithReplies,
-} from "@/app/lib/types";
+import { ProgramTicketsResponse, ProgramWithAssignees } from "@/app/lib/types";
 import {
   Alert,
   Autocomplete,
   Avatar,
-  Button,
   Card,
-  ComboBox,
   EmptyState,
   Input,
   Key,
@@ -25,7 +19,6 @@ import {
   Spinner,
   Tag,
   TagGroup,
-  toast,
   ToggleButton,
   useFilter,
 } from "@heroui/react";
@@ -34,7 +27,6 @@ import useSWR from "swr";
 import { useParams } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { SlackUser } from "@/generated/prisma/client";
 import { ITEMS_PER_PAGE } from "@/app/lib/constants";
 import { useDebounce } from "use-debounce";
 let savedSidebarScrollTop = 0;
@@ -69,7 +61,7 @@ export default function RootLayout({
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTermDebounced)}&assigneeIds=${(selectedUsersDebounced as string[]).join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTermDebounced)}&assigneeIds=${selectedUsersDebounced.join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
     fetcher,
     { keepPreviousData: true },
   );
@@ -160,24 +152,30 @@ export default function RootLayout({
                 placeholder="Select assignees"
                 selectionMode="multiple"
                 value={selectedUsers}
-                onChange={(keys: Key | Key[] | null) =>
-                  setSelectedUsers(keys as Key[])
-                }
+                onChange={(keys) => setSelectedUsers(keys)}
               >
                 <Label>Assignees</Label>
                 <Autocomplete.Trigger>
                   <Autocomplete.Value>
-                    {({ defaultChildren, isPlaceholder, state }: any) => {
+                    {({
+                      defaultChildren,
+                      isPlaceholder,
+                      state,
+                    }: {
+                      defaultChildren?: React.ReactNode;
+                      isPlaceholder: boolean;
+                      state: { selectedItems: readonly { key: Key }[] };
+                    }) => {
                       if (isPlaceholder || state.selectedItems.length === 0) {
                         return defaultChildren;
                       }
                       const selectedItemsKeys = state.selectedItems.map(
-                        (item: any) => item.key,
+                        (item) => item.key,
                       );
                       return (
                         <TagGroup size="sm" onRemove={onRemoveTags}>
                           <TagGroup.List>
-                            {selectedItemsKeys.map((selectedItemKey: Key) => {
+                            {selectedItemsKeys.map((selectedItemKey) => {
                               const item = program?.assignedUsers.find(
                                 (s) => s.id === selectedItemKey,
                               );
@@ -228,9 +226,9 @@ export default function RootLayout({
               </Autocomplete>
               <div className="flex gap-4">
                 <Select
-                  onChange={(e) =>
-                    handleChangeStatusFilter(e?.toString() as string)
-                  }
+                  onChange={(key) => {
+                    if (key !== null) handleChangeStatusFilter(String(key));
+                  }}
                   value={statusFilter}
                   className="w-1/2"
                 >
@@ -257,7 +255,9 @@ export default function RootLayout({
                   </Select.Popover>
                 </Select>
                 <Select
-                  onChange={(e) => handleChangeSort(e?.toString() as string)}
+                  onChange={(key) => {
+                    if (key !== null) handleChangeSort(String(key));
+                  }}
                   value={sort}
                   className="w-1/2"
                 >

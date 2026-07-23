@@ -4,7 +4,6 @@ import { Pie, PieChart, PieSectorShapeProps, Sector } from "recharts";
 import {
   AnswerActivity,
   HangTime,
-  Leaderboard,
   ProgramStatistics,
   ProgramWithAssignees,
   RouteError,
@@ -15,21 +14,17 @@ import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { useParams } from "next/navigation";
 import {
-  Avatar,
+  Alert,
   Button,
   Card,
   DateField,
   DateValue,
-  EmptyState,
   Label,
-  Tooltip,
-  Table,
 } from "@heroui/react";
 import {
   CheckIcon,
   CircleDashedIcon,
   CircleIcon,
-  CircleQuestionMarkIcon,
   ClockCheckIcon,
   ClockIcon,
   SquareArrowOutUpRightIcon,
@@ -37,10 +32,8 @@ import {
   UserCheckIcon,
 } from "lucide-react";
 import { useState } from "react";
-import NotLoggedIn from "./not-logged-in";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
-import Link from "next/link";
 import UsersTable from "./users-table";
 
 // Claude changed this line while doing the pie chart
@@ -53,7 +46,6 @@ const StatsCustomPie = (props: PieSectorShapeProps) => (
 
 export default function ProgramUI() {
   const { programId } = useParams();
-  const [lastDays, setLastDays] = useState(7);
   const [startDate, setStartDate] = useState<DateValue | null>(
     today(getLocalTimeZone()).subtract({ days: 1 }),
   );
@@ -142,138 +134,178 @@ export default function ProgramUI() {
 
   return (
     <div className="flex flex-col p-4 gap-6 w-full min-h-full">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            {info?.logo && (
-              <Image
-                src={info.logo}
-                alt="Program logo"
-                width={32}
-                height={32}
-                className="rounded-sm"
-              />
+      {info && !infoIsLoading && (
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              {info?.logo && (
+                <Image
+                  src={info.logo}
+                  alt="Program logo"
+                  width={32}
+                  height={32}
+                  className="rounded-sm"
+                />
+              )}
+              <p className="text-xl font-bold">{info?.name}</p>
+            </div>
+            <div className="flex gap-1 text-muted">
+              <pre>{info?.channelId}</pre> - {info?.assignedUsers.length} helper
+              {info?.assignedUsers.length != 1 && "s"} -{" "}
+              {info?.usersOrganizing.length} organizer
+              {info?.usersOrganizing.length != 1 && "s"}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {info?.channelId && (
+              <a
+                href={`https://hackclub.enterprise.slack.com/archives/${info.channelId}`}
+                target="_blank"
+              >
+                <Button>
+                  Open in Slack <SquareArrowOutUpRightIcon />
+                </Button>
+              </a>
             )}
-            <p className="text-xl font-bold">{info?.name}</p>
-          </div>
-          <div className="flex gap-1 text-muted">
-            <pre>{info?.channelId}</pre> - {info?.assignedUsers.length} helper
-            {info?.assignedUsers.length != 1 && "s"} -{" "}
-            {info?.usersOrganizing.length} organizer
-            {info?.usersOrganizing.length != 1 && "s"}
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          {info?.channelId && (
-            <a
-              href={`https://hackclub.enterprise.slack.com/archives/${info.channelId}`}
-              target="_blank"
+            <DateField
+              name="startDate"
+              value={startDate}
+              onChange={setStartDate}
             >
-              <Button>
-                Open in Slack <SquareArrowOutUpRightIcon />
-              </Button>
-            </a>
-          )}
-          <DateField name="startDate" value={startDate} onChange={setStartDate}>
-            <Label>Start date</Label>
-            <DateField.Group variant="secondary">
-              <DateField.Input>
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-            </DateField.Group>
-          </DateField>
-          <DateField name="endDate" value={endDate} onChange={setEndDate}>
-            <Label>End date</Label>
-            <DateField.Group variant="secondary">
-              <DateField.Input>
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-            </DateField.Group>
-          </DateField>
+              <Label>Start date</Label>
+              <DateField.Group variant="secondary">
+                <DateField.Input>
+                  {(segment) => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
+            </DateField>
+            <DateField name="endDate" value={endDate} onChange={setEndDate}>
+              <Label>End date</Label>
+              <DateField.Group variant="secondary">
+                <DateField.Input>
+                  {(segment) => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
+            </DateField>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-row gap-2">
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Open tickets</p>
-            <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
-            <CircleDashedIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Assigned tickets</p>
-            <p className="font-bold text-3xl">{stats ? stats.assigned : 0}</p>
-            <CircleIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Resolved tickets</p>
-            <p className="font-bold text-3xl">{stats ? stats.resolved : 0}</p>
-            <CheckIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Assigned to you</p>
-            <p className="font-bold text-3xl">
-              {stats ? stats.assignedToMe : 0}
-            </p>
-            <UserCheckIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Total tickets</p>
-            <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
-            <TicketIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Hang time</p>
-            <p className="font-bold text-3xl">
-              {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
-            </p>
-            <p>minutes</p>
-            <ClockIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-        <Card className="basis-50 grow shrink relative">
-          <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Resolve time</p>
-            <p className="font-bold text-3xl">
-              {resolveTime
-                ? Math.round((resolveTime.time / 60) * 100) / 100
-                : 0}
-            </p>
-            <p>minutes</p>
-            <ClockCheckIcon
-              width={64}
-              className="bottom-2 -right-2 absolute opacity-30"
-            />
-          </div>
-        </Card>
-      </div>
+      )}
+      {infoError && (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>
+              There was a problem fetching this program&apos;s information
+            </Alert.Title>
+            <Alert.Description>
+              Please try again by refreshing.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
+      {stats && !statsIsLoading && (
+        <div className="flex flex-row gap-2">
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Open tickets</p>
+              <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
+              <CircleDashedIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Assigned tickets</p>
+              <p className="font-bold text-3xl">{stats ? stats.assigned : 0}</p>
+              <CircleIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Resolved tickets</p>
+              <p className="font-bold text-3xl">{stats ? stats.resolved : 0}</p>
+              <CheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Assigned to you</p>
+              <p className="font-bold text-3xl">
+                {stats ? stats.assignedToMe : 0}
+              </p>
+              <UserCheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Total tickets</p>
+              <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
+              <TicketIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Hang time</p>
+              <p className="font-bold text-3xl">
+                {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
+              </p>
+              {(hangTimeError || hangTimeIsLoading) && (
+                <p className="font-bold text-3xl">N/A</p>
+              )}
+              <p>minutes</p>
+              <ClockIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Resolve time</p>
+              <p className="font-bold text-3xl">
+                {resolveTime
+                  ? Math.round((resolveTime.time / 60) * 100) / 100
+                  : 0}
+              </p>
+              {(resolveTimeError || resolveTimeIsLoading) && (
+                <p className="font-bold text-3xl">N/A</p>
+              )}
+              <p>minutes</p>
+              <ClockCheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+        </div>
+      )}
+      {statsError && (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>
+              There was a problem fetching this program&apos;s stats
+            </Alert.Title>
+            <Alert.Description>
+              Please try again by refreshing.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
       <Card className="grow shrink max-w-84">
         {/* I asked Claude to make the pie chart better */}
         <div className="flex flex-col gap-2">
@@ -299,13 +331,6 @@ export default function ProgramUI() {
               }
               isAnimationActive={false}
               shape={StatsCustomPie}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-              }}
             />
           </PieChart>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -353,7 +378,20 @@ export default function ProgramUI() {
         </Card>
       </div>
       <div className="flex flex-row gap-2">
-        {lb && lb.length > 0 && (
+        {lbError && (
+          <Alert status="danger">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>
+                There was a problem fetching this program&apos;s leaderboard
+              </Alert.Title>
+              <Alert.Description>
+                Please try again by refreshing.
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+        )}
+        {lb && !lbIsLoading && lb.length > 0 && (
           <Card className="grow shrink">
             <div className="flex flex-col gap-4">
               <p className="text-lg font-bold">Leaderboard</p>

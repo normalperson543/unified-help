@@ -1,13 +1,6 @@
 "use client";
-import {
-  Avatar,
-  Chip,
-  EmptyState,
-  SortDescriptor,
-  Spinner,
-  Table,
-} from "@heroui/react";
-import { CheckIcon, CircleQuestionMarkIcon } from "lucide-react";
+import { Avatar, Chip, EmptyState, SortDescriptor, Table } from "@heroui/react";
+import { CircleQuestionMarkIcon } from "lucide-react";
 import { SlackUserWithStats } from "../lib/types";
 import Link from "next/link";
 
@@ -16,13 +9,13 @@ export default function UsersTable({
   programId,
   sortDescriptor,
   setSortDescriptor,
-  height = 96
+  height = 96,
 }: {
   users: SlackUserWithStats[];
   programId?: string;
   sortDescriptor: SortDescriptor;
-    setSortDescriptor: (s: SortDescriptor) => void;
-    height?: number;
+  setSortDescriptor: (s: SortDescriptor) => void;
+  height?: number;
 }) {
   return (
     <Table>

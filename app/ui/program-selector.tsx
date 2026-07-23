@@ -1,5 +1,5 @@
 "use client";
-import { ComboBox, Input, Key, ListBox, Select, Spinner } from "@heroui/react";
+import { ComboBox, Input, Key, ListBox, Spinner } from "@heroui/react";
 import useSWR from "swr";
 import { Program } from "@/generated/prisma/client";
 import { fetcher } from "../lib/swr";
@@ -14,11 +14,12 @@ export default function ProgramSelector() {
     isLoading: programsIsLoading,
   } = useSWR<Program[]>(`/api/programs/list`, fetcher);
   const { programId } = useParams();
-  
-  const [selectedKey, setSelectedKey] = useState<Key | null>(programId as string);
+
+  const [selectedKey, setSelectedKey] = useState<Key | null>(
+    programId as string,
+  );
 
   const router = useRouter();
-  
 
   if (programsError) return;
   if (!programs) return <Spinner />;

@@ -16,7 +16,7 @@ export async function GET(
   }
   const { programId } = await ctx.params;
   const id = programId !== "all" ? programId : undefined;
-  const params = req.nextUrl.searchParams; 
+  const params = req.nextUrl.searchParams;
   console.log(params);
   const searchTerm = params.get("searchTerm");
   const assigneeIds = params.get("assigneeIds")?.split(",");
@@ -24,8 +24,8 @@ export async function GET(
   const order = params.get("order") ?? "dateCreated.asc";
   const page = params.get("page");
 
-  const field = order.split(".")[0]
-  const direction = order.split(".")[1]
+  const field = order.split(".")[0];
+  const direction = order.split(".")[1];
 
   // coded by claude
   const dir: Prisma.SortOrder = direction === "desc" ? "desc" : "asc";

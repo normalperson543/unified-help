@@ -8,7 +8,7 @@ import ProgramStats from "./program-stats";
 import Link from "next/link";
 import SignOutButton from "./sign-out-button";
 import ProgramTabs from "./program-tabs";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@heroui/react";
 import SearchBar from "./search-bar";
 import { LayoutDashboardIcon, PodiumIcon } from "lucide-react";
 

@@ -1,8 +1,7 @@
 import { getUserAuthStatus } from "@/app/lib/data";
 import { prisma } from "@/app/lib/prisma";
-import { type NextRequest } from "next/server";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
     return new Response(JSON.stringify({ status: "Unauthorized" }), {

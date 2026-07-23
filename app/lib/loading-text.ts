@@ -18,8 +18,9 @@ export const LOADING_TEXT = [
   "did you know unified help is open source?",
   "join #unified-help for support!",
   "normie is not a fuwwy",
-]
+];
 
-export function randomLoadingText(): string { // claude code :sob: because of stupid type checks
+export function randomLoadingText(): string {
+  // claude code :sob: because of stupid type checks
   return LOADING_TEXT[Math.floor(Math.random() * LOADING_TEXT.length)];
 }

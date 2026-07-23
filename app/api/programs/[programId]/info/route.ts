@@ -1,5 +1,4 @@
 import { getProgram, getUserAuthStatus } from "@/app/lib/data";
-import { prisma } from "@/app/lib/prisma";
 import { type NextRequest } from "next/server";
 
 export async function GET(

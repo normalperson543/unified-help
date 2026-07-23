@@ -1,5 +1,5 @@
 "use client";
-import { Pagination, SortDescriptor } from "@heroui/react";
+import { Alert, Pagination, SortDescriptor, Spinner } from "@heroui/react";
 import UsersTable from "../ui/users-table";
 import { SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
@@ -112,6 +112,22 @@ export default function LeaderboardUI() {
             </Pagination.Item>
           </Pagination.Content>
         </Pagination>
+      )}
+      {(!users || usersIsLoading) && !usersError && (
+        <div className="flex justify-center items-center w-full h-full">
+          <Spinner />
+        </div>
+      )}
+      {usersError && (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>There was a problem fetching these users</Alert.Title>
+            <Alert.Description>
+              Please try again by refreshing.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
       {users && (
         <UsersTable
