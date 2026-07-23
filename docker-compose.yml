@@ -41,7 +41,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/unified_help
       BETTER_AUTH_URL: http://localhost:3000
-      SCRAPER_API_URL: http://localhost:4000
+      SCRAPER_API_URL: http://scraper:4000
     ports:
       - "3000:3000"
     depends_on:
