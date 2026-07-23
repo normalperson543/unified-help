@@ -9,8 +9,6 @@ services:
       POSTGRES_DB: unified_help
     volumes:
       - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d unified_help"]
       interval: 5s
@@ -43,7 +41,7 @@ services:
       BETTER_AUTH_URL: http://localhost:3000
       SCRAPER_API_URL: http://scraper:4000
     ports:
-      - "3000:3000"
+      - "6701:3000"
     depends_on:
       db:
         condition: service_healthy
