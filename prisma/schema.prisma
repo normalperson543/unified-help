@@ -27,7 +27,6 @@ model Ticket {
   firstResponseUser SlackUser?  @relation("firstResponded", fields: [firstResponseUserId], references: [id])
   assignDate        DateTime
   resolveTime       Float       @default(0)
-  resolveDate       DateTime
 
   programId           String
   slackUserId         String
