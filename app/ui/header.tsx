@@ -10,7 +10,7 @@ import SignOutButton from "./sign-out-button";
 import ProgramTabs from "./program-tabs";
 import { Button, Input } from "@heroui/react";
 import SearchBar from "./search-bar";
-import { PodiumIcon } from "lucide-react";
+import { LayoutDashboardIcon, PodiumIcon } from "lucide-react";
 
 export default async function Header({
   children,
@@ -25,8 +25,8 @@ export default async function Header({
   if (session?.user.id) user = await getUser(session?.user.id);
   return (
     <div className="flex flex-row justify-between p-4 border-b border-accent-background">
-      <div className="flex flex-row gap-4 items-center">
-        <Link href="/dashboard">
+      <div className="flex flex-row gap-8 items-center">
+        <Link href="/">
           <h2 className="text-lg">
             unified<b>help</b>
           </h2>
@@ -34,13 +34,25 @@ export default async function Header({
 
         {session?.user && (
           <>
-            <ProgramSelector />
-            <ProgramTabs />
-            <Button variant="tertiary">
-              <PodiumIcon />
-              Leaderboard
-            </Button>
-            <SearchBar />
+            <div className="flex flex-row gap-2 items-center">
+              <SearchBar />
+              <Link href="/dashboard">
+                <Button variant="tertiary">
+                  <LayoutDashboardIcon />
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/leaderboard">
+                <Button variant="tertiary">
+                  <PodiumIcon />
+                  Leaderboard
+                </Button>
+              </Link>
+            </div>
+            <div className="flex flex-row gap-2 items-center">
+              <ProgramSelector />
+              <ProgramTabs />
+            </div>
           </>
         )}
       </div>

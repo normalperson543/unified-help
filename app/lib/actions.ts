@@ -5,7 +5,6 @@ import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 import { createUser } from "./slack";
-import { group } from "console";
 import { redirect } from "next/navigation";
 import { isOrg } from "./data";
 import { throwIfNoAuth } from "./data";

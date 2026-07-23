@@ -34,7 +34,7 @@ import UsersTable from "./users-table";
 
 export default function SearchPageUI() {
   const params = useSearchParams();
-  const urlSearchTerm = params.get("searchTerm") ?? ""
+  const urlSearchTerm = params.get("searchTerm") ?? "";
   const [search, setSearch] = useState(urlSearchTerm);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
   const [statusFilterDebounced] = useDebounce(statusFilter, 500);
@@ -242,6 +242,22 @@ export default function SearchPageUI() {
           </Pagination.Content>
         </Pagination>
       )}
+      {(!users || usersIsLoading) && !programTicketsError && (
+        <div className="flex justify-center items-center w-full h-full">
+          <Spinner />
+        </div>
+      )}
+      {usersError && (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>There was a problem fetching these users</Alert.Title>
+            <Alert.Description>
+              Please try again by refreshing.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
       {users && (
         <UsersTable
           users={users.users}
@@ -252,6 +268,7 @@ export default function SearchPageUI() {
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl">Tickets</p>
       </div>
+
       {programTickets && (
         <Pagination className="w-full">
           {" "}

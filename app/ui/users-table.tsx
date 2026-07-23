@@ -22,7 +22,7 @@ export default function UsersTable({
   programId?: string;
   sortDescriptor: SortDescriptor;
     setSortDescriptor: (s: SortDescriptor) => void;
-    height: number;
+    height?: number;
 }) {
   return (
     <Table>
@@ -51,7 +51,7 @@ export default function UsersTable({
             <Table.Column allowsSorting id="assignedTickets">
               {({ sortDirection }) => (
                 <Table.SortableColumnHeader sortDirection={sortDirection}>
-                  Assigned
+                  Total assigned
                 </Table.SortableColumnHeader>
               )}
             </Table.Column>
