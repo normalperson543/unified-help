@@ -2,7 +2,7 @@
 // Full disclosure: The majority of the HCA implementation is from ChatGPT and Claude Code.
 // The HCA integration is not the point of this project, so I don't think this is complete slop.
 
-import { betterAuth } from "better-auth";
+import { betterAuth, type User } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { genericOAuth } from "better-auth/plugins";
 import { prisma } from "./prisma";
@@ -46,10 +46,13 @@ export const auth = betterAuth({
             const user = await createUser(profile.slack_id);
             console.log(user);
 
+            // `slackId` and `slackUserId` are declared in `user.additionalFields`
+            // above and are persisted at runtime, but better-auth types this
+            // return as `Partial<User>` (base fields only), hence the assertion.
             return {
               slackId,
               slackUserId: user?.id ?? null,
-            };
+            } as Partial<User>;
           },
 
           authorizationUrl: "https://auth.hackclub.com/oauth/authorize",

@@ -12,6 +12,7 @@ import {
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import ProfileUI from "@/app/ui/profile";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 export default async function ProfilePage({
   params,
@@ -28,6 +29,7 @@ export default async function ProfilePage({
   const { profileId, programId } = await params;
   const profile = await getSlackUserDetailed(profileId, programId);
   const program = await getProgram(programId);
+  if (!profile || !program) notFound();
   const frt = await getUserFirstResponseTime(
     profileId,
     new Date(0),

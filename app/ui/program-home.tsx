@@ -45,7 +45,7 @@ const StatsCustomPie = (props: PieSectorShapeProps) => (
 );
 
 export default function ProgramUI() {
-  const { programId } = useParams();
+  const { programId } = useParams<{ programId: string }>();
   const [startDate, setStartDate] = useState<DateValue | null>(
     today(getLocalTimeZone()).subtract({ days: 1 }),
   );

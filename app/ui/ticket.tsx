@@ -12,6 +12,7 @@ import {
   SquareArrowOutUpRightIcon,
 } from "lucide-react";
 import useSWR from "swr";
+import { TicketWithReplies } from "../lib/types";
 import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";

@@ -1,14 +1,29 @@
 // https://swr.vercel.app/docs/error-handling
-export const fetcher = async (url) => {
+
+// `Error` has no `info`/`status`, so the extra fields the SWR docs attach live
+// on a subclass instead of being bolted onto a plain Error.
+export class FetchError extends Error {
+  info: unknown;
+  status: number;
+
+  constructor(message: string, info: unknown, status: number) {
+    super(message);
+    this.name = "FetchError";
+    this.info = info;
+    this.status = status;
+  }
+}
+
+export const fetcher = async (url: string) => {
   const res = await fetch(url);
   // If the status code is not in the range 200-299,
   // we still try to parse and throw it.
   if (!res.ok) {
-    const error = new Error("An error occurred while fetching the data.");
-    // Attach extra info to the error object.
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
+    throw new FetchError(
+      "An error occurred while fetching the data.",
+      await res.json(),
+      res.status,
+    );
   }
   return res.json();
 };

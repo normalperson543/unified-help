@@ -28,8 +28,8 @@ export default function TicketTable({
   setSortDescriptor,
 }: {
   tickets: TicketWithAssigneesAndProgram[];
-  sortDescriptor: SortDescriptor;
-  setSortDescriptor: (s: SortDescriptor) => void;
+  sortDescriptor?: SortDescriptor;
+  setSortDescriptor?: (s: SortDescriptor) => void;
 }) {
   return (
     <Virtualizer

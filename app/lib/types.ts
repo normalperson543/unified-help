@@ -80,6 +80,10 @@ export type ReplyWithResolver = TicketPayload["replies"][number] & {
   reopener?: SlackUserWithPrograms | null;
 };
 
+export type TicketWithReplies = Omit<TicketPayload, "replies"> & {
+  replies: ReplyWithResolver[];
+};
+
 export type ProgramTicketsResponse = {
   tickets: TicketDetailed[];
   total: number;

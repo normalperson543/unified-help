@@ -13,8 +13,8 @@ export default function UsersTable({
 }: {
   users: SlackUserWithStats[];
   programId?: string;
-  sortDescriptor: SortDescriptor;
-  setSortDescriptor: (s: SortDescriptor) => void;
+  sortDescriptor?: SortDescriptor;
+  setSortDescriptor?: (s: SortDescriptor) => void;
   height?: number;
 }) {
   return (
