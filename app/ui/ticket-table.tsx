@@ -43,7 +43,7 @@ export default function TicketTable({
         <Table.ScrollContainer>
           <Table.Content
             aria-label="Assigned tickets"
-            className="max-h-96 overflow-auto"
+            className="min-h-96 overflow-auto"
             sortDescriptor={sortDescriptor}
             onSortChange={setSortDescriptor}
           >

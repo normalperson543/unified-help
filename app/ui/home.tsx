@@ -7,6 +7,7 @@ import SignInButton from "@/app/ui/sign-in-button";
 import Marquee from "react-fast-marquee";
 import { useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import Link from "next/link";
 export default function HomeUI({
   stats,
   programs,
@@ -20,6 +21,12 @@ export default function HomeUI({
         <div className="flex flex-row w-full justify-between items-center bg-radial-[at_75%_25%] dark:from-[#3e0e15] light:from-[#ec3750] to-transparent to-75% p-12">
           <div className="flex flex-col gap-12">
             <div className="flex flex-col gap-6">
+              <Image
+                src="/assets/logo.svg"
+                width={64}
+                height={64}
+                alt="Unified Help logo"
+              />
               <p className="text-4xl">
                 <b>Unified Help</b> manages, filters, and analyzes all your{" "}
                 <span className="text-[#ec3750] font-bold">Hack Club</span>{" "}
@@ -64,12 +71,44 @@ export default function HomeUI({
             <div className="flex gap-2 items-center">
               <SignInButton>
                 <RocketIcon />
-                Get started
+                Launch
               </SignInButton>
-              <Button variant="secondary">
-                <PencilLineIcon />
-                Use Unified Help for your program
-              </Button>
+              <Link
+                href="https://forms.fillout.com/t/k1NNiLbTasus"
+                target="_blank"
+              >
+                <Button variant="secondary">
+                  <PencilLineIcon />
+                  Use Unified Help for your program
+                </Button>
+              </Link>
+              <Link
+                href="https://github.com/normalperson543/unified-help"
+                target="_blank"
+              >
+                <Button variant="secondary">
+                  <Image
+                    src="/assets/github.svg"
+                    width={16}
+                    height={16}
+                    alt="GitHub logo"
+                  />
+                  Contribute on GitHub
+                </Button>
+              </Link>
+            </div>
+            <div className="flex gap-1 items-center text-muted">
+              Made with{" "}
+              <Image
+                src="/assets/yay.gif"
+                width={16}
+                height={16}
+                alt="Yay emoji"
+              />
+              by{" "}
+              <Link href="https://github.com/normalperson543" className="underline" target="_blank">
+                normalperson543
+              </Link>
             </div>
           </div>
           <Image

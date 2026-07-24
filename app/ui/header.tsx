@@ -11,6 +11,7 @@ import ProgramTabs from "./program-tabs";
 import { Button } from "@heroui/react";
 import SearchBar from "./search-bar";
 import { LayoutDashboardIcon, PodiumIcon } from "lucide-react";
+import Image from "next/image";
 
 export default async function Header({
   children,
@@ -26,11 +27,21 @@ export default async function Header({
   return (
     <div className="flex flex-row justify-between p-4 border-b border-accent-background">
       <div className="flex flex-row gap-8 items-center">
-        <Link href="/">
-          <h2 className="text-lg">
-            unified<b>help</b>
-          </h2>
-        </Link>
+        <div className="flex flex-row gap-2 items-center">
+          <Link href="/">
+            <Image
+              src="/assets/logo.svg"
+              width={32}
+              height={32}
+              alt="Unified Help logo"
+            />
+          </Link>
+          <Link href="/">
+            <h2 className="text-lg">
+              unified<b>help</b>
+            </h2>
+          </Link>
+        </div>
 
         {session?.user && (
           <>

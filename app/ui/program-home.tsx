@@ -204,94 +204,102 @@ export default function ProgramUI() {
         </Alert>
       )}
       {stats && !statsIsLoading && (
-        <div className="flex flex-row gap-2">
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Open tickets</p>
-              <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
-              <CircleDashedIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Assigned tickets</p>
-              <p className="font-bold text-3xl">{stats ? stats.assigned : 0}</p>
-              <CircleIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Resolved tickets</p>
-              <p className="font-bold text-3xl">{stats ? stats.resolved : 0}</p>
-              <CheckIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Assigned to you</p>
-              <p className="font-bold text-3xl">
-                {stats ? stats.assignedToMe : 0}
-              </p>
-              <UserCheckIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Total tickets</p>
-              <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
-              <TicketIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Hang time</p>
-              <p className="font-bold text-3xl">
-                {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
-              </p>
-              {(hangTimeError || hangTimeIsLoading) && (
-                <p className="font-bold text-3xl">N/A</p>
-              )}
-              <p>minutes</p>
-              <ClockIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-          <Card className="basis-50 grow shrink relative">
-            <div className="flex flex-col gap-1">
-              <p className="text-muted uppercase">Resolve time</p>
-              <p className="font-bold text-3xl">
-                {resolveTime
-                  ? Math.round((resolveTime.time / 60) * 100) / 100
-                  : 0}
-              </p>
-              {(resolveTimeError || resolveTimeIsLoading) && (
-                <p className="font-bold text-3xl">N/A</p>
-              )}
-              <p>minutes</p>
-              <ClockCheckIcon
-                width={64}
-                className="bottom-2 -right-2 absolute opacity-30"
-              />
-            </div>
-          </Card>
-        </div>
+        <>
+          <div className="flex flex-row gap-2">
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Open tickets</p>
+                <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
+                <CircleDashedIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Assigned tickets</p>
+                <p className="font-bold text-3xl">
+                  {stats ? stats.assigned : 0}
+                </p>
+                <CircleIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Resolved tickets</p>
+                <p className="font-bold text-3xl">
+                  {stats ? stats.resolved : 0}
+                </p>
+                <CheckIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Assigned to you</p>
+                <p className="font-bold text-3xl">
+                  {stats ? stats.assignedToMe : 0}
+                </p>
+                <UserCheckIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+          </div>
+          <div className="flex flex-row gap-2">
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Total tickets</p>
+                <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
+                <TicketIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Hang time</p>
+                <p className="font-bold text-3xl">
+                  {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
+                </p>
+                {(hangTimeError || hangTimeIsLoading) && (
+                  <p className="font-bold text-3xl">N/A</p>
+                )}
+                <p>minutes</p>
+                <ClockIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+            <Card className="basis-50 grow shrink relative">
+              <div className="flex flex-col gap-1">
+                <p className="text-muted uppercase">Resolve time</p>
+                <p className="font-bold text-3xl">
+                  {resolveTime
+                    ? Math.round((resolveTime.time / 60) * 100) / 100
+                    : 0}
+                </p>
+                {(resolveTimeError || resolveTimeIsLoading) && (
+                  <p className="font-bold text-3xl">N/A</p>
+                )}
+                <p>minutes</p>
+                <ClockCheckIcon
+                  width={64}
+                  className="bottom-2 -right-2 absolute opacity-30"
+                />
+              </div>
+            </Card>
+          </div>
+        </>
       )}
       {statsError && (
         <Alert status="danger">
@@ -306,48 +314,54 @@ export default function ProgramUI() {
           </Alert.Content>
         </Alert>
       )}
-      <Card className="grow shrink max-w-84">
-        {/* I asked Claude to make the pie chart better */}
-        <div className="flex flex-col gap-2">
-          <p className="text-lg font-bold">Ticket status breakdown</p>
-          <p className="text-muted text-sm">
-            Distribution of tickets in the selected date range.
-          </p>
-          <PieChart
-            style={{
-              width: "100%",
-              aspectRatio: 1,
-            }}
-            responsive
-          >
-            <Pie
-              data={statsPieData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              outerRadius="80%"
-              label={({ percent }) =>
-                percent ? `${(percent * 100).toFixed(0)}%` : ""
-              }
-              isAnimationActive={false}
-              shape={StatsCustomPie}
-            />
-          </PieChart>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {statsPieData?.map((slice, i) => (
-              <div key={slice.name} className="flex items-center gap-2 text-sm">
-                <span
-                  className="size-2.5 rounded-full"
-                  style={{ background: STATS_COLORS[i % STATS_COLORS.length] }}
-                />
-                <span className="text-muted">{slice.name}</span>
-                <span className="font-bold">{slice.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Card>
+
       <div className="flex flex-row gap-2">
+        <Card className="grow shrink max-w-84">
+          {/* I asked Claude to make the pie chart better */}
+          <div className="flex flex-col gap-2">
+            <p className="text-lg font-bold">Ticket status breakdown</p>
+            <p className="text-muted text-sm">
+              Distribution of tickets in the selected date range.
+            </p>
+            <PieChart
+              style={{
+                width: "100%",
+                aspectRatio: 1,
+              }}
+              responsive
+            >
+              <Pie
+                data={statsPieData}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                label={({ percent }) =>
+                  percent ? `${(percent * 100).toFixed(0)}%` : ""
+                }
+                isAnimationActive={false}
+                shape={StatsCustomPie}
+              />
+            </PieChart>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {statsPieData?.map((slice, i) => (
+                <div
+                  key={slice.name}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <span
+                    className="size-2.5 rounded-full"
+                    style={{
+                      background: STATS_COLORS[i % STATS_COLORS.length],
+                    }}
+                  />
+                  <span className="text-muted">{slice.name}</span>
+                  <span className="font-bold">{slice.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
         <Card className="grow shrink basis-0">
           <div className="flex flex-col gap-2">
             <p className="text-lg font-bold">Tickets replied to per weekday</p>
@@ -398,7 +412,7 @@ export default function ProgramUI() {
 
               <UsersTable
                 users={lb.sort(
-                  (a, b) => b._count.resolvedTickets - a._count.resolvedTickets,
+                  (a, b) => b._count.assignedTickets - a._count.assignedTickets,
                 )}
                 programId={programId}
               />

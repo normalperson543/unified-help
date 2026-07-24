@@ -3,6 +3,7 @@ import {
   Avatar,
   Button,
   Card,
+  Chip,
   ComboBox,
   Input,
   Key,
@@ -31,6 +32,7 @@ import { Program } from "@/generated/prisma/browser";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TicketTable from "./ticket-table";
+import Link from "next/link";
 
 export default function ProfileUI({
   profile,
@@ -41,6 +43,7 @@ export default function ProfileUI({
   assignedAndResolvedCount,
   repliesCount,
   repliedTickets,
+  programs,
 }: {
   profile: SlackUserDetailed;
   program?: Program;
@@ -50,6 +53,7 @@ export default function ProfileUI({
   assignedAndResolvedCount: number;
   repliesCount: number;
   repliedTickets: TicketWithAssigneesAndProgram[];
+  programs: Program[];
 }) {
   const [selectedKey, setSelectedKey] = useState<Key | null>(
     program ? (program.id as string) : "all",
@@ -68,8 +72,6 @@ export default function ProfileUI({
     router.push(`/profile/${profile.id}/program/${key}`);
   }
 
-  console.log(repliedTickets)
-
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
       <div className="flex justify-between top-0">
@@ -84,15 +86,38 @@ export default function ProfileUI({
             </Avatar.Fallback>
           </Avatar>
           <div className="flex flex-col gap-1">
-            <p className="text-2xl font-bold">{profile.username}</p>
-            <div className="flex flex-row gap-2 text-muted">
+            <div className="flex gap-2 items-center">
+              <p className="text-2xl font-bold">{profile.username}</p>
+              {profile.isBot && <Chip>Bot</Chip>}
+            </div>
+
+            <div className="flex flex-row gap-1 text-muted items-center">
               <pre>{profile.id}</pre>
+              <p> - </p>
+              {profile.programs.length > 0 ? (
+                <>
+                  <p>Helping in</p>
+                  <p>
+                    {profile.programs.map(
+                      (p, i) =>
+                        `${p.name}${i !== profile.programs.length - 1 ? "," : ""}`,
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p>No programs helping</p>
+              )}
             </div>
           </div>
         </div>
-        <Button>
-          Open in Slack <SquareArrowOutUpRightIcon />
-        </Button>
+        <Link
+          href={`https://hackclub.enterprise.slack.com/team/${profile.id}`}
+          target="_blank"
+        >
+          <Button>
+            Open in Slack <SquareArrowOutUpRightIcon />
+          </Button>
+        </Link>
       </div>
 
       <div className="flex flex-row items-center justify-between">
@@ -104,6 +129,7 @@ export default function ProfileUI({
               width={16}
               height={16}
               alt="Program logo"
+              className="rounded-sm"
             />
           )}
           <b>{program ? program.name : "all programs"}</b>
@@ -120,10 +146,10 @@ export default function ProfileUI({
             </ComboBox.InputGroup>
             <ComboBox.Popover>
               <ListBox>
-                <ListBox.Item id="all" textValue="all" key="all">
+                <ListBox.Item id="all" textValue="All programs" key="all">
                   All programs
                 </ListBox.Item>
-                {profile.programs.map((p) => (
+                {programs.map((p) => (
                   <ListBox.Item id={p.id} textValue={p.name} key={p.id}>
                     <div className="flex flex-row items-center gap-2">
                       {p.logo && (

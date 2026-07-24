@@ -12,7 +12,7 @@ import { PodiumIcon } from "lucide-react";
 export default function LeaderboardUI() {
   const [usersPage, setUsersPage] = useState(1);
   const [userSortDescriptor, setUserSortDescriptor] = useState<SortDescriptor>({
-    column: "resolvedTickets",
+    column: "assignedTickets",
     direction: "descending",
   });
   const [usersSortDebounced] = useDebounce(userSortDescriptor, 500);
