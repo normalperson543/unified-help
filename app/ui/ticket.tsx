@@ -209,8 +209,7 @@ export default function TicketUI({
             {ticket.replies.map((r) => {
               if (r.slackUser.isBot) {
                 if (
-                  r.message.includes("marked as resolved") ||
-                  r.message.includes("marked resolved")
+                  r.message.includes(ticket.program.resolveKeyword)
                 ) {
                   const resolver = r.resolver;
                   return (

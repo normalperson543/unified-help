@@ -26,6 +26,8 @@ model Ticket {
   responseTime      Float       @default(0)
   firstResponseUser SlackUser?  @relation("firstResponded", fields: [firstResponseUserId], references: [id])
   resolveTime       Float       @default(0)
+  resolveDate       DateTime?
+  assignDate        DateTime?
 
   programId           String
   slackUserId         String
@@ -44,6 +46,7 @@ model Program {
   canAutoIndex    Boolean     @default(true)
   userGroup       String?
   usersOrganizing User[]      @relation("programsOrganizing")
+  resolveKeyword  String      @default("")
 }
 
 model SlackUser {

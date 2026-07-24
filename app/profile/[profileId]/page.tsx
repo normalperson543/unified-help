@@ -2,6 +2,7 @@ import { auth } from "@/app/lib/auth";
 import {
   getAllAssignedAndResolvedTicketsCount,
   getSlackUserDetailed,
+  getTicketsWithRepliesFromUser,
   getUser,
   getUserAnswerActivity,
   getUserFirstResponseTime,
@@ -43,6 +44,7 @@ export default async function ProfilePage({
   const assignedAndResolvedCount =
     await getAllAssignedAndResolvedTicketsCount(profileId);
   const repliesCount = await getUserRepliesCount(profileId);
+  const repliedTickets = await getTicketsWithRepliesFromUser(profileId);
   return (
     <ProfileUI
       profile={profile}
@@ -51,6 +53,7 @@ export default async function ProfilePage({
       activity={activity}
       assignedAndResolvedCount={assignedAndResolvedCount}
       repliesCount={repliesCount}
+      repliedTickets={repliedTickets}
     />
   );
 }

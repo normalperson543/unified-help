@@ -46,8 +46,7 @@ export async function GET(
     ticket.replies.map(async (r) => {
       if (
         r.slackUser.isBot &&
-        (r.message.includes("marked as resolved") ||
-          r.message.includes("marked resolved"))
+        r.message.includes(ticket.program.resolveKeyword)
       ) {
         return { ...r, resolver: await getResolver(r.message) };
       }

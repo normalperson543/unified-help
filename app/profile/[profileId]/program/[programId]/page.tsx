@@ -3,6 +3,7 @@ import {
   getAllAssignedAndResolvedTicketsCount,
   getProgram,
   getSlackUserDetailed,
+  getTicketsWithRepliesFromUser,
   getUser,
   getUserAnswerActivity,
   getUserFirstResponseTime,
@@ -48,6 +49,7 @@ export default async function ProfilePage({
     programId,
   );
   const repliesCount = await getUserRepliesCount(profileId, programId);
+  const repliedTickets = await getTicketsWithRepliesFromUser(profileId);
   return (
     <ProfileUI
       profile={profile}
@@ -57,6 +59,7 @@ export default async function ProfilePage({
       activity={activity}
       assignedAndResolvedCount={assignedAndResolvedCount}
       repliesCount={repliesCount}
+      repliedTickets={repliedTickets}
     />
   );
 }

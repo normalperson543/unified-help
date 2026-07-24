@@ -16,9 +16,10 @@ export default function AddProgramUI() {
   const [programName, setProgramName] = useState("");
   const [imageLink, setImageLink] = useState("");
   const [channelId, setChannelId] = useState("");
+  const [resolveKeyword, setResolveKeyword] = useState("");
   const [autoIndex, setAutoIndex] = useState(true);
   function handleAddProgram() {
-    createProgram(programName, channelId, autoIndex, imageLink);
+    createProgram(programName, channelId, autoIndex, imageLink, resolveKeyword);
   }
 
   return (
@@ -47,6 +48,17 @@ export default function AddProgramUI() {
         <Input
           value={imageLink}
           onChange={(e) => setImageLink(e.target.value)}
+        />
+      </TextField>
+      <TextField type="text">
+        <Label htmlFor="programName">Resolve keyword</Label>
+        <Description>
+          This should be a keyword found in your support bot&apos;s message when
+          a ticket is resolved.
+        </Description>
+        <Input
+          value={resolveKeyword}
+          onChange={(e) => setResolveKeyword(e.target.value)}
         />
       </TextField>
       <TextField type="text">

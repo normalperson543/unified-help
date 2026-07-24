@@ -57,6 +57,7 @@ export default function ProgramSettings({
 }) {
   const [programName, setProgramName] = useState(program.name);
   const [channelId, setChannelId] = useState(program.channelId);
+  const [resolveKeyword, setResolveKeyword] = useState(program.resolveKeyword);
   const [autoIndex, setAutoIndex] = useState(program.canAutoIndex);
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
@@ -133,7 +134,7 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(program.id, programName, autoIndex);
+    await updateInfo(program.id, programName, autoIndex, resolveKeyword);
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",
@@ -160,6 +161,17 @@ export default function ProgramSettings({
             value={channelId}
             onChange={(e) => setChannelId(e.target.value)}
             className="font-mono"
+          />
+        </TextField>
+        <TextField type="text">
+          <Label htmlFor="programName">Resolve keyword</Label>
+          <Description>
+            This should be a keyword found in your support bot&apos;s message
+            when a ticket is resolved.
+          </Description>
+          <Input
+            value={resolveKeyword}
+            onChange={(e) => setResolveKeyword(e.target.value)}
           />
         </TextField>
         <Switch isSelected={autoIndex} onChange={setAutoIndex}>

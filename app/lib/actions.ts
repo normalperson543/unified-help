@@ -139,6 +139,7 @@ export async function updateInfo(
   programId: string,
   name: string,
   canAutoIndex: boolean,
+  resolveKeyword: string,
 ) {
   throwIfNoAuth();
   const org = await isOrg(programId);
@@ -150,6 +151,7 @@ export async function updateInfo(
     data: {
       name: name,
       canAutoIndex: canAutoIndex,
+      resolveKeyword: resolveKeyword,
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -159,6 +161,7 @@ export async function createProgram(
   channelId: string,
   canAutoIndex: boolean,
   imageLink: string,
+  resolveKeyword: string,
 ) {
   throwIfNoAuth();
   const session = await auth.api.getSession({
@@ -170,6 +173,7 @@ export async function createProgram(
       channelId: channelId,
       canAutoIndex: canAutoIndex,
       logo: imageLink,
+      resolveKeyword: resolveKeyword,
       usersOrganizing: {
         connect: {
           id: session!.user?.id,

@@ -67,6 +67,9 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           resolver: true,
           firstResponseUser: true,
         },
+        orderBy: {
+          dateCreated: "desc",
+        },
       },
       assignedTickets: {
         where: {
@@ -77,6 +80,9 @@ export async function getSlackUserDetailed(id: string, programId?: string) {
           assignees: true,
           resolver: true,
           firstResponseUser: true,
+        },
+        orderBy: {
+          dateCreated: "desc",
         },
       },
       _count: {
@@ -640,4 +646,24 @@ export async function getAllStats() {
     slackUsers: slackUsers,
   };
 }
-//todo: move all of the route data stuff into this file so it's more organized
+export async function getTicketsWithRepliesFromUser(userId: string) {
+  await throwIfNoAuth();
+  return await prisma.ticket.findMany({
+    where: {
+      replies: {
+        some: {
+          slackUserId: userId,
+        },
+      },
+    },
+    include: {
+      program: true,
+      assignees: true,
+      resolver: true,
+      firstResponseUser: true,
+    },
+    orderBy: {
+      dateCreated: "desc",
+    },
+  });
+}

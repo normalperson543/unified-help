@@ -9,7 +9,11 @@ import {
   ListBox,
   Tabs,
 } from "@heroui/react";
-import { AnswerActivity, SlackUserDetailed } from "../lib/types";
+import {
+  AnswerActivity,
+  SlackUserDetailed,
+  TicketWithAssigneesAndProgram,
+} from "../lib/types";
 import AnswerBarChart from "./answer-bar-chart";
 import {
   CheckIcon,
@@ -36,6 +40,7 @@ export default function ProfileUI({
   activity,
   assignedAndResolvedCount,
   repliesCount,
+  repliedTickets,
 }: {
   profile: SlackUserDetailed;
   program?: Program;
@@ -44,6 +49,7 @@ export default function ProfileUI({
   activity: AnswerActivity;
   assignedAndResolvedCount: number;
   repliesCount: number;
+  repliedTickets: TicketWithAssigneesAndProgram[];
 }) {
   const [selectedKey, setSelectedKey] = useState<Key | null>(
     program ? (program.id as string) : "all",
@@ -61,6 +67,8 @@ export default function ProfileUI({
     }
     router.push(`/profile/${profile.id}/program/${key}`);
   }
+
+  console.log(repliedTickets)
 
   return (
     <div className="flex flex-col gap-6 px-36 py-4 flex-1 min-h-0 overflow-y-auto">
@@ -277,6 +285,10 @@ export default function ProfileUI({
               Created tickets
               <Tabs.Indicator />
             </Tabs.Tab>
+            <Tabs.Tab id="replied">
+              Replied tickets
+              <Tabs.Indicator />
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs.ListContainer>
         <Tabs.Panel id="assigned">
@@ -284,6 +296,9 @@ export default function ProfileUI({
         </Tabs.Panel>
         <Tabs.Panel id="created">
           <TicketTable tickets={profile.createdTickets} />
+        </Tabs.Panel>
+        <Tabs.Panel id="replied">
+          <TicketTable tickets={repliedTickets} />
         </Tabs.Panel>
       </Tabs>
     </div>

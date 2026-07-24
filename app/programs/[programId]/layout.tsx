@@ -372,7 +372,13 @@ export default function RootLayout({
                     </Avatar.Fallback>
                   </Avatar>
                   <div className="flex flex-col gap-1">
-                    {getShortTitle(ticket.message)}
+                    {getShortTitle(ticket.message).length > 0 ? (
+                      getShortTitle(ticket.message)
+                    ) : (
+                      <span className="text-muted italic">
+                        [No title provided]
+                      </span>
+                    )}
                     <div className="text-muted">
                       {ticket.slackUser.username} - Opened{" "}
                       {new Date(ticket.dateCreated).toLocaleDateString()} -{" "}
