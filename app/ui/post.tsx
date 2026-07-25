@@ -33,7 +33,7 @@ export default function Post({
       </Link>
       <div className="flex flex-col gap-4 w-full">
         <div className="flex flex-row justify-between">
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 items-center">
             <Link href={`/profile/${slackId}/program/${programId}`}>
               <p className="font-bold">{username}</p>
             </Link>

@@ -30,20 +30,12 @@ export default function ProgramStats() {
   return (
     <div className="flex flex-row items-center gap-2">
       <Chip>
-        <TicketIcon width={16} />
-        {stats ? stats.total : <Spinner size="sm" />}
-      </Chip>
-      <Chip>
         <CircleDashedIcon width={16} />
         {stats ? stats.open : <Spinner size="sm" />}
       </Chip>
       <Chip>
         <CircleIcon width={16} />
         {stats ? stats.assigned : <Spinner size="sm" />}
-      </Chip>
-      <Chip>
-        <CheckIcon width={16} />
-        {stats ? stats.resolved : <Spinner size="sm" />}
       </Chip>
       <Chip variant="primary" color="accent">
         <UserCheckIcon width={16} />

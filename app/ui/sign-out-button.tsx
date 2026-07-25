@@ -3,6 +3,7 @@
 import { LogOutIcon } from "lucide-react";
 import { Avatar, Dropdown, Label, Link } from "@heroui/react";
 import { authClient } from "../lib/auth-client";
+import { useRouter } from "next/navigation";
 export default function SignOutButton({
   username,
   pfp,
@@ -12,6 +13,7 @@ export default function SignOutButton({
   pfp: string;
   userId: string;
 }) {
+  const router = useRouter();
   return (
     <Dropdown>
       <Dropdown.Trigger>
@@ -26,13 +28,14 @@ export default function SignOutButton({
             if (key === "signOut") authClient.signOut();
           }}
         >
-          <Dropdown.Item id="profile">
-            <Link href={`/profile/${userId}`}>
-              <Label>
-                <p className="text-muted">Signed in as </p>
-                {username}
-              </Label>
-            </Link>
+          <Dropdown.Item
+            id="profile"
+            onClick={() => router.push(`/profile/${userId}`)}
+          >
+            <Label>
+              <p className="text-muted">Signed in as </p>
+              {username}
+            </Label>
           </Dropdown.Item>
 
           <Dropdown.Item id="signOut">

@@ -17,6 +17,7 @@
     "@prisma/client": "^7.8.0",
     "@slack/web-api": "^7.18.0",
     "better-auth": "^1.6.22",
+    "deep-object-diff": "^1.1.9",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.21.0",
     "lunr": "^2.3.9",

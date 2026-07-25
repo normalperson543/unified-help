@@ -220,3 +220,15 @@ export async function indexUsersFromUserGroup(
   }
   revalidatePath(`/programs/${programId}/settings`);
 }
+export async function createFakeTicket() {
+  "use server";
+  await prisma.ticket.create({
+    data: {
+      message: "fake",
+      dateCreated: new Date(),
+      messageId: String(Math.random()),
+      slackUserId: "U098F6EJ34J",
+      programId: "d0e27f83-bff0-4944-b23f-12664999e72c",
+    },
+  });
+}
