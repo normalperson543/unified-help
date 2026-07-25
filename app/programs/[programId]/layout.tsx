@@ -104,6 +104,7 @@ export default function RootLayout({
                 `New ${program ? program.name : "program"} ticket from ${messages[0].slackUser.username}`,
                 {
                   body: messages[0].message,
+                  icon: program?.logo ?? undefined,
                 },
               );
             } else if (messages.length > 1) {
@@ -111,6 +112,7 @@ export default function RootLayout({
                 `New ${program ? program.name : "program"} tickets`,
                 {
                   body: `You have ${messages.length} new tickets.`,
+                  icon: program?.logo ?? undefined,
                 },
               );
             }

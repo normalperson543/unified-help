@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@heroui/react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
@@ -46,9 +47,9 @@ export default function NotificationsPermission() {
     <div className="w-full bg-yellow-500 text-black p-2 text-center">
       <p>
         <b>Enable notifications</b> to get notified when new tickets arrive.{" "}
-        <Link href="#" onClick={requestPerms} className="underline">
+        <Button onClick={requestPerms} size="sm">
           Enable now
-        </Link>
+        </Button>
       </p>
     </div>
   );
