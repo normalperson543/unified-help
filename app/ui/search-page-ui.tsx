@@ -57,7 +57,7 @@ export default function SearchPageUI() {
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/all/?searchTerm=${encodeURIComponent(urlSearchTerm)}&assigneeIds=0,1,2&page=${ticketsPage}&order=${ticketsOrder}`,
+    `/api/programs/all/?searchTerm=${encodeURIComponent(urlSearchTerm)}&page=${ticketsPage}&order=${ticketsOrder}`,
     fetcher,
     { keepPreviousData: true },
   );

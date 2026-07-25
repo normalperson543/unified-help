@@ -1,21 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
+
+// This part was written by Claude because it had to 
+// bugfix something about "window is not defined".
+type Permission = NotificationPermission | "unsupported";
+
+const listeners = new Set<() => void>();
+
+function subscribe(onStoreChange: () => void) {
+  listeners.add(onStoreChange);
+  return () => {
+    listeners.delete(onStoreChange);
+  };
+}
+
+function getSnapshot(): Permission {
+  return "Notification" in window ? Notification.permission : "unsupported";
+}
+
+function getServerSnapshot(): Permission {
+  return "unsupported";
+}
 
 export default function NotificationsPermission() {
-  const [enabled, setEnabled] = useState(false);
+  const permission = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
-  if (window === undefined) return
-  if (!("Notification" in window)) return;
-  if (Notification.permission === "granted") return;
+  if (permission !== "default") return null; // End of Claude Code
 
-  if (enabled) return;
-  
   function requestPerms() {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        setEnabled(true);
+    Notification.requestPermission().then((result) => {
+      listeners.forEach((listener) => listener());
+      if (result === "granted") {
         new Notification("You've enabled notifications!");
       }
     });
