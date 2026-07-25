@@ -1,0 +1,36 @@
+{
+    "display_information": {
+        "name": "UHSBot"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "UHSBot",
+            "always_online": false
+        }
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "usergroups:read",
+                "channels:history",
+                "users:read"
+            ]
+        },
+        "pkce_enabled": false
+    },
+    "settings": {
+        "event_subscriptions": {
+            "bot_events": [
+                "message.channels",
+                "subteam_members_changed"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": true,
+        "token_rotation_enabled": false,
+        "is_mcp_enabled": false
+    }
+}

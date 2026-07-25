@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unified Help
 
-## Getting Started
+Unified Help puts all your Hack Club support tickets under one roof. Search, handle and analyze all your program tickets. See statistics for users across multiple Hack Club programs and search across the entire ticket corpus (and much more :p). Integrates with most Hack Club support channels.
 
-First, run the development server:
+## Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Unified Help comes in 2 parts -- the Unified Help platform itself (Next.js) and the Unified Help scraper (a Slack bot made in Node.js).
+
+The Unified Help platform provides the frontend for interacting with tickets, auth stuff, etc. and the scraper indexes messages from Slack support channels.
+
+You'll need both parts to use Unified Help.
+
+## Getting started
+
+First, clone the GitHub repository **with submodules** (so you can also pull the scraper at the same time):
+
+```
+git clone --recurse-submodules https://github.com/normalperson543/unified-help.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next, a docker-compose.yml file has been provided for you. Confirm that port 6701 is open on your computer. If not, change the port in your compose file.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This requires a Slack bot to be installed into your workspace. Go to https://api.slack.com/apps and create a new app with the `manifest.json` file provided in the root of this repository.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You'll also need to create an HCA app at https://auth.hackclub.com. Make sure you give your app `email, name, slack_id` OAuth permissions.
 
-## Learn More
+Rename .example.env to .env. Replace the variables with your own depending on your setup.
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To run the Unified Help platform development server, run `npm run dev`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open https://localhost:3000 to see the result.
 
-## Deploy on Vercel
+To run the Unified Help scraper, see the instructions at https://github.com/normalperson543/unified-help-scraper (the scraper has automatically been cloned for you at the /scraper directory)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+You can run `docker compose up -d` at the root of the repo to build and run Unified Help.
+
+Open https://localhost:6701 to see the result.
+
+You can shut down the Unified Help services by running `docker compose down`.

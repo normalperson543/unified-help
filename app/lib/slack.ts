@@ -3,7 +3,7 @@
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
 
-const web = new WebClient(process.env["SLACK_API_TOKEN"]);
+const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
 
 export async function createUser(id: string) {
   let dbUser;
