@@ -19,7 +19,6 @@ export default function Post({
   dateCreated: Date;
   programId: string;
 }) {
-  console.log(dateCreated);
   return (
     <div className="flex flex-row gap-4">
       <Link href={`/profile/${slackId}/program/${programId}`}>

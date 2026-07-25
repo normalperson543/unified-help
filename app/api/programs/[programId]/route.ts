@@ -17,7 +17,6 @@ export async function GET(
   const { programId } = await ctx.params;
   const id = programId !== "all" ? programId : undefined;
   const params = req.nextUrl.searchParams;
-  console.log(params);
   const searchTerm = params.get("searchTerm");
   const assigneeIds = params.get("assigneeIds")?.split(",");
   const statuses = params.get("statuses")?.split(",").map(Number) as number[];
@@ -54,12 +53,9 @@ export async function GET(
   if (assigneeIds && assigneeIds[0].length > 0) {
     filters.push({ assignees: { some: { id: { in: assigneeIds } } } });
   }
-  console.log(assigneeIds);
   if (statuses?.length > 0) {
     filters.push({ status: { in: statuses } });
   }
-
-  console.log(filters);
 
   const tickets = await prisma.ticket.findMany({
     where: {

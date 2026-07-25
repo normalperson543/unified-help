@@ -60,13 +60,9 @@ export const auth = betterAuth({
           overrideUserInfo: true,
 
           mapProfileToUser: async (profile) => {
-            console.log("info:");
-            console.log(profile);
             const slackId = profile.slack_id; // whatever field your OAuth puts it in
 
             const user = await createUser(profile.slack_id);
-            console.log(user);
-
             // `slackId` and `slackUserId` are declared in `user.additionalFields`
             // above and are persisted at runtime, but better-auth types this
             // return as `Partial<User>` (base fields only), hence the assertion.
@@ -106,9 +102,6 @@ export const auth = betterAuth({
             }
 
             const data = await response.json();
-
-            console.log("Hack Club profile:", data);
-
             const identity = data.identity;
 
             if (!identity?.id) {

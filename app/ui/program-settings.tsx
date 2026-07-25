@@ -82,8 +82,6 @@ export default function ProgramSettings({
         (Number(backlogStatus.job.ts.end) -
           Number(backlogStatus.job.ts.start))) *
       100;
-    console.log(backlogPercent);
-    console.log(backlogStatus.job.ts);
   }
   async function handleStopBacklog() {
     stopBacklog(program.id);

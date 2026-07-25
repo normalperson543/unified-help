@@ -15,7 +15,6 @@ export async function GET(
   }
 
   const params = req.nextUrl.searchParams;
-  console.log(params);
   const oldest = params.get("oldest");
   const newest = params.get("newest");
 
@@ -31,8 +30,6 @@ export async function GET(
   } else {
     newestDate = new Date();
   }
-  console.log(oldestDate);
-  console.log(newestDate);
   const hangTime = await getHangTime(programId, oldestDate, newestDate);
   return new Response(JSON.stringify({ time: hangTime }));
 }

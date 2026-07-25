@@ -168,7 +168,6 @@ export async function getUserFirstResponseTime(
       },
     },
   });
-  console.log(res);
   return res._avg.responseTime;
 }
 export async function getUserResolveTime(
@@ -199,8 +198,6 @@ export async function getUserResolveTime(
       },
     },
   });
-  console.log("resolve time");
-  console.log(res);
   return res._avg.resolveTime;
 }
 
@@ -383,7 +380,6 @@ export async function getProgramStatistics(
     // from better auth docs bc too lazy :
     headers: await headers(), // you need to pass the headers object.
   });
-  console.log(session?.user.slackUserId);
 
   const ticketsResolved = await prisma.ticket.count({
     where: {
@@ -486,10 +482,8 @@ export async function getBacklogStatus(programId: string) {
   );
   const respJson = await resp.json();
   if (!resp.ok) {
-    console.log(respJson);
     throw new Error("Error fetching backlog status from backlogger");
   }
-  console.log(respJson);
   return await respJson;
 }
 
@@ -566,7 +560,6 @@ export async function getHangTime(
       },
     },
   });
-  console.log(res);
   return res._avg.responseTime;
 }
 export async function getResolveTime(
@@ -598,7 +591,6 @@ export async function getResolveTime(
       },
     },
   });
-  console.log(res);
   return res._avg.resolveTime;
 }
 export async function isOrg(programId: string) {
@@ -616,9 +608,6 @@ export async function isOrg(programId: string) {
       programsOrganizing: true,
     },
   });
-  console.log("bloop!");
-  console.log(user);
-  console.log(user?.programsOrganizing.some((p) => p.id === programId));
   return (
     user?.isAdmin || user?.programsOrganizing.some((p) => p.id === programId)
   );

@@ -74,8 +74,6 @@ export default function SearchPageUI() {
   const { replace } = useRouter();
   const pathname = usePathname();
 
-  console.log(users);
-
   let totalUsersPages = 1;
 
   if (users?.total) {

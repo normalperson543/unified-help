@@ -39,8 +39,6 @@ export async function startBacklog(
     },
   );
   if (!resp.ok) {
-    const respText = await resp.text();
-    console.log(respText);
     throw new Error("Could not start backlog job");
   }
   revalidatePath(`/programs/${programId}/settings`);
@@ -68,8 +66,6 @@ export async function stopBacklog(programId: string) {
     },
   );
   if (!resp.ok) {
-    const respText = await resp.text();
-    console.log(respText);
     throw new Error("Could not stop backlog job");
   }
   revalidatePath(`/programs/${programId}/settings`);
@@ -214,21 +210,7 @@ export async function indexUsersFromUserGroup(
     },
   );
   if (!resp.ok) {
-    const respText = await resp.text();
-    console.log(respText);
     throw new Error("Could not start user indexing");
   }
   revalidatePath(`/programs/${programId}/settings`);
-}
-export async function createFakeTicket() {
-  "use server";
-  await prisma.ticket.create({
-    data: {
-      message: "fake",
-      dateCreated: new Date(),
-      messageId: String(Math.random()),
-      slackUserId: "U098F6EJ34J",
-      programId: "d0e27f83-bff0-4944-b23f-12664999e72c",
-    },
-  });
 }

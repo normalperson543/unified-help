@@ -64,7 +64,6 @@ export default function ProfileUI({
   function handleSelectProgram(key: Key | null) {
     if (!key) return;
     setSelectedKey(key);
-    console.log(key);
     if (key === "all") {
       router.push(`/profile/${profile.id}`);
       return;

@@ -112,8 +112,6 @@ export default function ProgramUI() {
     fetcher,
   );
 
-  console.log(lb);
-
   let statsPieData;
   if (stats) {
     statsPieData = [

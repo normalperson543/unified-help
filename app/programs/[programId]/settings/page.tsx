@@ -11,8 +11,6 @@ export default async function SettingsPage({
   const { programId } = await params;
 
   const org = await isOrg(programId);
-  console.log("bloop! 2");
-  console.log(org);
   if (!org) return <Unauthorized />;
 
   const program = await getProgram(programId);

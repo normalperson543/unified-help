@@ -15,7 +15,6 @@ export async function GET(
   }
 
   const params = req.nextUrl.searchParams;
-  console.log(params);
   const oldest = params.get("oldest");
   const newest = params.get("newest");
 
