@@ -1,0 +1,8 @@
+User-Agent: *
+Allow: /
+Disallow: /programs/*
+Disallow: /programs/*/ticket/*
+Disallow: /dashboard/add-program
+Disallow: /profile/*
+Disallow: /profile/*/program/*
+Disallow: /assets

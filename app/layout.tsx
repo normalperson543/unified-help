@@ -9,8 +9,12 @@ const ibmPlexSans = Google_Sans_Flex({
 });
 
 export const metadata: Metadata = {
-  title: "Unified Help",
-  description: "All your Hack Club support tickets, under one roof",
+  title: {
+    template: "%s | Unified Help",
+    default: "Unified Help",
+  },
+  description:
+    "All your Hack Club support tickets, under one roof",
 };
 
 export default async function RootLayout({

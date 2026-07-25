@@ -7,7 +7,6 @@ import {
   Alert,
   Autocomplete,
   Avatar,
-  Button,
   Card,
   EmptyState,
   Input,
@@ -30,8 +29,6 @@ import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ITEMS_PER_PAGE, REFRESH_INTERVAL } from "@/app/lib/constants";
 import { useDebounce } from "use-debounce";
-import { addedDiff, diff } from "deep-object-diff";
-import { createFakeTicket } from "@/app/lib/actions";
 let savedSidebarScrollTop = 0;
 
 export default function RootLayout({
@@ -177,7 +174,6 @@ export default function RootLayout({
         className="flex flex-col gap-2 w-1/2 min-h-0 overflow-y-auto border-r border-accent-background relative"
       >
         <div className="bg-background px-4 py-2 flex flex-col gap-1 sticky top-0 z-10">
-          <Button onClick={createFakeTicket}>Create fake ticket</Button>
           <div className="flex gap-2 items-center">
             <SearchIcon width={16} />
             <Input

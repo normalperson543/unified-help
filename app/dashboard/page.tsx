@@ -6,6 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { PlusSquareIcon } from "lucide-react";
 import NotLoggedIn from "../ui/not-logged-in";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'View programs you have been assigned to and are registered on Unified Help.',
+}
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({

@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOutIcon } from "lucide-react";
-import { Avatar, Dropdown, Label, Link } from "@heroui/react";
+import { Avatar, Dropdown, Label } from "@heroui/react";
 import { authClient } from "../lib/auth-client";
 import { useRouter } from "next/navigation";
 export default function SignOutButton({

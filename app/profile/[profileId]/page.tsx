@@ -12,8 +12,28 @@ import {
 } from "@/app/lib/data";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import ProfileUI from "@/app/ui/profile";
+import { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { cache } from "react";
+
+const getSlackUserDetailedCached = cache(async (profileId: string) => {
+  const profile = await getSlackUserDetailed(profileId);
+  return profile;
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ profileId: string; programId: string }>;
+}): Promise<Metadata> {
+  const { profileId } = await params;
+  const p = await getSlackUserDetailedCached(profileId);
+  return {
+    title: `${p?.username}`,
+    description: `View ${p?.username}'s Unified Help support statistics and interacted tickets.`,
+  };
+}
 
 export default async function ProfilePage({
   params,
@@ -29,7 +49,7 @@ export default async function ProfilePage({
   if (!user) return <NotLoggedIn />;
 
   const { profileId } = await params;
-  const profile = await getSlackUserDetailed(profileId);
+  const profile = await getSlackUserDetailedCached(profileId);
   if (!profile) notFound();
   const frt = await getUserFirstResponseTime(
     profileId,

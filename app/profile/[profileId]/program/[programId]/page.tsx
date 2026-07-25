@@ -13,8 +13,30 @@ import {
 } from "@/app/lib/data";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import ProfileUI from "@/app/ui/profile";
+import { Metadata, ResolvingMetadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { cache } from "react";
+
+const getSlackUserDetailedCached = cache(
+  async (profileId: string, programId: string) => {
+    const profile = await getSlackUserDetailed(profileId, programId);
+    return profile;
+  },
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ profileId: string; programId: string }>;
+}): Promise<Metadata> {
+  const { profileId, programId } = await params;
+  const p = await getSlackUserDetailedCached(profileId, programId);
+  return {
+    title: `${p?.username}`,
+    description: `View ${p?.username}'s Unified Help support statistics and interacted tickets.`,
+  };
+}
 
 export default async function ProfilePage({
   params,
@@ -29,7 +51,8 @@ export default async function ProfilePage({
   if (!user) return <NotLoggedIn />;
 
   const { profileId, programId } = await params;
-  const profile = await getSlackUserDetailed(profileId, programId);
+
+  const profile = await getSlackUserDetailedCached(profileId, programId);
   const program = await getProgram(programId);
   if (!profile || !program) notFound();
   const frt = await getUserFirstResponseTime(
@@ -37,7 +60,7 @@ export default async function ProfilePage({
     new Date(0),
     new Date(),
     programId,
-  ); //lmao this is temporary
+  );
   const resolveTime = await getUserResolveTime(
     profileId,
     new Date(0),

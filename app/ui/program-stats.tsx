@@ -6,10 +6,8 @@ import { useParams } from "next/navigation";
 import { ProgramStatistics } from "../lib/types";
 import { Chip, Spinner } from "@heroui/react";
 import {
-  CheckIcon,
   CircleDashedIcon,
   CircleIcon,
-  TicketIcon,
   UserCheckIcon,
 } from "lucide-react";
 
