@@ -106,7 +106,7 @@ export default function RootLayout({
                   body: messages[0].message,
                 },
               );
-            } else {
+            } else if (messages.length > 1) {
               new Notification(
                 `New ${program ? program.name : "program"} tickets`,
                 {

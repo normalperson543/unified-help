@@ -30,8 +30,8 @@ export async function generateMetadata({
   const { profileId } = await params;
   const p = await getSlackUserDetailedCached(profileId);
   return {
-    title: `${p?.username}`,
-    description: `View ${p?.username}'s Unified Help support statistics and interacted tickets.`,
+    title: `${p ? p.username : "User"}`,
+    description: `View ${p ? p.username : "this user"}'s Unified Help support statistics and interacted tickets.`,
   };
 }
 

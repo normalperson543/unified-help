@@ -1,7 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { type NextRequest } from "next/server";
 import { getResolver } from "@/app/lib/tools";
-import { getUserAuthStatus } from "@/app/lib/data";
+import { getTicket, getUserAuthStatus } from "@/app/lib/data";
 
 export async function GET(
   _req: NextRequest,
@@ -14,28 +14,9 @@ export async function GET(
     });
   }
   const { ticketId } = await ctx.params;
-  const ticket = await prisma.ticket.findUnique({
-    where: {
-      id: ticketId,
-    },
-    include: {
-      replies: {
-        include: {
-          slackUser: {
-            include: {
-              programs: true,
-            },
-          },
-        },
-        orderBy: {
-          dateCreated: "asc",
-        },
-      },
-      slackUser: true,
-      assignees: true,
-      program: true,
-    },
-  });
+
+  const ticket = await getTicket(ticketId);
+  
   if (!ticket)
     return new Response(JSON.stringify({ status: "Not found" }), {
       status: 404,

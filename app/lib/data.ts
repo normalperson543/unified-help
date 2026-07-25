@@ -656,3 +656,28 @@ export async function getTicketsWithRepliesFromUser(userId: string) {
     },
   });
 }
+export async function getTicket(ticketId: string) {
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id: ticketId,
+    },
+    include: {
+      replies: {
+        include: {
+          slackUser: {
+            include: {
+              programs: true,
+            },
+          },
+        },
+        orderBy: {
+          dateCreated: "asc",
+        },
+      },
+      slackUser: true,
+      assignees: true,
+      program: true,
+    },
+  });
+  return ticket;
+}
