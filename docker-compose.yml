@@ -38,7 +38,6 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/unified_help
-      BETTER_AUTH_URL: http://localhost:3000
       SCRAPER_API_URL: http://scraper:4000
     ports:
       - "6701:3000"
