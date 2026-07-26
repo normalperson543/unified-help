@@ -657,6 +657,7 @@ export async function getTicketsWithRepliesFromUser(userId: string) {
   });
 }
 export async function getTicket(ticketId: string) {
+  await throwIfNoAuth();
   const ticket = await prisma.ticket.findUnique({
     where: {
       id: ticketId,

@@ -214,3 +214,34 @@ export async function indexUsersFromUserGroup(
   }
   revalidatePath(`/programs/${programId}/settings`);
 }
+
+export async function promoteHelper(userId: string, programId: string) {
+  await prisma.program.update({
+    where: {
+      id: programId,
+    },
+    data: {
+      usersOrganizing: {
+        connect: {
+          id: userId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`);
+}
+export async function demoteHelper(userId: string, programId: string) {
+  await prisma.program.update({
+    where: {
+      id: programId,
+    },
+    data: {
+      usersOrganizing: {
+        disconnect: {
+          id: userId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`);
+}

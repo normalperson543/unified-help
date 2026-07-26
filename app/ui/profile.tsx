@@ -26,6 +26,7 @@ import {
   UserCheckIcon,
   TicketIcon,
   MessageCircleIcon,
+  XIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { Program } from "@/generated/prisma/browser";
@@ -105,6 +106,16 @@ export default function ProfileUI({
                 </>
               ) : (
                 <p>No programs helping</p>
+              )}
+              <p> - </p>
+              {profile._count.users > 0 ? (
+                <div className="flex gap-1 items-center">
+                  <CheckIcon width={16} /> Registered on Unified Help
+                </div>
+              ) : (
+                <div className="flex gap-1 items-center">
+                  <XIcon width={16} /> Unregistered on Unified Help
+                </div>
               )}
             </div>
           </div>

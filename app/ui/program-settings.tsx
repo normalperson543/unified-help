@@ -23,6 +23,7 @@ import {
 import {
   CheckIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   CircleQuestionMarkIcon,
   InfoIcon,
   PlayIcon,
@@ -38,6 +39,8 @@ import { useState } from "react";
 import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
 import {
   addAsHelper,
+  demoteHelper,
+  promoteHelper,
   removeHelper,
   saveUserGroup,
   startBacklog,
@@ -134,6 +137,21 @@ export default function ProgramSettings({
   async function handleUpdateInfo() {
     await updateInfo(program.id, programName, autoIndex, resolveKeyword);
     toast("Updated info", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handlePromoteUser(id: string) {
+    await promoteHelper(id, program.id);
+    toast("Promoted helper", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+  async function handleDemoteUser(id: string) {
+    await demoteHelper(id, program.id);
+    toast("Demoted helper", {
       indicator: <CheckIcon />,
       variant: "success",
     });
@@ -383,6 +401,72 @@ export default function ProgramSettings({
                         {u.users.length > 0 &&
                           u.users[0].programsOrganizing.filter(
                             (p) => p.id === program.id,
+                          ).length === 0 && (
+                            <Modal>
+                              <Button variant="primary">
+                                <ChevronUpIcon /> Make organizer
+                              </Button>
+                              <Modal.Backdrop>
+                                <Modal.Container>
+                                  <Modal.Dialog>
+                                    <Modal.CloseTrigger />
+                                    <Modal.Header>
+                                      <Modal.Heading>
+                                        Promote {u.username} from {program.name}{" "}
+                                        to organizer?
+                                      </Modal.Heading>
+                                    </Modal.Header>
+                                    <Modal.Body>
+                                      <div className="flex flex-row gap-2 items-center">
+                                        <Badge.Anchor>
+                                          <Avatar size="sm">
+                                            <Avatar.Image
+                                              src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                              alt="Profile picture"
+                                            />
+                                            <Avatar.Fallback>
+                                              {u.username.substring(0, 1)}
+                                            </Avatar.Fallback>
+                                          </Avatar>
+                                          <Badge
+                                            color="default"
+                                            placement="bottom-right"
+                                            size="sm"
+                                          >
+                                            <ChevronUpIcon className="size-2.5" />
+                                          </Badge>
+                                        </Badge.Anchor>
+                                        <p>
+                                          Confirm you would like to promote{" "}
+                                          <b>{u.username}</b> to an organizer
+                                          role in <b>{program.name}</b>? They
+                                          will immediately have access to modify
+                                          program settings.
+                                        </p>
+                                      </div>
+                                    </Modal.Body>
+                                    <Modal.Footer>
+                                      <Button
+                                        slot="close"
+                                        variant="primary"
+                                        onClick={() =>
+                                          handlePromoteUser(
+                                            u.users[u.users.length - 1].id,
+                                          )
+                                        }
+                                      >
+                                        <ChevronUpIcon />
+                                        Promote
+                                      </Button>
+                                    </Modal.Footer>
+                                  </Modal.Dialog>
+                                </Modal.Container>
+                              </Modal.Backdrop>
+                            </Modal>
+                          )}
+                        {u.users.length > 0 &&
+                          u.users[0].programsOrganizing.filter(
+                            (p) => p.id === program.id,
                           ).length > 0 && (
                             <Modal>
                               <Button variant="danger">
@@ -425,7 +509,15 @@ export default function ProgramSettings({
                                       </div>
                                     </Modal.Body>
                                     <Modal.Footer>
-                                      <Button slot="close" variant="danger">
+                                      <Button
+                                        slot="close"
+                                        variant="danger"
+                                        onClick={() =>
+                                          handleDemoteUser(
+                                            u.users[u.users.length - 1].id,
+                                          )
+                                        }
+                                      >
                                         <ChevronDownIcon />
                                         Demote
                                       </Button>
