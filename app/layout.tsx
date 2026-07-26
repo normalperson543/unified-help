@@ -13,8 +13,7 @@ export const metadata: Metadata = {
     template: "%s | Unified Help",
     default: "Unified Help",
   },
-  description:
-    "All your Hack Club support tickets, under one roof",
+  description: "All your Hack Club support tickets, under one roof",
 };
 
 export default async function RootLayout({

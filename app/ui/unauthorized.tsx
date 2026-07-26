@@ -10,7 +10,7 @@ export default function Unauthorized() {
         <p className="font-bold text-2xl">Unauthorized</p>
         <p className="max-w-96">
           You don&apos;t have permission to view this page. If this is a
-          mistake, contact your event organizer or Unified Help.
+          mistake, contact your event organizer or Unified Help support.
         </p>
         <Link href="/dashboard">
           <Button>

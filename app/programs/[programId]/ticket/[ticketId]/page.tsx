@@ -11,7 +11,14 @@ export async function generateMetadata({
   params: Promise<{ ticketId: string }>;
 }): Promise<Metadata> {
   const { ticketId } = await params;
-  const ticket = await getTicket(ticketId);
+  let ticket;
+  try {
+    ticket = await getTicket(ticketId);
+  } catch {
+    return {
+      title: "Unauthorized",
+    };
+  }
   return {
     title: `${ticket ? (getShortTitle(ticket.message).length > 0 ? getShortTitle(ticket.message) : "View ticket") : "View ticket"} | ${ticket ? ticket.program.name : ""}`,
     description: ticket

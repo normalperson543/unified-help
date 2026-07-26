@@ -106,7 +106,11 @@ export default function HomeUI({
                 alt="Yay emoji"
               />
               by{" "}
-              <Link href="https://github.com/normalperson543" className="underline" target="_blank">
+              <Link
+                href="https://github.com/normalperson543"
+                className="underline"
+                target="_blank"
+              >
                 normalperson543
               </Link>
             </div>

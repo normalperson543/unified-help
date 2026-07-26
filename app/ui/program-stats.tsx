@@ -5,11 +5,7 @@ import { fetcher } from "../lib/swr";
 import { useParams } from "next/navigation";
 import { ProgramStatistics } from "../lib/types";
 import { Chip, Spinner } from "@heroui/react";
-import {
-  CircleDashedIcon,
-  CircleIcon,
-  UserCheckIcon,
-} from "lucide-react";
+import { CircleDashedIcon, CircleIcon, UserCheckIcon } from "lucide-react";
 
 export default function ProgramStats() {
   const { programId } = useParams();

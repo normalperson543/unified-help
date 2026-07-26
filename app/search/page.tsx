@@ -16,7 +16,7 @@ export async function generateMetadata({
   return {
     title: searchTerm
       ? searchTerm.length > 0
-        ? `Search results for ${searchTerm}`
+      ? `Search results for ${searchTerm}`
         : "Search"
       : "Search",
     description: "View search results for tickets and users on Unified Help.",

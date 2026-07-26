@@ -8,7 +8,15 @@ export async function generateMetadata({
   params: Promise<{ programId: string }>;
 }): Promise<Metadata> {
   const { programId } = await params;
-  const program = await getProgram(programId);
+  let program;
+  try {
+    program = await getProgram(programId);
+  } catch {
+    console.error("unauthenticated");
+    return {
+      title: "Unauthorized",
+    };
+  }
   return {
     title: `${program ? program.name : "View program"}`,
     description: `View all Unified Help tickets for ${program ? program.name : "this program"}.`,

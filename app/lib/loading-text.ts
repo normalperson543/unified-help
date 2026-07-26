@@ -18,6 +18,13 @@ export const LOADING_TEXT = [
   "did you know unified help is open source?",
   "join #unified-help for support!",
   "normie is not a fuwwy",
+  "shoutout stelle, kc, and swarit - they're all amazing <3 -normie",
+  "six sevennnnn",
+  "hs > heavysob",
+  ">w<",
+  "reowwwwwww",
+  ">:333",
+  "neocat emojis are goated",
 ];
 
 export function randomLoadingText(): string {

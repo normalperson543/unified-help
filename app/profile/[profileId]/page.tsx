@@ -28,7 +28,15 @@ export async function generateMetadata({
   params: Promise<{ profileId: string; programId: string }>;
 }): Promise<Metadata> {
   const { profileId } = await params;
-  const p = await getSlackUserDetailedCached(profileId);
+  let p;
+  try {
+    p = await getSlackUserDetailedCached(profileId);
+  } catch {
+    console.error("unauthenticated");
+    return {
+      title: "Unauthenticated",
+    };
+  }
   return {
     title: `${p ? p.username : "User"}`,
     description: `View ${p ? p.username : "this user"}'s Unified Help support statistics and interacted tickets.`,

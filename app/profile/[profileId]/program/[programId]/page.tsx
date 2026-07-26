@@ -13,7 +13,7 @@ import {
 } from "@/app/lib/data";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import ProfileUI from "@/app/ui/profile";
-import { Metadata, ResolvingMetadata } from "next";
+import { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -31,7 +31,15 @@ export async function generateMetadata({
   params: Promise<{ profileId: string; programId: string }>;
 }): Promise<Metadata> {
   const { profileId, programId } = await params;
-  const p = await getSlackUserDetailedCached(profileId, programId);
+  let p;
+  try {
+    p = await getSlackUserDetailedCached(profileId, programId);
+  } catch {
+    console.error("unauthenticated");
+    return {
+      title: "Unauthenticated",
+    };
+  }
   return {
     title: `${p?.username}`,
     description: `View ${p?.username}'s Unified Help support statistics and interacted tickets.`,

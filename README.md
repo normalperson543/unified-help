@@ -23,6 +23,7 @@ This requires a Slack bot to be installed into your workspace. Go to https://api
 You'll also need to create an HCA app at https://auth.hackclub.com. Make sure you give your app `email, name, slack_id` OAuth permissions.
 
 ## Deployment
+
 Rename .example.prod.env to .env. Replace the variables with your own depending on your setup.
 
 A docker-compose.yml file has been provided for you. Confirm that port 6701 is open on your computer. If not, change the port in your compose file.
@@ -34,6 +35,7 @@ Open https://localhost:6701 to see the result.
 You can shut down the Unified Help services by running `docker compose down`.
 
 ## Development
+
 If you are not using docker compose, you will need to specify a DATABASE_URL linking to a Postgres database, a SCRAPER_API_URL pointing to your Unified Help Scraper bot, and a BETTER_AUTH_URL pointing to the URL the server is deployed on (usually http://localhost:3000).
 
 Rename .example.dev.env to .env. Replace the variables with your own depending on your setup.
@@ -57,6 +59,7 @@ npx prisma migrate dev
 ```
 
 Finally, run the development server:
+
 ```
 npm run dev
 ```
@@ -66,6 +69,7 @@ Open https://localhost:3000 to see the result.
 To run the Unified Help scraper, see the instructions at https://github.com/normalperson543/unified-help-scraper (the scraper has automatically been cloned for you at the /scraper directory)
 
 ## Building Unified Help docker image
+
 **You usually do not need to do this.** The docker compose file should automatically build the Docker image.
 
 Run `docker build .` to build the Docker image.

@@ -6,9 +6,10 @@ import { getUser } from "../lib/data";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Leaderboard',
-  description: 'View the top tickets that registered users have on Unified Help.',
-}
+  title: "Leaderboard",
+  description:
+    "View the top tickets that registered users have on Unified Help.",
+};
 
 export default async function LeaderboardPage() {
   const session = await auth.api.getSession({

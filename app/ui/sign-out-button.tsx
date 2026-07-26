@@ -24,8 +24,12 @@ export default function SignOutButton({
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu
-          onAction={(key) => {
-            if (key === "signOut") authClient.signOut();
+          onAction={async (key) => {
+            if (key === "signOut") {
+              await authClient.signOut();
+              router.push("/");
+              router.refresh();
+            }
           }}
         >
           <Dropdown.Item

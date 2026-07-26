@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
-// This part was written by Claude because it had to 
+// This part was written by Claude because it had to
 // bugfix something about "window is not defined".
 type Permission = NotificationPermission | "unsupported";
 
