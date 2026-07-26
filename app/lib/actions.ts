@@ -35,6 +35,7 @@ export async function startBacklog(
       }),
       headers: {
         "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
     },
   );
@@ -62,6 +63,7 @@ export async function stopBacklog(programId: string) {
       }),
       headers: {
         "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
     },
   );
@@ -136,7 +138,7 @@ export async function updateInfo(
   name: string,
   canAutoIndex: boolean,
   resolveKeyword: string,
-  channelId: string
+  channelId: string,
 ) {
   throwIfNoAuth();
   const org = await isOrg(programId);
@@ -149,7 +151,7 @@ export async function updateInfo(
       name: name,
       canAutoIndex: canAutoIndex,
       resolveKeyword: resolveKeyword,
-      channelId: channelId
+      channelId: channelId,
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -208,6 +210,7 @@ export async function indexUsersFromUserGroup(
       }),
       headers: {
         "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
     },
   );
@@ -239,7 +242,7 @@ export async function demoteHelper(userId: string, programId: string) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
-  
+
   await prisma.program.update({
     where: {
       id: programId,

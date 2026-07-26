@@ -35,6 +35,8 @@ services:
     build:
       context: .
       target: runner
+      args:
+        NEXT_PUBLIC_PLAUSIBLE_TRACKING_URL: ${NEXT_PUBLIC_PLAUSIBLE_TRACKING_URL}
     env_file: .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/unified_help

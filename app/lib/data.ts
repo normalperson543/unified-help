@@ -479,6 +479,11 @@ export async function getBacklogStatus(programId: string) {
     throw new Error("unauthenticated");
   const resp = await fetch(
     `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/status`,
+    {
+      headers: {
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
+      },
+    },
   );
   const respJson = await resp.json();
   if (!resp.ok) {

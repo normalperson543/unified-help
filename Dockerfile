@@ -37,6 +37,10 @@ COPY . .
 # BETTER_AUTH_URL is here only to stop auth.ts (baseURL: process.env.BETTER_AUTH_URL)
 # emitting a "Base URL is not set" warning per build worker, which floods the log
 # and hides real build errors. The runtime value comes from compose.
+
+ARG NEXT_PUBLIC_PLAUSIBLE_TRACKING_URL
+ENV NEXT_PUBLIC_PLAUSIBLE_TRACKING_URL=$NEXT_PUBLIC_PLAUSIBLE_TRACKING_URL
+
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
     BETTER_AUTH_SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("hex"))')" \
     BETTER_AUTH_URL="http://build.invalid" \
