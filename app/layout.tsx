@@ -3,6 +3,7 @@ import { Google_Sans_Flex } from "next/font/google";
 import "./globals.css";
 import Header from "./ui/header";
 import { Toast } from "@heroui/react";
+import PlausibleProvider from "next-plausible";
 
 const ibmPlexSans = Google_Sans_Flex({
   subsets: ["latin"],
@@ -28,10 +29,15 @@ export default async function RootLayout({
     >
       <Toast.Provider placement="top" />
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <div className="flex flex-col h-screen">
-          <Header />
-          {children}
-        </div>
+        <PlausibleProvider
+          src={process.env["NEXT_PUBLIC_PLAUSBLE_TRACKING_URL"]}
+          enabled
+        >
+          <div className="flex flex-col h-screen">
+            <Header />
+            {children}
+          </div>
+        </PlausibleProvider>
       </body>
     </html>
   );
