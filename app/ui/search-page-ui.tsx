@@ -260,7 +260,7 @@ export default function SearchPageUI() {
             <Pagination.Item>
               <Pagination.Previous
                 isDisabled={ticketsPage === 1}
-                onPress={() => setUsersPage((p) => p - 1)}
+                onPress={() => setTicketsPage((p) => p - 1)}
               >
                 <Pagination.PreviousIcon />
                 <span>Previous</span>

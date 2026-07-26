@@ -218,6 +218,9 @@ export async function indexUsersFromUserGroup(
 }
 
 export async function promoteHelper(userId: string, programId: string) {
+  await throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
   await prisma.program.update({
     where: {
       id: programId,
@@ -233,6 +236,10 @@ export async function promoteHelper(userId: string, programId: string) {
   revalidatePath(`/programs/${programId}/settings`);
 }
 export async function demoteHelper(userId: string, programId: string) {
+  await throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+  
   await prisma.program.update({
     where: {
       id: programId,

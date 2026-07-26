@@ -13,6 +13,7 @@ import SearchBar from "./search-bar";
 import { LayoutDashboardIcon, PodiumIcon } from "lucide-react";
 import Image from "next/image";
 import NotificationsPermission from "./notifications-permission";
+import HelpDropdown from "./help-dropdown";
 
 export default async function Header({
   children,
@@ -74,6 +75,7 @@ export default async function Header({
         <div className="flex flex-row gap-4 items-center">
           {children}
           <ProgramStats />
+          <HelpDropdown />
           {!session?.user && <SignInButton />}
           {session && session.user && (
             <SignOutButton
