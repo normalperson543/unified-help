@@ -136,7 +136,7 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(program.id, programName, autoIndex, resolveKeyword);
+    await updateInfo(program.id, programName, autoIndex, resolveKeyword, channelId);
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",

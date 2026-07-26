@@ -136,6 +136,7 @@ export async function updateInfo(
   name: string,
   canAutoIndex: boolean,
   resolveKeyword: string,
+  channelId: string
 ) {
   throwIfNoAuth();
   const org = await isOrg(programId);
@@ -148,6 +149,7 @@ export async function updateInfo(
       name: name,
       canAutoIndex: canAutoIndex,
       resolveKeyword: resolveKeyword,
+      channelId: channelId
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
