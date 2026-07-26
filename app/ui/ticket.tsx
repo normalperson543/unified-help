@@ -17,6 +17,7 @@ import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
+import { REFRESH_INTERVAL } from "../lib/constants";
 
 export default function TicketUI({
   id,
@@ -29,7 +30,9 @@ export default function TicketUI({
     data: ticket,
     error: ticketError,
     isLoading: ticketIsLoading,
-  } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher);
+  } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher, {
+    refreshInterval: REFRESH_INTERVAL,
+  });
 
   return (
     <>

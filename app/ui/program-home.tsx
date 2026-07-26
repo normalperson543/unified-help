@@ -35,6 +35,7 @@ import { useState } from "react";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
 import UsersTable from "./users-table";
+import NotFound from "./not-found";
 
 // Claude changed this line while doing the pie chart
 // Open, Assigned, Resolved — matching the ticket status chip colors.
@@ -128,6 +129,10 @@ export default function ProgramUI() {
         value: stats.resolved,
       },
     ];
+  }
+
+  if (infoError) {
+    return <NotFound />;
   }
 
   return (

@@ -69,6 +69,7 @@ export default function ProgramSettings({
     data: backlogStatus,
     error: backlogStatusError,
     isLoading: backlogStatusIsLoading,
+    mutate: mutateBacklogStatus,
   } = useSWR<BacklogStatus>(
     `/api/programs/${program.id}/backlog-status`,
     fetcher,
@@ -229,7 +230,10 @@ export default function ProgramSettings({
               <>
                 <InfoIcon width={16} />
                 No active backlog tasks
-                <StartButton programId={program.id} />
+                <StartButton
+                  programId={program.id}
+                  mutate={mutateBacklogStatus}
+                />
               </>
             )}
             {backlogStatus.status === "pending" && (
@@ -254,21 +258,30 @@ export default function ProgramSettings({
               <>
                 <CheckIcon width={16} />
                 Backlog job completed
-                <StartButton programId={program.id} />
+                <StartButton
+                  programId={program.id}
+                  mutate={mutateBacklogStatus}
+                />
               </>
             )}
             {backlogStatus.status === "failed" && (
               <>
                 <WarningIcon width={16} />
                 Backlog job failed
-                <StartButton programId={program.id} />
+                <StartButton
+                  programId={program.id}
+                  mutate={mutateBacklogStatus}
+                />
               </>
             )}
             {backlogStatus.status === "stopped" && (
               <>
                 <SquareIcon width={16} />
                 Backlog job stopped
-                <StartButton programId={program.id} />
+                <StartButton
+                  programId={program.id}
+                  mutate={mutateBacklogStatus}
+                />
               </>
             )}
           </div>
@@ -617,15 +630,22 @@ export default function ProgramSettings({
   );
 }
 
-function StartButton({ programId }: { programId: string }) {
+function StartButton({
+  programId,
+  mutate,
+}: {
+  programId: string;
+  mutate: () => void;
+}) {
   const [startDate, setStartDate] = useState<DateValue | null>(null);
   const [endDate, setEndDate] = useState<DateValue | null>(null);
   async function handleBacklog() {
-    startBacklog(
+    await startBacklog(
       programId,
       String(startDate?.toDate(getLocalTimeZone()).getTime()),
       String(endDate?.toDate(getLocalTimeZone()).getTime()),
     );
+    mutate();
     toast("Backlog job started", {
       indicator: <CheckIcon />,
       variant: "success",
