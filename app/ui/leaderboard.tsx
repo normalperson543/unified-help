@@ -1,5 +1,5 @@
 "use client";
-import { Alert, Pagination, SortDescriptor, Spinner } from "@heroui/react";
+import { Alert, Pagination, SortDescriptor } from "@heroui/react";
 import UsersTable from "../ui/users-table";
 import { SlackUserApiResponse } from "../lib/types";
 import useSWR from "swr";
@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useDebounce } from "use-debounce";
 import { ITEMS_PER_PAGE } from "../lib/constants";
 import { PodiumIcon } from "lucide-react";
+import Loading from "./loading";
 
 export default function LeaderboardUI() {
   const [usersPage, setUsersPage] = useState(1);
@@ -114,9 +115,7 @@ export default function LeaderboardUI() {
         </Pagination>
       )}
       {(!users || usersIsLoading) && !usersError && (
-        <div className="flex justify-center items-center w-full h-full">
-          <Spinner />
-        </div>
+        <Loading />
       )}
       {usersError && (
         <Alert status="danger">
