@@ -69,6 +69,7 @@ export const auth = betterAuth({
             return {
               slackId,
               slackUserId: user?.id ?? null,
+              name: user?.username ?? "user",
             } as Partial<User>;
           },
 
@@ -78,7 +79,7 @@ export const auth = betterAuth({
 
           userInfoUrl: "https://auth.hackclub.com/api/v1/me",
 
-          scopes: ["name", "email", "slack_id"],
+          scopes: ["email", "slack_id"],
 
           responseType: "code",
           pkce: true,
@@ -121,9 +122,7 @@ export const auth = betterAuth({
             return {
               id: identity.id,
               email: identity.primary_email ?? "",
-              name: [identity.first_name, identity.last_name]
-                .filter(Boolean)
-                .join(" "),
+              name: [identity.username].filter(Boolean).join(" "),
               emailVerified: true,
               slack_id: slackId,
               image,
