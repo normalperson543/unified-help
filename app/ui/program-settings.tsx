@@ -5,6 +5,7 @@ import {
   Avatar,
   Badge,
   Button,
+  Chip,
   DateField,
   DateValue,
   Description,
@@ -136,7 +137,13 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(program.id, programName, autoIndex, resolveKeyword, channelId);
+    await updateInfo(
+      program.id,
+      programName,
+      autoIndex,
+      resolveKeyword,
+      channelId,
+    );
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",
@@ -625,6 +632,29 @@ export default function ProgramSettings({
             <SaveIcon /> Save changes
           </Button>
         </TextField>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1 flex-1">
+          <Label htmlFor="programName">Tags</Label>
+          <p className="text-muted">
+            Customize available tags for tickets in this program.
+          </p>
+        </div>
+        <div className="flex gap-2 items-center">
+          <Input type="text" placeholder="Add a tag..." />
+          <Button>
+            <PlusIcon />
+            Add
+          </Button>
+        </div>
+        {program.tags.map((t) => (
+          <Chip key={t.id}>
+            {t.name}{" "}
+            <Button>
+              <XIcon />
+            </Button>
+          </Chip>
+        ))}
       </div>
     </div>
   );

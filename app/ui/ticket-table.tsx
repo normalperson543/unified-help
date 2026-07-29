@@ -7,6 +7,7 @@ import {
   CircleDashedIcon,
   EmptyState,
   Link,
+  Popover,
   SortDescriptor,
   Table,
   TableLayout,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { TicketWithAssigneesAndProgram } from "../lib/types";
 import Image from "next/image";
+import SlackMessage from "./slack-message";
 
 export default function TicketTable({
   tickets,
@@ -114,7 +116,19 @@ export default function TicketTable({
                     </Link>
                   </Table.Cell>
                   <Table.Cell>{t.dateCreated.toLocaleString()}</Table.Cell>
-                  <Table.Cell>{t.message.substring(0, 30)}</Table.Cell>
+                  <Table.Cell>
+                    <Popover>
+                      <Popover.Trigger>
+                        <div>{t.message.substring(0, 30)}</div>
+                      </Popover.Trigger>
+                      <Popover.Content placement="top" className="max-w-1/2">
+                        <Popover.Arrow />
+                        <Popover.Dialog>
+                          <SlackMessage text={t.message} />
+                        </Popover.Dialog>
+                      </Popover.Content>
+                    </Popover>
+                  </Table.Cell>
                   <Table.Cell>
                     {t.status === 0 && (
                       <Chip color="warning" variant="primary">

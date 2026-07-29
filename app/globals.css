@@ -90,3 +90,8 @@ body {
   --warning: #ff8c37;
   --warning-foreground: #2d190a;
 }
+
+
+.chip--accent {
+    background-color: var(--color-blue-500);
+}

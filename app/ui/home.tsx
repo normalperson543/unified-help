@@ -8,6 +8,7 @@ import Marquee from "react-fast-marquee";
 import { useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import Link from "next/link";
+import { authClient } from "../lib/auth-client";
 export default function HomeUI({
   stats,
   programs,
@@ -15,6 +16,8 @@ export default function HomeUI({
   stats: GlobalStats;
   programs: ProgramWithCount[];
 }) {
+  const { data: session } = authClient.useSession();
+
   return (
     <div className="flex flex-col gap-2 w-full flex-1 min-h-0 overflow-y-auto">
       <div className="grow bg-radial-[at_25%_25%] dark:from-[#133856] light:from-[#338eda] to-transparent to-75%">
@@ -69,10 +72,19 @@ export default function HomeUI({
               </div>
             </div>
             <div className="flex gap-2 items-center">
-              <SignInButton>
-                <RocketIcon />
-                Launch
-              </SignInButton>
+              {session ? (
+                <Link href="/dashboard">
+                  <Button>
+                    <RocketIcon />
+                    Launch
+                  </Button>
+                </Link>
+              ) : (
+                <SignInButton>
+                  <RocketIcon />
+                  Sign in
+                </SignInButton>
+              )}
               <Link
                 href="https://forms.fillout.com/t/k1NNiLbTasus"
                 target="_blank"

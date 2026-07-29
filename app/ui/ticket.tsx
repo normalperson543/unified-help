@@ -34,6 +34,17 @@ export default function TicketUI({
     refreshInterval: REFRESH_INTERVAL,
   });
 
+  let backgroundColor = "initial";
+  if (ticket && ticket.status === 0) {
+    backgroundColor = "var(--color-orange-950)";
+  }
+  if (ticket && ticket.status === 1) {
+    backgroundColor = "var(--color-blue-950)";
+  }
+  if (ticket && ticket.status === 2) {
+    backgroundColor = "var(--color-green-950)";
+  }
+
   return (
     <>
       {(ticketIsLoading || !ticket) && !ticketError && <Loading />}
@@ -49,8 +60,8 @@ export default function TicketUI({
         </Alert>
       )}
       {!ticketIsLoading && ticket && (
-        <div className="relative flex flex-col gap-4">
-          <div className="flex justify-between sticky top-0 bg-background p-4 z-10">
+        <div className="relative flex flex-col gap-4 min-h-full">
+          <div className="flex justify-between sticky top-0 bg-background p-4 z-10" style={{backgroundColor: backgroundColor}}>
             <div className="flex gap-4 flex-1">
               <Link
                 href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
