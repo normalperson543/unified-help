@@ -119,7 +119,7 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
-                router.push(`/program/${messages[0].programId}/ticket/${messages[0].id}`)
+                router.push(`/programs/${messages[0].programId}/ticket/${messages[0].id}`)
               };
             } else if (messages.length > 1) {
               const n = new Notification(
@@ -132,7 +132,7 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
-                router.push(`/program/${messages[messages.length - 1].programId}/ticket/${messages[messages.length - 1].id}`)
+                router.push(`/programs/${messages[messages.length - 1].programId}/ticket/${messages[messages.length - 1].id}`)
               };
             }
           }
