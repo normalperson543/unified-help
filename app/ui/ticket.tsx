@@ -36,9 +36,11 @@ import { connectTag, disconnectTag } from "../lib/actions";
 export default function TicketUI({
   id,
   programId,
+  isHelper,
 }: {
   id: string;
   programId: string;
+  isHelper: boolean;
 }) {
   const {
     data: ticket,
@@ -47,7 +49,6 @@ export default function TicketUI({
   } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher, {
     refreshInterval: REFRESH_INTERVAL,
   });
-  const { data: session } = authClient.useSession();
 
   let backgroundColor = "initial";
   if (ticket && ticket.status === 0) {
@@ -242,35 +243,39 @@ export default function TicketUI({
                       </p>
                     </div>
                   )}
-                  {ticket.tag.map((t) => (
-                    <Chip key={t.id}>
-                      {t.name}{" "}
-                      <button
-                        onClick={() => handleDisconnectTag(t.id)}
-                        className="hover:cursor-pointer"
-                      >
-                        <XIcon width={12} />
-                      </button>
-                    </Chip>
-                  ))}
-                  
-                  <Dropdown>
-                    <Button isIconOnly variant="secondary">
-                      <TagIcon width={12} />
-                    </Button>
-                    <Dropdown.Popover>
-                      <Dropdown.Menu>
-                        {ticket.program.tags.map((t) => (
-                          <Dropdown.Item
-                            onClick={() => handleConnectTag(t.id)}
-                            key={t.id}
-                          >
-                            {t.name}
-                          </Dropdown.Item>
-                        ))}
-                      </Dropdown.Menu>
-                    </Dropdown.Popover>
-                  </Dropdown>
+                  <div className="flex gap-2 items-center">
+                    {ticket.tag.map((t) => (
+                      <Chip key={t.id}>
+                        {t.name}{" "}
+                        <button
+                          onClick={() => handleDisconnectTag(t.id)}
+                          className="hover:cursor-pointer"
+                        >
+                          <XIcon width={12} />
+                        </button>
+                      </Chip>
+                    ))}
+
+                    {isHelper && (
+                      <Dropdown>
+                        <Button isIconOnly variant="secondary">
+                          <TagIcon width={12} />
+                        </Button>
+                        <Dropdown.Popover>
+                          <Dropdown.Menu>
+                            {ticket.program.tags.map((t) => (
+                              <Dropdown.Item
+                                onClick={() => handleConnectTag(t.id)}
+                                key={t.id}
+                              >
+                                {t.name}
+                              </Dropdown.Item>
+                            ))}
+                          </Dropdown.Menu>
+                        </Dropdown.Popover>
+                      </Dropdown>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

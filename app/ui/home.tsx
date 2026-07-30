@@ -1,7 +1,7 @@
 "use client";
 import { GlobalStats, ProgramWithCount } from "../lib/types";
 import { Button, Card } from "@heroui/react";
-import { PencilLineIcon, RocketIcon } from "lucide-react";
+import { CheckIcon, PencilLineIcon, RocketIcon } from "lucide-react";
 import Image from "next/image";
 import SignInButton from "@/app/ui/sign-in-button";
 import Marquee from "react-fast-marquee";
@@ -35,7 +35,21 @@ export default function HomeUI({
                 <span className="text-[#ec3750] font-bold">Hack Club</span>{" "}
                 support tickets in <b>one place</b>
               </p>
-              <p>We handle the help, so you focus on your program.</p>
+              <div className="flex flex-col">
+                <div className="flex gap-2 items-center">
+                  <CheckIcon />
+                  Search through tickets by keywords, tags, assignees, or status
+                </div>
+                <div className="flex gap-2 items-center">
+                  <CheckIcon />
+                  Search across all Unified Help programs
+                </div>
+                <div className="flex gap-2 items-center">
+                  <CheckIcon />
+                  In depth statistics like resolve time, hang times, and reply
+                  trends per user and per program
+                </div>
+              </div>
               <div className="flex flex-row gap-2">
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">

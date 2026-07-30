@@ -1,10 +1,15 @@
 import TicketUI from "@/app/ui/ticket";
 import Loading from "@/app/ui/loading";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { Metadata } from "next";
-import { getTicket } from "@/app/lib/data";
+import { getTicket, isHelper } from "@/app/lib/data";
 import { getShortTitle } from "@/app/lib/tools";
+import { notFound } from "next/navigation";
 
+const getTicketCached = cache(async (ticketId: string) => {
+  const ticket = await getTicket(ticketId);
+  return ticket;
+});
 export async function generateMetadata({
   params,
 }: {
@@ -13,7 +18,7 @@ export async function generateMetadata({
   const { ticketId } = await params;
   let ticket;
   try {
-    ticket = await getTicket(ticketId);
+    ticket = await getTicketCached(ticketId);
   } catch {
     return {
       title: "Unauthorized",
@@ -33,9 +38,15 @@ export default async function ThreadUI({
 }) {
   const { ticketId, programId } = await params;
 
-  return (
-    <Suspense fallback={<Loading />}>
-      <TicketUI id={ticketId} programId={programId} />
-    </Suspense>
-  );
+  const ticket = await getTicketCached(ticketId);
+  if (ticket) {
+    const helper = await isHelper(ticket.program.id)
+    return (
+      <Suspense fallback={<Loading />}>
+        <TicketUI id={ticketId} programId={programId} isHelper={helper} />
+      </Suspense>
+    );
+  } else {
+    notFound();
+  }
 }

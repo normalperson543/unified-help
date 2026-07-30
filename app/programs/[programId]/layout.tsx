@@ -20,6 +20,7 @@ import {
   TagGroup,
   ToggleButton,
   useFilter,
+  Chip,
 } from "@heroui/react";
 import Link from "next/link";
 import useSWR from "swr";
@@ -27,7 +28,7 @@ import { useParams } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ITEMS_PER_PAGE, REFRESH_INTERVAL } from "@/app/lib/constants";
-import { useDebounce } from "use-debounce";
+import { useDebouncedCallback } from "use-debounce";
 import Loading from "@/app/ui/loading";
 let savedSidebarScrollTop = 0;
 
@@ -39,14 +40,19 @@ export default function RootLayout({
   const params = useParams();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchTermDebounced] = useDebounce(searchTerm, 500);
+  const [searchTermDebounced, setSearchTermDebounced] = useState(searchTerm);
   const [statusFilter, setStatusFilter] = useState("0,1,2");
-  const [statusFilterDebounced] = useDebounce(statusFilter, 500);
+  const [statusFilterDebounced, setStatusFilterDebounced] =
+    useState(statusFilter);
   const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
-  const [selectedUsersDebounced] = useDebounce(selectedUsers, 500);
+  const [selectedUsersDebounced, setSelectedUsersDebounced] =
+    useState(selectedUsers);
+  const [selectedTags, setSelectedTags] = useState<Key[]>([]);
+  const [selectedTagsDebounced, setSelectedTagsDebounced] =
+    useState(selectedTags);
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState("desc");
-  const [sortDebounced] = useDebounce(sort, 500);
+  const [sortDebounced, setSortDebounced] = useState(sort);
   const [page, setPage] = useState(1);
   const isFirstLoad = useRef(true);
   const previousData = useRef<ProgramTicketsResponse | null>(null);
@@ -72,7 +78,7 @@ export default function RootLayout({
     error: programTicketsError,
     isLoading: programTicketsIsLoading,
   } = useSWR<ProgramTicketsResponse>(
-    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTermDebounced)}&assigneeIds=${selectedUsersDebounced.join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
+    `/api/programs/${params.programId}/?searchTerm=${encodeURIComponent(searchTermDebounced)}&assigneeIds=${selectedUsersDebounced.join(",")}&tagIds=${selectedTagsDebounced.join(",")}&statuses=${statusFilterDebounced}&order=${sortDebounced}&page=${page}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -126,17 +132,33 @@ export default function RootLayout({
     },
   );
 
+  const handleSearch = useDebouncedCallback(() => {
+    setSearchTermDebounced(searchTerm);
+    setStatusFilterDebounced(statusFilter);
+    setSelectedUsersDebounced(selectedUsers);
+    setSelectedTagsDebounced(selectedTags);
+    setSortDebounced(sort);
+    setPage(1);
+  }, 500);
+
   let totalPages = 1;
 
-  if (programTickets?.total) {
-    totalPages = Math.floor(programTickets.total / 20) + 1;
+  if (programTickets?.total != null) {
+    totalPages = Math.max(1, Math.ceil(programTickets.total / 20));
   }
 
   const { contains } = useFilter({ sensitivity: "base" });
 
-  const onRemoveTags = (keys: Set<Key>) => {
+  const onRemoveUserTags = (keys: Set<Key>) => {
     // from heroUI docs
     setSelectedUsers((prev) => prev.filter((key) => !keys.has(key)));
+    handleSearch();
+  };
+
+  const onRemoveTicketTags = (keys: Set<Key>) => {
+    // from heroUI docs
+    setSelectedTags((prev) => prev.filter((key) => !keys.has(key)));
+    handleSearch();
   };
 
   function handleChangeStatusFilter(newValue: string) {
@@ -149,7 +171,13 @@ export default function RootLayout({
   const getPageNumbers = () => {
     // from heroui docs
     const pages: (number | "ellipsis")[] = [];
+
+    if (totalPages <= 1) {
+      return totalPages === 1 ? [1] : [];
+    }
+
     pages.push(1);
+
     if (page > 3) {
       pages.push("ellipsis");
     }
@@ -185,7 +213,10 @@ export default function RootLayout({
               className="w-full"
               placeholder="Search by name"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                handleSearch();
+              }}
             />
             <ToggleButton isSelected={showFilters} onChange={setShowFilters}>
               {showFilters ? (
@@ -202,7 +233,10 @@ export default function RootLayout({
                 placeholder="Select assignees"
                 selectionMode="multiple"
                 value={selectedUsers}
-                onChange={(keys) => setSelectedUsers(keys)}
+                onChange={(keys) => {
+                  setSelectedUsers(keys);
+                  handleSearch();
+                }}
               >
                 <Label>Assignees</Label>
                 <Autocomplete.Trigger>
@@ -223,7 +257,7 @@ export default function RootLayout({
                         (item) => item.key,
                       );
                       return (
-                        <TagGroup size="sm" onRemove={onRemoveTags}>
+                        <TagGroup size="sm" onRemove={onRemoveUserTags}>
                           <TagGroup.List>
                             {selectedItemsKeys.map((selectedItemKey) => {
                               const item = program?.assignedUsers.find(
@@ -274,10 +308,92 @@ export default function RootLayout({
                   </Autocomplete.Filter>
                 </Autocomplete.Popover>
               </Autocomplete>
+              <Autocomplete
+                placeholder="Select tags"
+                selectionMode="multiple"
+                value={selectedTags}
+                onChange={(keys) => {
+                  setSelectedTags(keys);
+                  handleSearch();
+                }}
+              >
+                <Label>Tags</Label>
+                <Autocomplete.Trigger>
+                  <Autocomplete.Value>
+                    {({
+                      defaultChildren,
+                      isPlaceholder,
+                      state,
+                    }: {
+                      defaultChildren?: React.ReactNode;
+                      isPlaceholder: boolean;
+                      state: { selectedItems: readonly { key: Key }[] };
+                    }) => {
+                      if (isPlaceholder || state.selectedItems.length === 0) {
+                        return defaultChildren;
+                      }
+                      const selectedItemsKeys = state.selectedItems.map(
+                        (item) => item.key,
+                      );
+                      return (
+                        <TagGroup size="sm" onRemove={onRemoveTicketTags}>
+                          <TagGroup.List>
+                            {selectedItemsKeys.map((selectedItemKey) => {
+                              const item = program?.tags.find(
+                                (s) => s.id === selectedItemKey,
+                              );
+                              if (!item) return null;
+                              return (
+                                <Tag key={item.id} id={item.id}>
+                                  {item.name}
+                                </Tag>
+                              );
+                            })}
+                          </TagGroup.List>
+                        </TagGroup>
+                      );
+                    }}
+                  </Autocomplete.Value>
+                  <Autocomplete.Indicator />
+                </Autocomplete.Trigger>
+                <Autocomplete.Popover>
+                  <Autocomplete.Filter filter={contains}>
+                    <SearchField autoFocus name="search" variant="secondary">
+                      <SearchField.Group>
+                        <SearchField.SearchIcon />
+                        <SearchField.Input placeholder="Search..." />
+                        <SearchField.ClearButton />
+                      </SearchField.Group>
+                    </SearchField>
+                    <ListBox
+                      renderEmptyState={() => (
+                        <EmptyState>No results found</EmptyState>
+                      )}
+                    >
+                      {program &&
+                        !programError &&
+                        !programIsLoading &&
+                        program?.tags.map((tag) => (
+                          <ListBox.Item
+                            key={tag.id}
+                            id={tag.id}
+                            textValue={tag.name}
+                          >
+                            {tag.name}
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                        ))}
+                    </ListBox>
+                  </Autocomplete.Filter>
+                </Autocomplete.Popover>
+              </Autocomplete>
               <div className="flex gap-4">
                 <Select
                   onChange={(key) => {
-                    if (key !== null) handleChangeStatusFilter(String(key));
+                    if (key !== null) {
+                      handleChangeStatusFilter(String(key));
+                      handleSearch();
+                    }
                   }}
                   value={statusFilter}
                   className="w-1/2"
@@ -306,7 +422,10 @@ export default function RootLayout({
                 </Select>
                 <Select
                   onChange={(key) => {
-                    if (key !== null) handleChangeSort(String(key));
+                    if (key !== null) {
+                      handleChangeSort(String(key));
+                      handleSearch();
+                    }
                   }}
                   value={sort}
                   className="w-1/2"
@@ -366,8 +485,8 @@ export default function RootLayout({
                 )}
                 <Pagination.Item>
                   <Pagination.Next
-                    isDisabled={page === totalPages}
-                    onPress={() => setPage((p) => p + 1)}
+                    isDisabled={page >= totalPages}
+                    onPress={() => setPage((p) => Math.min(p + 1, totalPages))}
                   >
                     <span>Next</span>
                     <Pagination.NextIcon />
@@ -379,9 +498,7 @@ export default function RootLayout({
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">
           {(!programTickets || programTicketsIsLoading) &&
-            !programTicketsError && (
-              <Loading />
-            )}
+            !programTicketsError && <Loading />}
           {programError && (
             <Alert status="danger">
               <Alert.Indicator />
@@ -395,6 +512,12 @@ export default function RootLayout({
               </Alert.Content>
             </Alert>
           )}
+          {programTickets &&
+            !programTicketsIsLoading &&
+            !programTicketsError &&
+            programTickets.tickets.length === 0 && (
+              <p className="text-muted w-full text-center">No results found.</p>
+            )}
           {programTickets &&
             !programTicketsIsLoading &&
             !programTicketsError &&
@@ -433,6 +556,13 @@ export default function RootLayout({
                       {ticket._count.replies} repl
                       {ticket._count.replies === 1 ? "y" : "ies"}
                     </div>
+                    {ticket.tag.length > 0 && (
+                      <div className="flex gap-2 items-center">
+                        {ticket.tag.map((t) => (
+                          <Chip key={t.id}>{t.name}</Chip>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </Card>
               </Link>

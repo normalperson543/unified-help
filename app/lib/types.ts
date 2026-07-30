@@ -53,6 +53,7 @@ type TicketDetailed = Prisma.TicketGetPayload<{
     program: true;
     resolver: true;
     firstResponseUser: true;
+    tag: true,
     _count: {
       select: {
         replies: true;
