@@ -48,6 +48,7 @@ export default async function DashboardPage() {
                       alt="Program logo"
                       width={32}
                       height={32}
+                      className="rounded-sm"
                     />
                   )}
                   <b>{p.name}</b>
