@@ -133,6 +133,24 @@ export async function saveUserGroup(groupId: string, programId: string) {
   indexUsersFromUserGroup(groupId, programId); // not async on purpose :p
   revalidatePath(`/programs/${programId}/settings`);
 }
+export async function saveHelperChannelId(
+  channelId: string,
+  programId: string,
+) {
+  throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+  await prisma.program.update({
+    where: {
+      id: programId,
+    },
+    data: {
+      helperChannelId: channelId,
+    },
+  });
+  indexUsersFromChannel(channelId, programId); // not async on purpose :p
+  revalidatePath(`/programs/${programId}/settings`);
+}
 export async function updateInfo(
   programId: string,
   name: string,
@@ -207,6 +225,38 @@ export async function indexUsersFromUserGroup(
       method: "POST",
       body: JSON.stringify({
         usergroupId: groupId,
+      }),
+      headers: {
+        "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
+      },
+    },
+  );
+  if (!resp.ok) {
+    throw new Error("Could not start user indexing");
+  }
+  revalidatePath(`/programs/${programId}/settings`);
+}
+
+export async function indexUsersFromChannel(
+  channelId: string,
+  programId: string,
+) {
+  throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+  const resp = await fetch(
+    `${process.env["SCRAPER_API_URL"]}/api/index-channel/${programId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        channelId: channelId,
       }),
       headers: {
         "Content-type": "application/json",
@@ -304,7 +354,11 @@ export async function connectTag(
   });
   revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
 }
-export async function disconnectTag(tagId: string, ticketId: string, programId: string) {
+export async function disconnectTag(
+  tagId: string,
+  ticketId: string,
+  programId: string,
+) {
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");

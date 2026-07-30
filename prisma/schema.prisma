@@ -49,6 +49,7 @@ model Program {
   usersOrganizing User[]      @relation("programsOrganizing")
   resolveKeyword  String      @default("")
   tags            Tag[]
+  helperChannelId String?
 }
 
 model SlackUser {

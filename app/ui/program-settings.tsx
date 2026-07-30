@@ -46,6 +46,7 @@ import {
   demoteHelper,
   promoteHelper,
   removeHelper,
+  saveHelperChannelId,
   saveUserGroup,
   startBacklog,
   stopBacklog,
@@ -64,6 +65,9 @@ export default function ProgramSettings({
 }) {
   const [programName, setProgramName] = useState(program.name);
   const [channelId, setChannelId] = useState(program.channelId);
+  const [helperChannelId, setHelperChannelId] = useState(
+    program.helperChannelId ?? "",
+  );
   const [resolveKeyword, setResolveKeyword] = useState(program.resolveKeyword);
   const [autoIndex, setAutoIndex] = useState(program.canAutoIndex);
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
@@ -127,6 +131,15 @@ export default function ProgramSettings({
     toast("Saved and indexing users", {
       description:
         "Unified Help will start indexing users from this user group.",
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handleSaveHelperChannelId() {
+    await saveHelperChannelId(helperChannelId, program.id);
+    toast("Saved and indexing users", {
+      description: "Unified Help will start index users from this channel.",
       indicator: <CheckIcon />,
       variant: "success",
     });
@@ -656,6 +669,27 @@ export default function ProgramSettings({
             className="font-mono"
           />
           <Button onClick={handleSaveGroupId}>
+            <SaveIcon /> Save changes
+          </Button>
+        </TextField>
+        <TextField type="text">
+          <Label htmlFor="programName">Linked channel ID</Label>
+          <Description>
+            Anyone in this channel will automatically be added as a helper. Note
+            that users removed from this channel will not be removed in Unified
+            Help.
+          </Description>
+          <Description>
+            Enter the channel ID of the channel you want to link. Make sure the
+            UHSBot is invited into this channel.
+          </Description>
+          <Input
+            id="channelId"
+            value={helperChannelId}
+            onChange={(e) => setHelperChannelId(e.target.value)}
+            className="font-mono"
+          />
+          <Button onClick={handleSaveHelperChannelId}>
             <SaveIcon /> Save changes
           </Button>
         </TextField>
