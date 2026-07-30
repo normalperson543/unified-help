@@ -32,6 +32,7 @@ import {
   SaveIcon,
   ShieldIcon,
   SquareIcon,
+  TrashIcon,
   TriangleAlertIcon,
   UserIcon,
   XIcon,
@@ -40,6 +41,8 @@ import { useState } from "react";
 import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
 import {
   addAsHelper,
+  createTag,
+  deleteTag,
   demoteHelper,
   promoteHelper,
   removeHelper,
@@ -65,6 +68,7 @@ export default function ProgramSettings({
   const [autoIndex, setAutoIndex] = useState(program.canAutoIndex);
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
+  const [tagName, setTagName] = useState("");
 
   const {
     data: backlogStatus,
@@ -160,6 +164,29 @@ export default function ProgramSettings({
   async function handleDemoteUser(id: string) {
     await demoteHelper(id, program.id);
     toast("Demoted helper", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handleCreateTag() {
+    if (tagName.length < 1) {
+      toast("Please enter a tag name that is greater than 1 character long", {
+        indicator: <XIcon />,
+        variant: "danger",
+      });
+      return;
+    }
+    await createTag(tagName, program.id);
+    toast("Created tag", {
+      indicator: <CheckIcon />,
+      variant: "success",
+    });
+  }
+
+  async function handleDeleteTag(id: string) {
+    await deleteTag(id, program.id);
+    toast("Deleted tag", {
       indicator: <CheckIcon />,
       variant: "success",
     });
@@ -641,20 +668,33 @@ export default function ProgramSettings({
           </p>
         </div>
         <div className="flex gap-2 items-center">
-          <Input type="text" placeholder="Add a tag..." />
-          <Button>
+          <Input
+            type="text"
+            placeholder="Add a tag..."
+            value={tagName}
+            onChange={(e) => setTagName(e.target.value)}
+          />
+          <Button onClick={handleCreateTag}>
             <PlusIcon />
             Add
           </Button>
         </div>
-        {program.tags.map((t) => (
-          <Chip key={t.id}>
-            {t.name}{" "}
-            <Button>
-              <XIcon />
-            </Button>
-          </Chip>
-        ))}
+        <p className="text-muted">
+          {program.tags.length} tag{program.tags.length !== 1 ? "s" : ""}
+        </p>
+        <div className="flex gap-2 flex-wrap justify-start items-center">
+          {program.tags.map((t) => (
+            <Chip key={t.id}>
+              {t.name}{" "}
+              <button
+                onClick={() => handleDeleteTag(t.id)}
+                className="hover:cursor-pointer"
+              >
+                <TrashIcon width={12} />
+              </button>
+            </Chip>
+          ))}
+        </div>
       </div>
     </div>
   );

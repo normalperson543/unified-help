@@ -7,7 +7,7 @@ import { FaGithub, FaSlack } from "react-icons/fa";
 export default function HelpDropdown() {
   return (
     <Dropdown>
-      <Button variant="tertiary">
+      <Button variant="tertiary" isIconOnly>
         <HelpCircleIcon width={16} />
       </Button>
       <Dropdown.Popover>

@@ -37,7 +37,12 @@ type TicketPayload = Prisma.TicketGetPayload<{
     };
     slackUser: true;
     assignees: true;
-    program: true;
+    program: {
+      include: {
+        tags: true
+      }
+    };
+    tag: true
   };
 }>;
 

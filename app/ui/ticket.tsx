@@ -1,7 +1,16 @@
 "use client";
 
 import { fetcher } from "@/app/lib/swr";
-import { Avatar, Chip, Button, Tooltip, Alert } from "@heroui/react";
+import {
+  Avatar,
+  Chip,
+  Button,
+  Tooltip,
+  Alert,
+  Popover,
+  Dropdown,
+  toast,
+} from "@heroui/react";
 import {
   CheckIcon,
   CircleAlertIcon,
@@ -10,6 +19,9 @@ import {
   ClockIcon,
   ReplyIcon,
   SquareArrowOutUpRightIcon,
+  TagIcon,
+  TriangleAlertIcon,
+  XIcon,
 } from "lucide-react";
 import useSWR from "swr";
 import { TicketWithReplies } from "../lib/types";
@@ -18,6 +30,8 @@ import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
 import { REFRESH_INTERVAL } from "../lib/constants";
+import { authClient } from "../lib/auth-client";
+import { connectTag, disconnectTag } from "../lib/actions";
 
 export default function TicketUI({
   id,
@@ -33,6 +47,7 @@ export default function TicketUI({
   } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher, {
     refreshInterval: REFRESH_INTERVAL,
   });
+  const { data: session } = authClient.useSession();
 
   let backgroundColor = "initial";
   if (ticket && ticket.status === 0) {
@@ -43,6 +58,31 @@ export default function TicketUI({
   }
   if (ticket && ticket.status === 2) {
     backgroundColor = "var(--color-green-950)";
+  }
+
+  async function handleConnectTag(id: string) {
+    try {
+      if (!ticket) return;
+      await connectTag(id, ticket.id, ticket.program.id);
+    } catch {
+      toast("Cannot add this tag", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      return;
+    }
+  }
+  async function handleDisconnectTag(id: string) {
+    try {
+      if (!ticket) return;
+      await disconnectTag(id, ticket.id, ticket.program.id);
+    } catch {
+      toast("Cannot remove this tag", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      return;
+    }
   }
 
   return (
@@ -61,7 +101,10 @@ export default function TicketUI({
       )}
       {!ticketIsLoading && ticket && (
         <div className="relative flex flex-col gap-4 min-h-full">
-          <div className="flex justify-between sticky top-0 bg-background p-4 z-10" style={{backgroundColor: backgroundColor}}>
+          <div
+            className="flex justify-between sticky top-0 bg-background p-4 z-10"
+            style={{ backgroundColor: backgroundColor }}
+          >
             <div className="flex gap-4 flex-1">
               <Link
                 href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
@@ -199,6 +242,35 @@ export default function TicketUI({
                       </p>
                     </div>
                   )}
+                  {ticket.tag.map((t) => (
+                    <Chip key={t.id}>
+                      {t.name}{" "}
+                      <button
+                        onClick={() => handleDisconnectTag(t.id)}
+                        className="hover:cursor-pointer"
+                      >
+                        <XIcon width={12} />
+                      </button>
+                    </Chip>
+                  ))}
+                  
+                  <Dropdown>
+                    <Button isIconOnly variant="secondary">
+                      <TagIcon width={12} />
+                    </Button>
+                    <Dropdown.Popover>
+                      <Dropdown.Menu>
+                        {ticket.program.tags.map((t) => (
+                          <Dropdown.Item
+                            onClick={() => handleConnectTag(t.id)}
+                            key={t.id}
+                          >
+                            {t.name}
+                          </Dropdown.Item>
+                        ))}
+                      </Dropdown.Menu>
+                    </Dropdown.Popover>
+                  </Dropdown>
                 </div>
               </div>
             </div>

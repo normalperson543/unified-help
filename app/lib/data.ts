@@ -367,7 +367,7 @@ export async function getProgram(id: string) {
         },
       },
       usersOrganizing: true,
-      tags: true
+      tags: true,
     },
   });
 }
@@ -683,8 +683,32 @@ export async function getTicket(ticketId: string) {
       },
       slackUser: true,
       assignees: true,
-      program: true,
+      program: {
+        include: {
+          tags: true,
+        },
+      },
+      tag: true,
     },
   });
   return ticket;
+}
+export async function isHelper(programId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    return false;
+  }
+  const c = await prisma.slackUser.count({
+    where: {
+      programs: {
+        some: {
+          id: programId,
+        },
+      },
+      id: session.user.slackId,
+    },
+  });
+  return c > 0;
 }

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 import { createUser } from "./slack";
 import { redirect } from "next/navigation";
-import { isOrg } from "./data";
+import { isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
 
 export async function startBacklog(
@@ -256,4 +256,69 @@ export async function demoteHelper(userId: string, programId: string) {
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
+}
+export async function createTag(name: string, programId: string) {
+  await throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+
+  await prisma.tag.create({
+    data: {
+      programId: programId,
+      name: name,
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`);
+}
+export async function deleteTag(id: string, programId: string) {
+  await throwIfNoAuth();
+  const org = await isOrg(programId);
+  if (!org) throw new Error("unauthorized");
+
+  await prisma.tag.delete({
+    where: {
+      id: id,
+    },
+  });
+  revalidatePath(`/programs/${programId}/settings`);
+}
+export async function connectTag(
+  tagId: string,
+  ticketId: string,
+  programId: string,
+) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+  const t = await prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+    data: {
+      tag: {
+        connect: {
+          id: tagId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
+}
+export async function disconnectTag(tagId: string, ticketId: string, programId: string) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+  const t = await prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+    data: {
+      tag: {
+        disconnect: {
+          id: tagId,
+        },
+      },
+    },
+  });
+  revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
 }
