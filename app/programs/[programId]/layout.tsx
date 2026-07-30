@@ -108,21 +108,29 @@ export default function RootLayout({
                 300000,
             );
             if (messages.length === 1) {
-              new Notification(
+              const n = new Notification(
                 `New ${program ? program.name : "program"} ticket from ${messages[0].slackUser.username}`,
                 {
                   body: messages[0].message,
                   icon: program?.logo ?? undefined,
                 },
               );
+              n.onclick = () => {
+                window.focus();
+                n.close();
+              };
             } else if (messages.length > 1) {
-              new Notification(
+              const n = new Notification(
                 `New ${program ? program.name : "program"} tickets`,
                 {
                   body: `You have ${messages.length} new tickets.`,
                   icon: program?.logo ?? undefined,
                 },
               );
+              n.onclick = () => {
+                window.focus();
+                n.close();
+              };
             }
           }
         }

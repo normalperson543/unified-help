@@ -5,7 +5,14 @@ import { Program } from "@/generated/prisma/client";
 import { fetcher } from "../lib/swr";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { useState } from "react";
+
+function normalizeProgramId( // AI generated function for bugfix
+  programId: string | string[] | undefined,
+): Key | null {
+  if (!programId) return null;
+  const id = Array.isArray(programId) ? programId[0] : programId;
+  return id || null;
+}
 
 export default function ProgramSelector() {
   const {
@@ -13,11 +20,8 @@ export default function ProgramSelector() {
     error: programsError,
     isLoading: programsIsLoading,
   } = useSWR<Program[]>(`/api/programs/list`, fetcher);
-  const { programId } = useParams();
-
-  const [selectedKey, setSelectedKey] = useState<Key | null>(
-    programId as string,
-  );
+  const params = useParams();
+  const selectedKey = normalizeProgramId(params.programId);
 
   const router = useRouter();
 
@@ -26,7 +30,6 @@ export default function ProgramSelector() {
 
   function handleSelectProgram(key: Key | null) {
     if (!key) return;
-    setSelectedKey(key);
     router.push(`/programs/${key}`);
   }
   return (

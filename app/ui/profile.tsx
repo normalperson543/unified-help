@@ -100,7 +100,7 @@ export default function ProfileUI({
                   <p>
                     {profile.programs.map(
                       (p, i) =>
-                        `${p.name}${i !== profile.programs.length - 1 ? "," : ""}`,
+                        `${p.name}${i !== profile.programs.length - 1 ? ", " : ""}`,
                     )}
                   </p>
                 </>

@@ -31,7 +31,7 @@ export default function SearchPageUI() {
   const [ticketSortDescriptor, setTicketSortDescriptor] =
     useState<SortDescriptor>({
       column: "dateCreated",
-      direction: "ascending",
+      direction: "descending",
     });
   const [usersSortDebounced] = useDebounce(userSortDescriptor, 500);
   const [ticketsSortDebounced] = useDebounce(ticketSortDescriptor, 500);
