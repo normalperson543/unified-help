@@ -24,7 +24,7 @@ import {
 } from "@heroui/react";
 import Link from "next/link";
 import useSWR from "swr";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ITEMS_PER_PAGE, REFRESH_INTERVAL } from "@/app/lib/constants";
@@ -56,6 +56,7 @@ export default function RootLayout({
   const [page, setPage] = useState(1);
   const isFirstLoad = useRef(true);
   const previousData = useRef<ProgramTicketsResponse | null>(null);
+  const router = useRouter();
 
   // this useLayoutEffect thing was created with Claude
   useLayoutEffect(() => {
@@ -118,6 +119,7 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
+                router.push(`/program/${messages[0].programId}/ticket/${messages[0].id}`)
               };
             } else if (messages.length > 1) {
               const n = new Notification(
@@ -130,6 +132,7 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
+                router.push(`/program/${messages[messages.length - 1].programId}/ticket/${messages[messages.length - 1].id}`)
               };
             }
           }
