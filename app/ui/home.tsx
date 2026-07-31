@@ -150,9 +150,14 @@ export default function HomeUI({
           />
         </div>
         <div className="p-12 flex flex-col gap-6 items-center">
-          <h2 className="text-xl font-bold">
-            These programs are indexed on Unified Help
-          </h2>
+          <div className="flex flex-col gap-3 items-center text-center">
+            <h2 className="text-xl font-bold">
+              These programs are indexed on Unified Help
+            </h2>
+            <p className="text-muted">
+              Unified Help is not affiliated with any of these programs.
+            </p>
+          </div>
           <Marquee pauseOnHover>
             <div className="flex flex-row gap-4">
               {programs.map((p) => (
@@ -174,6 +179,10 @@ export default function HomeUI({
               ))}
             </div>
           </Marquee>
+          <p className="text-muted">
+            Unified Help is not affiliated with or run by Hack Club HQ - this is
+            a community project.
+          </p>
         </div>
       </div>
     </div>

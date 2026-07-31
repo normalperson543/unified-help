@@ -22,7 +22,7 @@
     },
     "settings": {
         "event_subscriptions": {
-            "request_url": "https://uhsbot.octotwelve.xyz/slack/events",
+            "request_url": "https://YOUR_SCRAPER_URL_HERE/slack/events",
             "bot_events": [
                 "message.channels",
                 "subteam_members_changed"
