@@ -45,7 +45,9 @@ export default function NotificationsPermission() {
   return (
     <div className="w-full bg-yellow-500 text-black p-2 text-center">
       <p>
-        <b>Enable notifications</b> to get notified when new tickets arrive.{" "}
+        <b>Enable notifications </b> to get notified when new tickets arrive.
+        (Keep your program&apos;s tab open to receive notifications for
+        tickets!){" "}
         <Button onClick={requestPerms} size="sm">
           Enable now
         </Button>
