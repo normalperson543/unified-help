@@ -151,7 +151,7 @@ export default function HomeUI({
         </div>
         <div className="p-12 flex flex-col gap-6 items-center">
           <h2 className="text-xl font-bold">
-            These programs already use Unified Help
+            These programs are indexed on Unified Help
           </h2>
           <Marquee pauseOnHover>
             <div className="flex flex-row gap-4">
