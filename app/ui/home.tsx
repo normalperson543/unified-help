@@ -155,7 +155,8 @@ export default function HomeUI({
               These programs are indexed on Unified Help
             </h2>
             <p className="text-muted">
-              Unified Help is not affiliated with any of these programs.
+              Unified Help is not affiliated or endorsed with any of these
+              programs.
             </p>
           </div>
           <Marquee pauseOnHover>
@@ -180,8 +181,8 @@ export default function HomeUI({
             </div>
           </Marquee>
           <p className="text-muted">
-            Unified Help is not affiliated with or run by Hack Club HQ - this is
-            a community project.
+            Unified Help is not affiliated with, endorsed by, or run by Hack
+            Club HQ - this is a community project.
           </p>
         </div>
       </div>
