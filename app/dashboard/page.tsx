@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   if (session?.user.id) user = await getUser(session?.user.id);
   if (!user) return <NotLoggedIn />;
   return (
-    <div className="flex flex-col gap-2 px-12 py-4 w-full min-h-full">
+    <div className="flex flex-col gap-2 px-12 py-4 w-full min-h-0 overflow-y-auto">
       <h2 className="text-lg font-bold">Your Programs</h2>
       {!user.slackUser ? (
         <p>
