@@ -197,7 +197,7 @@ export default function ProfileUI({
           <div className="flex flex-col gap-1">
             <p className="text-muted uppercase">In progress tickets</p>
             <p className="font-bold text-3xl">
-              {profile._count.assignedTickets - profile._count.resolvedTickets}
+              {profile._count.assignedTickets - assignedAndResolvedCount}
             </p>
             <CircleIcon
               width={64}
