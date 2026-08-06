@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
 import { INoteWithSlackUser } from "@/app/lib/types";
-import Unauthorized from "@/app/ui/unauthorized";
+import NotLoggedIn from "@/app/ui/not-logged-in";
 
 const getTicketCached = cache(async (ticketId: string) => {
   const ticket = await getTicket(ticketId);
@@ -47,7 +47,7 @@ export default async function ThreadUI({
     headers: await headers(), // you need to pass the headers object.
   });
   let user;
-  if (!session) return <Unauthorized />;
+  if (!session) return <NotLoggedIn />;
   if (session?.user.slackId) user = await getSlackUser(session?.user.slackId);
 
   const ticket = await getTicketCached(ticketId);
