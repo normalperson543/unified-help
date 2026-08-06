@@ -47,7 +47,7 @@ export default async function ThreadUI({
     headers: await headers(), // you need to pass the headers object.
   });
   let user;
-  if (!session) return <Unauthorized />
+  if (!session) return <Unauthorized />;
   if (session?.user.slackId) user = await getSlackUser(session?.user.slackId);
 
   const ticket = await getTicketCached(ticketId);
