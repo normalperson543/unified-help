@@ -218,3 +218,8 @@ export type SlackUserApiResponse = {
   users: SlackUserWithStats[];
   total: number;
 };
+export type INoteWithSlackUser = Prisma.INoteGetPayload<{
+  include: {
+    actor: true
+  }
+}>

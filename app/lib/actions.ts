@@ -380,7 +380,7 @@ export async function replyToTicket(
   ticketId: string,
   programId: string,
   message: string,
-  enableCtx: boolean
+  enableCtx: boolean,
 ) {
   await throwIfNoAuth();
   const helper = await isHelper(programId);
@@ -480,7 +480,7 @@ export async function replyToTicket(
     r.slackUser.username,
     r.slackUser.id,
     message,
-    enableCtx
+    enableCtx,
   );
 
   r = await prisma.reply.update({
@@ -516,5 +516,29 @@ export async function replyToTicket(
       program: true,
     },
   });
-  revalidatePath(`/programs/${programId}/ticket/${ticketId}`)
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
+export async function postINote(
+  ticketId: string,
+  programId: string,
+  message: string,
+) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    throw new Error("unauthenticated");
+  }
+  await prisma.iNote.create({
+    data: {
+      ticketId: ticketId,
+      slackUserId: session.user.slackId,
+      message: message,
+    },
+  });
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }

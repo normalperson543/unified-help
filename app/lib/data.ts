@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
 import { AnswerActivity } from "./types";
+import { BsTicketDetailed } from "react-icons/bs";
 
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
@@ -711,4 +712,18 @@ export async function isHelper(programId: string) {
     },
   });
   return c > 0;
+}
+export async function getINotes(ticketId: string, programId: string) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+  
+  return await prisma.iNote.findMany({
+    where: {
+      ticketId: ticketId
+    },
+    include: {
+      actor: true
+    }
+  })
 }

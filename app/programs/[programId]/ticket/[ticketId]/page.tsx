@@ -2,11 +2,12 @@ import TicketUI from "@/app/ui/ticket";
 import Loading from "@/app/ui/loading";
 import { cache, Suspense } from "react";
 import { Metadata } from "next";
-import { getTicket, getSlackUser, isHelper } from "@/app/lib/data";
+import { getTicket, getSlackUser, isHelper, getINotes } from "@/app/lib/data";
 import { getShortTitle } from "@/app/lib/tools";
 import { notFound } from "next/navigation";
 import { auth } from "@/app/lib/auth";
 import { headers } from "next/headers";
+import { INoteWithSlackUser } from "@/app/lib/types";
 
 const getTicketCached = cache(async (ticketId: string) => {
   const ticket = await getTicket(ticketId);
@@ -49,10 +50,20 @@ export default async function ThreadUI({
 
   const ticket = await getTicketCached(ticketId);
   if (ticket) {
-    const helper = await isHelper(ticket.program.id)
+    const helper = await isHelper(ticket.program.id);
+    let inotes: INoteWithSlackUser[] = [];
+    if (helper) {
+      inotes = await getINotes(ticketId, ticket.programId);
+    }
     return (
       <Suspense fallback={<Loading />}>
-        <TicketUI id={ticketId} programId={programId} isHelper={helper} signedInUser={user} internalNotes={isHelper ? ticket.} />
+        <TicketUI
+          id={ticketId}
+          programId={programId}
+          isHelper={helper}
+          signedInUser={user}
+          inotes={inotes}
+        />
       </Suspense>
     );
   } else {

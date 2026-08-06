@@ -19,6 +19,7 @@ import {
   CircleDashedIcon,
   CircleIcon,
   ClockIcon,
+  PlusIcon,
   ReplyIcon,
   SendIcon,
   SquareArrowOutUpRightIcon,
@@ -27,13 +28,18 @@ import {
   XIcon,
 } from "lucide-react";
 import useSWR from "swr";
-import { TicketWithReplies } from "../lib/types";
+import { INoteWithSlackUser, TicketWithReplies } from "../lib/types";
 import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
 import { REFRESH_INTERVAL } from "../lib/constants";
-import { connectTag, disconnectTag, replyToTicket } from "../lib/actions";
+import {
+  connectTag,
+  disconnectTag,
+  postINote,
+  replyToTicket,
+} from "../lib/actions";
 import { useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
 
@@ -42,12 +48,15 @@ export default function TicketUI({
   programId,
   isHelper,
   signedInUser,
+  inotes,
 }: {
   id: string;
   programId: string;
   isHelper: boolean;
   signedInUser?: SlackUser | null;
+  inotes: INoteWithSlackUser[];
 }) {
+  console.log(inotes);
   const {
     data: ticket,
     error: ticketError,
@@ -60,6 +69,8 @@ export default function TicketUI({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [ctx, setCtx] = useState(true);
+  const [sendingINote, setSendingINote] = useState(false);
+  const [inote, setINote] = useState("");
 
   let backgroundColor = "initial";
   if (ticket && ticket.status === 0) {
@@ -108,6 +119,29 @@ export default function TicketUI({
       setMessage("");
       mutate();
       setSending(false);
+      return;
+    } catch (e) {
+      toast("An error occured when posting", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      console.error(e);
+      setSending(false);
+      return;
+    }
+  }
+
+  async function handlePostINote() {
+    try {
+      if (!ticket) return;
+      setSendingINote(true);
+      await postINote(ticket.id, ticket.programId, inote);
+      toast("Posted!", {
+        indicator: <CheckIcon />,
+      });
+      setMessage("");
+      mutate();
+      setSendingINote(false);
       return;
     } catch (e) {
       toast("An error occured when posting", {
@@ -418,44 +452,93 @@ export default function TicketUI({
                 );
               })}
               {isHelper && signedInUser && (
-                <div className="flex gap-4 w-full">
-                  <Avatar size="sm">
-                    <Avatar.Image
-                      src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
-                      alt="Profile picture"
-                    />
-                    <Avatar.Fallback>
-                      {signedInUser.username.substring(0, 1)}
-                    </Avatar.Fallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-2 w-full">
-                    <TextArea
-                      className="w-full h-32"
-                      onChange={(e) => setMessage(e.target.value)}
-                      value={message}
-                    />
-                    <Button onClick={handlePostMessage} isPending={sending}>
-                      {sending ? (
-                        <>
-                          <Spinner color="current" /> Sending...
-                        </>
-                      ) : (
-                        <>
-                          <SendIcon />
-                          Reply{" "}
-                        </>
-                      )}
-                    </Button>
-                    <Switch isSelected={ctx} onChange={setCtx}>
-                      <Switch.Content>
-                        <Switch.Control>
-                          <Switch.Thumb />
-                        </Switch.Control>
-                        Enable attribution in message
-                      </Switch.Content>
-                    </Switch>
+                <>
+                  <div className="flex gap-4 w-full">
+                    <Avatar size="sm">
+                      <Avatar.Image
+                        src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
+                        alt="Profile picture"
+                      />
+                      <Avatar.Fallback>
+                        {signedInUser.username.substring(0, 1)}
+                      </Avatar.Fallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-2 w-full">
+                      <TextArea
+                        className="w-full h-32"
+                        onChange={(e) => setMessage(e.target.value)}
+                        value={message}
+                      />
+                      <Button onClick={handlePostMessage} isPending={sending}>
+                        {sending ? (
+                          <>
+                            <Spinner color="current" /> Sending...
+                          </>
+                        ) : (
+                          <>
+                            <SendIcon />
+                            Reply{" "}
+                          </>
+                        )}
+                      </Button>
+                      <Switch isSelected={ctx} onChange={setCtx}>
+                        <Switch.Content>
+                          <Switch.Control>
+                            <Switch.Thumb />
+                          </Switch.Control>
+                          Enable attribution in message
+                        </Switch.Content>
+                      </Switch>
+                    </div>
                   </div>
-                </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-lg font-bold">Internal notes</p>
+                    <p className="text-muted">Only helpers see these notes</p>
+                    {inotes.map((n) => (
+                      <Post
+                        username={n.actor.username}
+                        message={n.message}
+                        slackId={n.actor.id}
+                        key={n.id}
+                        dateCreated={n.dateCreated}
+                        programId={ticket.programId}
+                      />
+                    ))}
+                    <div className="flex gap-4 w-full">
+                      <Avatar size="sm">
+                        <Avatar.Image
+                          src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
+                          alt="Profile picture"
+                        />
+                        <Avatar.Fallback>
+                          {signedInUser.username.substring(0, 1)}
+                        </Avatar.Fallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-2 w-full">
+                        <TextArea
+                          className="w-full h-32"
+                          onChange={(e) => setINote(e.target.value)}
+                          value={inote}
+                        />
+                        <Button
+                          onClick={handlePostINote}
+                          isPending={sendingINote}
+                        >
+                          {sendingINote ? (
+                            <>
+                              <Spinner color="current" /> Adding...
+                            </>
+                          ) : (
+                            <>
+                              <PlusIcon />
+                              Add{" "}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
