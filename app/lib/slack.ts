@@ -29,7 +29,7 @@ export async function createUser(id: string) {
   return dbUser;
 }
 function escapeAngleBrackets(text: string) {
-  return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export async function replyAsUser(
@@ -61,6 +61,7 @@ export async function replyAsUser(
         text: {
           type: "mrkdwn",
           text: safeMessage,
+          verbatim: true
         },
       },
       ...(enableCtx ? [ctx] : []),
