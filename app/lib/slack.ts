@@ -43,12 +43,16 @@ export async function replyAsUser(
   ticketId: string,
 ) {
   const safeMessage = escapeAngleBrackets(message);
+  const safeUserId = escapeAngleBrackets(userId);
+  const safeProgramId = escapeAngleBrackets(programId);
+  const safeTicketId = escapeAngleBrackets(ticketId);
+  
   const ctx = {
     type: "context",
     elements: [
       {
         type: "mrkdwn",
-        text: `<@${userId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev/programs/${programId}/ticket/${ticketId}|View ticket>`,
+        text: `<@${safeUserId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev/programs/${safeProgramId}/ticket/${safeTicketId}|View ticket>`,
       },
     ],
   };
