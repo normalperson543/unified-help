@@ -382,6 +382,8 @@ export async function replyToTicket(
   message: string,
   enableCtx: boolean,
 ) {
+  let assignedFirst = false;
+  
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
@@ -430,6 +432,7 @@ export async function replyToTicket(
   ) {
     if (ticket._count.assignees === 0) {
       // first user that responded!!
+      assignedFirst = true;
       ticket = await prisma.ticket.update({
         where: {
           id: ticket.id,
@@ -500,24 +503,24 @@ export async function replyToTicket(
       },
     },
   });
-
-  ticket = await prisma.ticket.update({
-    where: {
-      id: ticket.id,
-    },
-    data: {
-      firstResponseUserId: r.slackUserId,
-      assignDate: r.dateCreated,
-    },
-    include: {
-      _count: {
-        select: {
-          assignees: true,
-        },
+  if (assignedFirst) {
+    ticket = await prisma.ticket.update({
+      where: {
+        id: ticket.id,
       },
-      program: true,
-    },
-  });
+      data: {
+        responseTime: Number(r.messageId) - Number(ticket.messageId),
+      },
+      include: {
+        _count: {
+          select: {
+            assignees: true,
+          },
+        },
+        program: true,
+      },
+    });
+  }
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }
 export async function postINote(
