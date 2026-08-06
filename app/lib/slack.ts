@@ -28,6 +28,10 @@ export async function createUser(id: string) {
   }
   return dbUser;
 }
+function escapeAngleBrackets(text: string) {
+  return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export async function replyAsUser(
   threadTs: string,
   channel: string,
@@ -38,6 +42,7 @@ export async function replyAsUser(
   programId: string,
   ticketId: string,
 ) {
+  const safeMessage = escapeAngleBrackets(message);
   const ctx = {
     type: "context",
     elements: [
@@ -55,13 +60,13 @@ export async function replyAsUser(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: message,
+          text: safeMessage,
         },
       },
       ...(enableCtx ? [ctx] : []),
     ],
     username: username,
-    text: message,
+    text: safeMessage,
     icon_url: `https://cachet.dunkirk.sh/users/${userId}/r`,
     unfurl_links: false,
   });
