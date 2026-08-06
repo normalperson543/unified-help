@@ -24,7 +24,7 @@ export async function generateMetadata({
     ticket = await getTicketCached(ticketId);
   } catch {
     return {
-      title: "Unauthorized",
+      title: "View ticket",
     };
   }
   return {
@@ -46,6 +46,7 @@ export default async function ThreadUI({
     headers: await headers(), // you need to pass the headers object.
   });
   let user;
+  if (!session) notFound();
   if (session?.user.slackId) user = await getSlackUser(session?.user.slackId);
 
   const ticket = await getTicketCached(ticketId);

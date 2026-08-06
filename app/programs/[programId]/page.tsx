@@ -14,7 +14,7 @@ export async function generateMetadata({
   } catch {
     console.error("unauthenticated");
     return {
-      title: "Unauthorized",
+      title: "View program",
     };
   }
   return {
