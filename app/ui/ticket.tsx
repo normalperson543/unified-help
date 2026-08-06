@@ -40,7 +40,7 @@ import {
   postINote,
   replyToTicket,
 } from "../lib/actions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
 
 export default function TicketUI({
@@ -68,9 +68,17 @@ export default function TicketUI({
 
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [ctx, setCtx] = useState(true);
+  const [ctx, setCtx] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem("ticket-attribution-enabled");
+    return stored === null ? true : stored === "true";
+  });
   const [sendingINote, setSendingINote] = useState(false);
   const [inote, setINote] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("ticket-attribution-enabled", String(ctx));
+  }, [ctx]);
 
   let backgroundColor = "initial";
   if (ticket && ticket.status === 0) {
@@ -112,7 +120,12 @@ export default function TicketUI({
     try {
       if (!ticket) return;
       setSending(true);
-      await replyToTicket(ticket.id, ticket.programId, message, ctx);
+      await replyToTicket(
+        ticket.id,
+        ticket.programId,
+        message,
+        ctx,
+      );
       toast("Posted!", {
         indicator: <CheckIcon />,
       });

@@ -481,6 +481,8 @@ export async function replyToTicket(
     r.slackUser.id,
     message,
     enableCtx,
+    programId,
+    ticketId,
   );
 
   r = await prisma.reply.update({

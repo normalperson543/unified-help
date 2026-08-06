@@ -35,13 +35,15 @@ export async function replyAsUser(
   userId: string,
   message: string,
   enableCtx: boolean,
+  programId: string,
+  ticketId: string,
 ) {
   const ctx = {
     type: "context",
     elements: [
       {
         type: "mrkdwn",
-        text: `<@${userId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev|View ticket>`,
+        text: `<@${userId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev/programs/${programId}/ticket/${ticketId}|View ticket>`,
       },
     ],
   };
@@ -56,7 +58,7 @@ export async function replyAsUser(
           text: message,
         },
       },
-      ...(enableCtx ? [ctx] : [])
+      ...(enableCtx ? [ctx] : []),
     ],
     username: username,
     text: message,
