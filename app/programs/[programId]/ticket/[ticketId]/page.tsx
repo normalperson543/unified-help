@@ -2,9 +2,11 @@ import TicketUI from "@/app/ui/ticket";
 import Loading from "@/app/ui/loading";
 import { cache, Suspense } from "react";
 import { Metadata } from "next";
-import { getTicket, isHelper } from "@/app/lib/data";
+import { getTicket, getSlackUser, isHelper } from "@/app/lib/data";
 import { getShortTitle } from "@/app/lib/tools";
 import { notFound } from "next/navigation";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
 
 const getTicketCached = cache(async (ticketId: string) => {
   const ticket = await getTicket(ticketId);
@@ -38,12 +40,19 @@ export default async function ThreadUI({
 }) {
   const { ticketId, programId } = await params;
 
+  const session = await auth.api.getSession({
+    // from better auth docs bc too lazy :
+    headers: await headers(), // you need to pass the headers object.
+  });
+  let user;
+  if (session?.user.slackId) user = await getSlackUser(session?.user.slackId);
+
   const ticket = await getTicketCached(ticketId);
   if (ticket) {
     const helper = await isHelper(ticket.program.id)
     return (
       <Suspense fallback={<Loading />}>
-        <TicketUI id={ticketId} programId={programId} isHelper={helper} />
+        <TicketUI id={ticketId} programId={programId} isHelper={helper} signedInUser={user} internalNotes={isHelper ? ticket.} />
       </Suspense>
     );
   } else {

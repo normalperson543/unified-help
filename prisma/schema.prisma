@@ -70,7 +70,7 @@ model Reply {
   id          String    @id @unique @default(uuid())
   ticket      Ticket    @relation(fields: [ticketId], references: [id])
   message     String
-  messageId   String    @unique
+  messageId   String?   @unique
   slackUser   SlackUser @relation(fields: [slackUserId], references: [id])
   slackUserId String
   dateCreated DateTime

@@ -7,9 +7,11 @@ import {
   Button,
   Tooltip,
   Alert,
-  Popover,
   Dropdown,
   toast,
+  TextArea,
+  Spinner,
+  Switch,
 } from "@heroui/react";
 import {
   CheckIcon,
@@ -18,6 +20,7 @@ import {
   CircleIcon,
   ClockIcon,
   ReplyIcon,
+  SendIcon,
   SquareArrowOutUpRightIcon,
   TagIcon,
   TriangleAlertIcon,
@@ -30,25 +33,33 @@ import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
 import { REFRESH_INTERVAL } from "../lib/constants";
-import { authClient } from "../lib/auth-client";
-import { connectTag, disconnectTag } from "../lib/actions";
+import { connectTag, disconnectTag, replyToTicket } from "../lib/actions";
+import { useState } from "react";
+import { SlackUser } from "@/generated/prisma/browser";
 
 export default function TicketUI({
   id,
   programId,
   isHelper,
+  signedInUser,
 }: {
   id: string;
   programId: string;
   isHelper: boolean;
+  signedInUser?: SlackUser | null;
 }) {
   const {
     data: ticket,
     error: ticketError,
     isLoading: ticketIsLoading,
+    mutate,
   } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher, {
     refreshInterval: REFRESH_INTERVAL,
   });
+
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [ctx, setCtx] = useState(true);
 
   let backgroundColor = "initial";
   if (ticket && ticket.status === 0) {
@@ -82,6 +93,29 @@ export default function TicketUI({
         indicator: <TriangleAlertIcon />,
         variant: "danger",
       });
+      return;
+    }
+  }
+
+  async function handlePostMessage() {
+    try {
+      if (!ticket) return;
+      setSending(true);
+      await replyToTicket(ticket.id, ticket.programId, message, ctx);
+      toast("Posted!", {
+        indicator: <CheckIcon />,
+      });
+      setMessage("");
+      mutate();
+      setSending(false);
+      return;
+    } catch (e) {
+      toast("An error occured when posting", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      console.error(e);
+      setSending(false);
       return;
     }
   }
@@ -383,6 +417,46 @@ export default function TicketUI({
                   />
                 );
               })}
+              {isHelper && signedInUser && (
+                <div className="flex gap-4 w-full">
+                  <Avatar size="sm">
+                    <Avatar.Image
+                      src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
+                      alt="Profile picture"
+                    />
+                    <Avatar.Fallback>
+                      {signedInUser.username.substring(0, 1)}
+                    </Avatar.Fallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2 w-full">
+                    <TextArea
+                      className="w-full h-32"
+                      onChange={(e) => setMessage(e.target.value)}
+                      value={message}
+                    />
+                    <Button onClick={handlePostMessage} isPending={sending}>
+                      {sending ? (
+                        <>
+                          <Spinner color="current" /> Sending...
+                        </>
+                      ) : (
+                        <>
+                          <SendIcon />
+                          Reply{" "}
+                        </>
+                      )}
+                    </Button>
+                    <Switch isSelected={ctx} onChange={setCtx}>
+                      <Switch.Content>
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                        Enable attribution in message
+                      </Switch.Content>
+                    </Switch>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </>

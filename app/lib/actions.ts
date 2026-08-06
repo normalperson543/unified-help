@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { createUser } from "./slack";
+import { createUser, replyAsUser } from "./slack";
 import { redirect } from "next/navigation";
 import { isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
@@ -375,4 +375,146 @@ export async function disconnectTag(
     },
   });
   revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
+}
+export async function replyToTicket(
+  ticketId: string,
+  programId: string,
+  message: string,
+  enableCtx: boolean
+) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    throw new Error("unauthenticated");
+  }
+
+  let ticket = await prisma.ticket.findUnique({
+    where: {
+      id: ticketId,
+    },
+    include: {
+      _count: {
+        select: {
+          assignees: true,
+        },
+      },
+      program: true,
+    },
+  });
+
+  if (!ticket) throw new Error("No ticket");
+
+  let r = await prisma.reply.create({
+    data: {
+      ticketId: ticketId,
+      slackUserId: session.user.slackId,
+      message: message,
+      dateCreated: new Date(),
+    },
+    include: {
+      slackUser: {
+        include: {
+          programs: true,
+        },
+      },
+    },
+  });
+  if (
+    r.slackUser.programs.some((p) => p.id === programId) &&
+    ticket.status !== 2
+  ) {
+    if (ticket._count.assignees === 0) {
+      // first user that responded!!
+      ticket = await prisma.ticket.update({
+        where: {
+          id: ticket.id,
+        },
+        data: {
+          firstResponseUserId: r.slackUserId,
+          assignDate: r.dateCreated,
+        },
+        include: {
+          _count: {
+            select: {
+              assignees: true,
+            },
+          },
+          program: true,
+        },
+      });
+    }
+    try {
+      ticket = await prisma.ticket.update({
+        where: {
+          id: ticketId,
+        },
+        data: {
+          assignees: {
+            connect: [{ id: r.slackUserId }],
+          },
+          status: 1,
+        },
+        include: {
+          _count: {
+            select: {
+              assignees: true,
+            },
+          },
+          program: true,
+        },
+      });
+    } catch (e) {
+      console.error("Problem assigning an assignee: ", e);
+      console.error("Occurred on ticket ", ticket.id);
+    }
+  }
+
+  const slackR = await replyAsUser(
+    ticket.messageId,
+    ticket.program.channelId,
+    r.slackUser.username,
+    r.slackUser.id,
+    message,
+    enableCtx
+  );
+
+  r = await prisma.reply.update({
+    where: {
+      id: r.id,
+    },
+    data: {
+      messageId: slackR.message?.ts,
+    },
+    include: {
+      slackUser: {
+        include: {
+          programs: true,
+        },
+      },
+    },
+  });
+
+  ticket = await prisma.ticket.update({
+    where: {
+      id: ticket.id,
+    },
+    data: {
+      firstResponseUserId: r.slackUserId,
+      assignDate: r.dateCreated,
+    },
+    include: {
+      _count: {
+        select: {
+          assignees: true,
+        },
+      },
+      program: true,
+    },
+  });
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`)
 }

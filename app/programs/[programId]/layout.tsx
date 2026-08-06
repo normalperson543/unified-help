@@ -119,7 +119,9 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
-                router.push(`/programs/${messages[0].programId}/ticket/${messages[0].id}`)
+                router.push(
+                  `/programs/${messages[0].programId}/ticket/${messages[0].id}`,
+                );
               };
             } else if (messages.length > 1) {
               const n = new Notification(
@@ -132,7 +134,9 @@ export default function RootLayout({
               n.onclick = () => {
                 window.focus();
                 n.close();
-                router.push(`/programs/${messages[messages.length - 1].programId}/ticket/${messages[messages.length - 1].id}`)
+                router.push(
+                  `/programs/${messages[messages.length - 1].programId}/ticket/${messages[messages.length - 1].id}`,
+                );
               };
             }
           }
@@ -538,11 +542,8 @@ export default function RootLayout({
                 key={ticket.id}
                 scroll={false}
               >
-                <Card
-                  className={`flex flex-row gap-2 items-center border-l-4 ${ticket.status === 0 && "border-orange-700"} ${ticket.status === 1 && "border-blue-700"} ${ticket.status === 2 && "border-green-700"}`}
-                  variant={
-                    params.ticketId === ticket.id ? "secondary" : "default"
-                  }
+                <div
+                  className={`p-2 hover:bg-accent-soft-hover flex flex-row gap-2 items-center border-l-4 ${ticket.status === 0 && "border-orange-700"} ${ticket.status === 1 && "border-blue-700"} ${ticket.status === 2 && "border-green-700"} ${params.ticketId === ticket.id ? "bg-accent-soft" : ""}`}
                 >
                   <Avatar size="sm">
                     <Avatar.Image
@@ -575,7 +576,7 @@ export default function RootLayout({
                       </div>
                     )}
                   </div>
-                </Card>
+                </div>
               </Link>
             ))}
         </div>

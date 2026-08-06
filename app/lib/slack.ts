@@ -28,3 +28,39 @@ export async function createUser(id: string) {
   }
   return dbUser;
 }
+export async function replyAsUser(
+  threadTs: string,
+  channel: string,
+  username: string,
+  userId: string,
+  message: string,
+  enableCtx: boolean,
+) {
+  const ctx = {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `<@${userId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev|View ticket>`,
+      },
+    ],
+  };
+  return await web.chat.postMessage({
+    thread_ts: threadTs,
+    channel: channel,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: message,
+        },
+      },
+      ...(enableCtx ? [ctx] : [])
+    ],
+    username: username,
+    text: message,
+    icon_url: `https://cachet.dunkirk.sh/users/${userId}/r`,
+    unfurl_links: false,
+  });
+}
