@@ -69,7 +69,7 @@ export default function TicketUI({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [ctx, setCtx] = useState(() => {
-    if (typeof window === "undefined") return true;
+    if (typeof window === "undefined") return true; // this useState was ai generated
     const stored = localStorage.getItem("ticket-attribution-enabled");
     return stored === null ? true : stored === "true";
   });
