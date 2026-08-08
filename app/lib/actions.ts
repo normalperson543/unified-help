@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 import { createUser, replyAsUser } from "./slack";
 import { redirect } from "next/navigation";
-import { isHelper, isOrg } from "./data";
+import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
 
 export async function startBacklog(
@@ -383,7 +383,7 @@ export async function replyToTicket(
   enableCtx: boolean,
 ) {
   let assignedFirst = false;
-  
+
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
@@ -546,4 +546,43 @@ export async function postINote(
     },
   });
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
+export async function deleteProgram(programId: string) {
+  await throwIfNoAuth();
+  const admin = await isAdmin();
+  if (!admin) throw new Error("Unauthorized");
+  const tickets = await prisma.ticket.findMany({
+    where: {
+      programId: programId,
+    },
+  });
+  for (let i = 0; i < tickets.length; i++) {
+    await prisma.reply.deleteMany({
+      where: {
+        ticketId: tickets[i].id,
+      },
+    });
+    await prisma.iNote.deleteMany({
+      where: {
+        ticketId: tickets[i].id
+      }
+    })
+  }
+  await prisma.tag.deleteMany({
+    where: {
+      programId: programId
+    }
+  })
+  await prisma.ticket.deleteMany({
+    where: {
+      programId: programId,
+    },
+  });
+  await prisma.program.delete({
+    where: {
+      id: programId,
+    },
+  });
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }

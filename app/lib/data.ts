@@ -727,3 +727,18 @@ export async function getINotes(ticketId: string, programId: string) {
     }
   })
 }
+export async function isAdmin() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    return false;
+  }
+  const c = await prisma.user.count({
+    where: {
+      id: session.user.id,
+      isAdmin: true
+    },
+  });
+  return c > 0;
+}

@@ -42,6 +42,7 @@ import { BacklogStatus, ProgramWithAssignees } from "../lib/types";
 import {
   addAsHelper,
   createTag,
+  deleteProgram,
   deleteTag,
   demoteHelper,
   promoteHelper,
@@ -60,8 +61,10 @@ import Link from "next/link";
 
 export default function ProgramSettings({
   program,
+  isAdmin,
 }: {
   program: ProgramWithAssignees;
+  isAdmin: boolean;
 }) {
   const [programName, setProgramName] = useState(program.name);
   const [channelId, setChannelId] = useState(program.channelId);
@@ -203,6 +206,10 @@ export default function ProgramSettings({
       indicator: <CheckIcon />,
       variant: "success",
     });
+  }
+
+  async function handleDeleteProgram() {
+    await deleteProgram(program.id);
   }
   return (
     <div className="flex flex-col gap-4 p-4 w-full">
@@ -730,6 +737,36 @@ export default function ProgramSettings({
           ))}
         </div>
       </div>
+      {isAdmin && (
+        <Modal>
+          <Button variant="danger">
+            <XIcon /> Delete
+          </Button>
+          <Modal.Backdrop>
+            <Modal.Container>
+              <Modal.Dialog>
+                <Modal.CloseTrigger />
+                <Modal.Header>
+                  <Modal.Heading>Delete program?</Modal.Heading>
+                </Modal.Header>
+                <Modal.Body>
+                  <p>Delete the program and all tickets?</p>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button
+                    slot="close"
+                    variant="danger"
+                    onClick={handleDeleteProgram}
+                  >
+                    <XIcon />
+                    Delete
+                  </Button>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      )}
     </div>
   );
 }

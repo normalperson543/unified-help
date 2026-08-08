@@ -1,4 +1,4 @@
-import { getProgram, isOrg } from "@/app/lib/data";
+import { getProgram, isAdmin, isOrg } from "@/app/lib/data";
 import ProgramSettings from "@/app/ui/program-settings";
 import Unauthorized from "@/app/ui/unauthorized";
 import { notFound } from "next/navigation";
@@ -17,5 +17,7 @@ export default async function SettingsPage({
 
   if (!program) notFound();
 
-  return <ProgramSettings program={program} />;
+  const admin = await isAdmin();
+
+  return <ProgramSettings program={program} isAdmin={admin} />;
 }

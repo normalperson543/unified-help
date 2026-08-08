@@ -28,10 +28,15 @@ export async function createUser(id: string) {
   }
   return dbUser;
 }
+function sanitize(text: string) {
+  return neutralizeSpecialMentions(escapeAngleBrackets(text));
+}
 function escapeAngleBrackets(text: string) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-
+function neutralizeSpecialMentions(text: string) {
+  return text.replace(/@(channel|here|everyone)\b/gi, '@\u200B$1');
+}
 export async function replyAsUser(
   threadTs: string,
   channel: string,
@@ -42,10 +47,10 @@ export async function replyAsUser(
   programId: string,
   ticketId: string,
 ) {
-  const safeMessage = escapeAngleBrackets(message);
-  const safeUserId = escapeAngleBrackets(userId);
-  const safeProgramId = escapeAngleBrackets(programId);
-  const safeTicketId = escapeAngleBrackets(ticketId);
+  const safeMessage = sanitize(message);
+  const safeUserId = sanitize(userId);
+  const safeProgramId = sanitize(programId);
+  const safeTicketId = sanitize(ticketId);
   
   const ctx = {
     type: "context",
@@ -65,7 +70,6 @@ export async function replyAsUser(
         text: {
           type: "mrkdwn",
           text: safeMessage,
-          verbatim: true
         },
       },
       ...(enableCtx ? [ctx] : []),
