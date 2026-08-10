@@ -67,6 +67,7 @@ export async function replyAsUser(
     blocks: [
       {
         type: "section",
+        expand: "true",
         text: {
           type: "mrkdwn",
           text: safeMessage,
