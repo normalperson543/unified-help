@@ -538,7 +538,8 @@ export async function resolveTicket(ticketId: string) {
   });
 
   if (!ticket) return;
-  if (!ticket.program.allowResolver) throw new Error("Program does not allow resolving through Unified Help")
+  if (!ticket.program.allowResolver)
+    throw new Error("Program does not allow resolving through Unified Help");
 
   const helper = await isHelper(ticket.programId);
   if (!helper) throw new Error("unauthorized");
@@ -596,7 +597,8 @@ export async function reopenTicket(ticketId: string) {
   });
 
   if (!ticket) return;
-  if (!ticket.program.allowResolver) throw new Error("Program does not allow resolving through Unified Help")
+  if (!ticket.program.allowResolver)
+    throw new Error("Program does not allow resolving through Unified Help");
 
   const helper = await isHelper(ticket.programId);
   if (!helper) throw new Error("unauthorized");
