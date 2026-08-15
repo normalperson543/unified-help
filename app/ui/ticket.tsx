@@ -33,14 +33,14 @@ import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
-import { REFRESH_INTERVAL } from "../lib/constants";
+import { REFRESH_INTERVAL, RESOLVE_MACROS } from "../lib/constants";
 import {
   connectTag,
   disconnectTag,
   postINote,
   replyToTicket,
   resolveTicket,
-  reopenTicket
+  reopenTicket,
 } from "../lib/actions";
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
@@ -425,6 +425,21 @@ export default function TicketUI({
                 op
               />
               {ticket.replies.map((r) => {
+                const m = RESOLVE_MACROS.findLast(
+                  (m) => m.keyword === r.message,
+                );
+                if (m) {
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex flex-row gap-1 items-center p-4 bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-700 rounded-md"
+                    >
+                      <CheckIcon />
+                      {m.friendlyMessage} on{" "}
+                      {new Date(r.dateCreated).toLocaleString()}
+                    </div>
+                  );
+                }
                 if (
                   r.slackUser.isBot ||
                   process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] === r.slackUser.id
@@ -465,7 +480,12 @@ export default function TicketUI({
                       </div>
                     );
                   }
-                  if (r.message.includes("reopened") && r.reopener.id !== process.env["NEXT_PUBLIC_RESOLVER_USER_ID"]) {
+                  if (
+                    r.message.includes("reopened") &&
+                    r.reopener &&
+                    r.reopener.id !==
+                      process.env["NEXT_PUBLIC_RESOLVER_USER_ID"]
+                  ) {
                     const reopener = r.reopener;
                     return (
                       <div
