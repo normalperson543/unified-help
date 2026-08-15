@@ -30,6 +30,7 @@ import {
 import useSWR from "swr";
 import { INoteWithSlackUser, TicketWithReplies } from "../lib/types";
 import Post from "./post";
+import SuggestedSolutions from "./suggested-solutions";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
@@ -206,6 +207,10 @@ export default function TicketUI({
       setSending(false);
       return;
     }
+  }
+
+  function handleUseSuggestion(text: string) {
+    setMessage(text);
   }
 
   return (
@@ -548,6 +553,11 @@ export default function TicketUI({
                       </Avatar.Fallback>
                     </Avatar>
                     <div className="flex flex-col gap-2 w-full">
+                      <SuggestedSolutions
+                        ticketId={id}
+                        programId={programId}
+                        onUseSuggestionAction={handleUseSuggestion}
+                      />
                       <TextArea
                         className="w-full h-32"
                         onChange={(e) => setMessage(e.target.value)}

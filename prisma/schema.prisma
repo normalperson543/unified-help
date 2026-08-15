@@ -36,6 +36,28 @@ model Ticket {
   firstResponseUserId String?
   tag                 Tag[]
   inotes              INote[]
+  embedding           TicketEmbedding?
+  suggestedSolution   SuggestedSolution?
+}
+
+model TicketEmbedding {
+  id          String   @id @unique @default(uuid())
+  ticketId    String   @unique
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  embedding   Json
+  model       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SuggestedSolution {
+  id           String   @id @unique @default(uuid())
+  ticketId     String   @unique
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  status       String
+  suggestions  Json
+  generatedAt  DateTime @default(now())
+  errorMessage String?
 }
 
 model Program {

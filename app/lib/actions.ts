@@ -8,6 +8,8 @@ import { createUser, postMessageAsResolver, replyAsUser } from "./slack";
 import { redirect } from "next/navigation";
 import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
+import { ensureTicketEmbedded } from "./ai/embeddings";
+import { isAiEnabled } from "./ai/config";
 
 export async function startBacklog(
   programId: string,
@@ -579,6 +581,13 @@ export async function resolveTicket(ticketId: string) {
     "?resolve",
     `Marked as resolved by <@${session.user.slackId}>.`,
   );
+
+  // Index this resolved ticket for future AI suggestions without blocking the resolve flow.
+  if (isAiEnabled()) {
+    ensureTicketEmbedded(ticketId).catch((e) => {
+      console.error("Failed to embed resolved ticket:", e);
+    });
+  }
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
