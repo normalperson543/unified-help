@@ -555,7 +555,7 @@ export async function resolveTicket(ticketId: string) {
       data: {
         resolverId: session.user.slackId,
         status: 2,
-        resolveTime: Date.now() - Number(ticket.messageId) * 1000,
+        resolveTime: (Date.now() - Number(ticket.messageId) * 1000) / 1000,
         resolveDate: new Date(),
       },
       include: {
