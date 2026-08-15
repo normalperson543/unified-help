@@ -32,10 +32,13 @@ function sanitize(text: string) {
   return neutralizeSpecialMentions(escapeAngleBrackets(text));
 }
 function escapeAngleBrackets(text: string) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 function neutralizeSpecialMentions(text: string) {
-  return text.replace(/@(channel|here|everyone)\b/gi, '@\u200B$1');
+  return text.replace(/@(channel|here|everyone)\b/gi, "@\u200B$1");
 }
 export async function replyAsUser(
   threadTs: string,
@@ -51,7 +54,7 @@ export async function replyAsUser(
   const safeUserId = sanitize(userId);
   const safeProgramId = sanitize(programId);
   const safeTicketId = sanitize(ticketId);
-  
+
   const ctx = {
     type: "context",
     elements: [
@@ -79,5 +82,33 @@ export async function replyAsUser(
     text: safeMessage,
     icon_url: `https://cachet.dunkirk.sh/users/${userId}/r`,
     unfurl_links: false,
+  });
+}
+export async function postMessageAsResolver(threadTs: string, channel: string, message: string, intro: string) {
+ await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+    },
+    body: new URLSearchParams({
+      token: process.env["SLACK_XOXC_TOKEN"]!,
+      channel: channel,
+      thread_ts: threadTs,
+      text: intro,
+    }),
+ });
+  await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+    },
+    body: new URLSearchParams({
+      token: process.env["SLACK_XOXC_TOKEN"]!,
+      channel: channel,
+      thread_ts: threadTs,
+      text: message,
+    }),
   });
 }

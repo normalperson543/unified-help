@@ -39,6 +39,8 @@ import {
   disconnectTag,
   postINote,
   replyToTicket,
+  resolveTicket,
+  reopenTicket
 } from "../lib/actions";
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
@@ -68,6 +70,7 @@ export default function TicketUI({
 
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [resolving, setResolving] = useState(false);
   const [ctx, setCtx] = useState(() => {
     if (typeof window === "undefined") return true; // this useState was ai generated
     const stored = localStorage.getItem("ticket-attribution-enabled");
@@ -120,12 +123,7 @@ export default function TicketUI({
     try {
       if (!ticket) return;
       setSending(true);
-      await replyToTicket(
-        ticket.id,
-        ticket.programId,
-        message,
-        ctx,
-      );
+      await replyToTicket(ticket.id, ticket.programId, message, ctx);
       toast("Posted!", {
         indicator: <CheckIcon />,
       });
@@ -140,6 +138,50 @@ export default function TicketUI({
       });
       console.error(e);
       setSending(false);
+      return;
+    }
+  }
+
+  async function handleResolve() {
+    try {
+      if (!ticket) return;
+      setResolving(true);
+      await resolveTicket(ticket.id);
+      toast("Resolved!", {
+        indicator: <CheckIcon />,
+      });
+      mutate();
+      setResolving(false);
+      return;
+    } catch (e) {
+      toast("An error occured when resolving", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      console.error(e);
+      setResolving(false);
+      return;
+    }
+  }
+
+  async function handleReopen() {
+    try {
+      if (!ticket) return;
+      setResolving(true);
+      await reopenTicket(ticket.id);
+      toast("Reopened!", {
+        indicator: <CheckIcon />,
+      });
+      mutate();
+      setResolving(false);
+      return;
+    } catch (e) {
+      toast("An error occured when reopening", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      console.error(e);
+      setResolving(false);
       return;
     }
   }
@@ -383,8 +425,18 @@ export default function TicketUI({
                 op
               />
               {ticket.replies.map((r) => {
-                if (r.slackUser.isBot) {
-                  if (r.message.includes(ticket.program.resolveKeyword)) {
+                if (
+                  r.slackUser.isBot ||
+                  process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] === r.slackUser.id
+                ) {
+                  if (
+                    (r.message.includes(ticket.program.resolveKeyword) &&
+                      process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] !==
+                        r.resolver?.id) ||
+                    (process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] ===
+                      r.slackUser.id &&
+                      r.message.includes("Marked as resolved"))
+                  ) {
                     const resolver = r.resolver;
                     return (
                       <div
@@ -413,7 +465,7 @@ export default function TicketUI({
                       </div>
                     );
                   }
-                  if (r.message.includes("reopened")) {
+                  if (r.message.includes("reopened") && r.reopener.id !== process.env["NEXT_PUBLIC_RESOLVER_USER_ID"]) {
                     const reopener = r.reopener;
                     return (
                       <div
@@ -482,18 +534,57 @@ export default function TicketUI({
                         onChange={(e) => setMessage(e.target.value)}
                         value={message}
                       />
-                      <Button onClick={handlePostMessage} isPending={sending}>
-                        {sending ? (
-                          <>
-                            <Spinner color="current" /> Sending...
-                          </>
-                        ) : (
-                          <>
-                            <SendIcon />
-                            Reply{" "}
-                          </>
+                      <div className="flex gap-2">
+                        <Button onClick={handlePostMessage} isPending={sending}>
+                          {sending ? (
+                            <>
+                              <Spinner color="current" /> Sending...
+                            </>
+                          ) : (
+                            <>
+                              <SendIcon />
+                              Reply{" "}
+                            </>
+                          )}
+                        </Button>
+                        {ticket.status !== 2 && (
+                          <Button
+                            onClick={handleResolve}
+                            isPending={resolving}
+                            variant="secondary"
+                          >
+                            {resolving ? (
+                              <>
+                                <Spinner color="current" /> Resolving...
+                              </>
+                            ) : (
+                              <>
+                                <CheckIcon />
+                                Resolve{" "}
+                              </>
+                            )}
+                          </Button>
                         )}
-                      </Button>
+                        {ticket.status === 2 && (
+                          <Button
+                            onClick={handleReopen}
+                            isPending={resolving}
+                            variant="secondary"
+                          >
+                            {resolving ? (
+                              <>
+                                <Spinner color="current" /> Reopening...
+                              </>
+                            ) : (
+                              <>
+                                <CircleIcon />
+                                Reopen{" "}
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+
                       <Switch isSelected={ctx} onChange={setCtx}>
                         <Switch.Content>
                           <Switch.Control>

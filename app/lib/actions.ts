@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { createUser, replyAsUser } from "./slack";
+import { createUser, postMessageAsResolver, replyAsUser } from "./slack";
 import { redirect } from "next/navigation";
 import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
@@ -523,6 +523,110 @@ export async function replyToTicket(
   }
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }
+export async function resolveTicket(ticketId: string) {
+  await throwIfNoAuth();
+
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id: ticketId
+    },
+    include: {
+      program: true
+    }
+  })
+
+  if (!ticket) return;
+  
+  const helper = await isHelper(ticket.programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    throw new Error("unauthenticated");
+  }
+
+  try {
+    await prisma.ticket.update({
+      where: {
+        id: ticket.id,
+      },
+      data: {
+        resolverId: session.user.slackId,
+        status: 2,
+        resolveTime: Date.now() - Number(ticket.messageId) * 1000,
+        resolveDate: new Date(),
+      },
+      include: {
+        program: true
+      },
+    })
+  } catch (e) {
+    console.error("Problem assigning a resolver: ", e);
+    console.error("Resolver: ", session.user.slackId);
+    console.error("Occurred on ticket ", ticket.id);
+    throw e;
+  }
+  
+  await postMessageAsResolver(ticket.messageId, ticket.program.channelId, "?resolve", `Marked as resolved by <@${session.user.slackId}>.`);
+
+  revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
+}
+
+export async function reopenTicket(ticketId: string) {
+  await throwIfNoAuth();
+
+  const ticket = await prisma.ticket.findUnique({
+    where: {
+      id: ticketId
+    },
+    include: {
+      program: true,
+      assignees: true
+    }
+  })
+
+  if (!ticket) return;
+  
+  const helper = await isHelper(ticket.programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    throw new Error("unauthenticated");
+  }
+
+  try {
+    await prisma.ticket.update({
+      where: {
+        id: ticket.id,
+      },
+      data: {
+        resolver: {
+          disconnect: true,
+        },
+        resolveTime: 0,
+        status: ticket.assignees.length > 0 ? 1 : 0,
+        resolveDate: null,
+      },
+      include: {
+        assignees: true,
+      },
+    })
+  } catch (e) {
+    console.error("Problem reopening: ", e);
+    console.error("Occurred on ticket ", ticket.id);
+    throw e;
+  }
+  
+  await postMessageAsResolver(ticket.messageId, ticket.program.channelId, "?reopen", `This ticket was reopened by <@${session.user.slackId}>.`);
+
+  revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
+}
+
 export async function postINote(
   ticketId: string,
   programId: string,

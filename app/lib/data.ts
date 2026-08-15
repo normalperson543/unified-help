@@ -143,6 +143,21 @@ export async function getUserRepliesCount(userId: string, programId?: string) {
     },
   });
 }
+function average(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
 export async function getUserFirstResponseTime(
   userId: string,
   oldest: Date,
@@ -153,10 +168,7 @@ export async function getUserFirstResponseTime(
   // just to clarify:
   // i count any ticket that has been claimed FIRST by the assigned user.
   // what is NOT counted: if you reply to a post after someone already claimed it
-  const res = await prisma.ticket.aggregate({
-    _avg: {
-      responseTime: true,
-    },
+  const tickets = await prisma.ticket.findMany({
     where: {
       firstResponseUserId: userId,
       programId: programId,
@@ -168,8 +180,15 @@ export async function getUserFirstResponseTime(
         lte: newest,
       },
     },
+    select: {
+      responseTime: true,
+    },
   });
-  return res._avg.responseTime;
+  const times = tickets.map((t) => t.responseTime);
+  return {
+    avg: average(times),
+    median: median(times),
+  };
 }
 export async function getUserResolveTime(
   userId: string,
@@ -178,10 +197,7 @@ export async function getUserResolveTime(
   programId?: string,
 ) {
   await throwIfNoAuth();
-  const res = await prisma.ticket.aggregate({
-    _avg: {
-      resolveTime: true,
-    },
+  const tickets = await prisma.ticket.findMany({
     where: {
       programId: programId,
       resolverId: userId,
@@ -198,8 +214,15 @@ export async function getUserResolveTime(
         lte: newest,
       },
     },
+    select: {
+      resolveTime: true,
+    },
   });
-  return res._avg.resolveTime;
+  const times = tickets.map((t) => t.resolveTime);
+  return {
+    avg: average(times),
+    median: median(times),
+  };
 }
 
 // REVIEWER NOTE: The activity-bucketing code below was made with Claude Code.

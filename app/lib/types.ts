@@ -1,4 +1,4 @@
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, SlackUser, Ticket } from "@/generated/prisma/client";
 
 export type SlackUserWithPrograms = Prisma.SlackUserGetPayload<{
   include: { programs: true };

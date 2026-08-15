@@ -59,16 +59,13 @@ export default async function ProfilePage({
   const { profileId } = await params;
   const profile = await getSlackUserDetailedCached(profileId);
   if (!profile) notFound();
-  const frt = await getUserFirstResponseTime(
-    profileId,
-    new Date(0),
-    new Date(),
-  ); //lmao this is temporary
-  const resolveTime = await getUserResolveTime(
+  const { avg: frt, median: frtMedian } = await getUserFirstResponseTime(
     profileId,
     new Date(0),
     new Date(),
   );
+  const { avg: resolveTime, median: resolveTimeMedian } =
+    await getUserResolveTime(profileId, new Date(0), new Date());
   const activity = await getUserAnswerActivity(profileId);
   const assignedAndResolvedCount =
     await getAllAssignedAndResolvedTicketsCount(profileId);
@@ -79,7 +76,9 @@ export default async function ProfilePage({
     <ProfileUI
       profile={profile}
       frt={frt}
+      frtMedian={frtMedian}
       resolveTime={resolveTime}
+      resolveTimeMedian={resolveTimeMedian}
       activity={activity}
       assignedAndResolvedCount={assignedAndResolvedCount}
       repliesCount={repliesCount}

@@ -39,7 +39,9 @@ export default function ProfileUI({
   profile,
   program,
   frt,
+  frtMedian,
   resolveTime,
+  resolveTimeMedian,
   activity,
   assignedAndResolvedCount,
   repliesCount,
@@ -49,7 +51,9 @@ export default function ProfileUI({
   profile: SlackUserDetailed;
   program?: Program;
   frt?: number | null | undefined;
+  frtMedian?: number | null | undefined;
   resolveTime?: number | null | undefined;
+  resolveTimeMedian?: number | null | undefined;
   activity: AnswerActivity;
   assignedAndResolvedCount: number;
   repliesCount: number;
@@ -248,6 +252,9 @@ export default function ProfileUI({
               {frt ? Math.round((frt / 60) * 100) / 100 : "N/A"}
             </p>
             <p>minutes</p>
+            <p className="text-muted text-sm">
+              Median: {frtMedian ? Math.round((frtMedian / 60) * 100) / 100 : "N/A"} min
+            </p>
             <ReplyIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"
@@ -261,6 +268,9 @@ export default function ProfileUI({
               {resolveTime ? Math.round((resolveTime / 60) * 100) / 100 : "N/A"}
             </p>
             <p>minutes</p>
+            <p className="text-muted text-sm">
+              Median: {resolveTimeMedian ? Math.round((resolveTimeMedian / 60) * 100) / 100 : "N/A"} min
+            </p>
             <ClockCheckIcon
               width={64}
               className="bottom-2 -right-2 absolute opacity-30"

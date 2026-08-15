@@ -25,12 +25,18 @@ export async function GET(
   const replies = await Promise.all(
     ticket.replies.map(async (r) => {
       if (
-        r.slackUser.isBot &&
-        r.message.includes(ticket.program.resolveKeyword)
+        (r.slackUser.isBot &&
+          r.message.includes(ticket.program.resolveKeyword)) ||
+        (process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] === r.slackUser.id &&
+          r.message.includes("Marked as resolved"))
       ) {
         return { ...r, resolver: await getResolver(r.message) };
       }
-      if (r.slackUser.isBot && r.message.includes("reopened")) {
+      if (
+        (r.slackUser.isBot ||
+          process.env["NEXT_PUBLIC_RESOLVER_USER_ID"] === r.slackUser.id) &&
+        r.message.includes("reopened")
+      ) {
         return { ...r, reopener: await getResolver(r.message) };
       }
       return r;
