@@ -384,6 +384,8 @@ export async function replyToTicket(
   message: string,
   enableCtx: boolean,
 ) {
+  if (message.length === 0) throw new Error("Message is too short");
+  
   let assignedFirst = false;
 
   await throwIfNoAuth();

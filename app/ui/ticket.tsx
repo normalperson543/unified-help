@@ -554,7 +554,7 @@ export default function TicketUI({
                         value={message}
                       />
                       <div className="flex gap-2">
-                        <Button onClick={handlePostMessage} isPending={sending}>
+                        <Button onClick={handlePostMessage} isPending={sending} isDisabled={message.length === 0}>
                           {sending ? (
                             <>
                               <Spinner color="current" /> Sending...
