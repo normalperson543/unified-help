@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./ui/header";
 import { Toast } from "@heroui/react";
 import PlausibleProvider from "next-plausible";
+import { HammerIcon } from "lucide-react";
 
 const ibmPlexSans = Google_Sans_Flex({
   subsets: ["latin"],
@@ -25,7 +26,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark`}
+      className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
     >
       <Toast.Provider placement="top" />
       <body className="min-h-full flex flex-col bg-background text-foreground">
@@ -34,6 +35,14 @@ export default async function RootLayout({
           enabled
         >
           <div className="flex flex-col h-screen">
+            {process.env["NODE_ENV"] === "development" && (
+              <div className="bg-[repeating-linear-gradient(45deg,#FFD700,#FFD700_20px,#111_20px,#111_40px)] flex flex-row gap-2 items-center justify-center text-center font-bold">
+                <div className="flex flex-row gap-2 items-center justify-center text-center bg-white text-red-500">
+                  <HammerIcon width={12} />
+                  Development Build
+                </div>
+              </div>
+            )}
             <Header />
             {children}
           </div>

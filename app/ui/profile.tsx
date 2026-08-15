@@ -247,13 +247,13 @@ export default function ProfileUI({
         </Card>
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">First response time</p>
+            <p className="text-muted uppercase">Median first response time</p>
             <p className="font-bold text-3xl">
-              {frt ? Math.round((frt / 60) * 100) / 100 : "N/A"}
+              {frtMedian ? Math.round((frtMedian / 60) * 100) / 100 : "N/A"}
             </p>
             <p>minutes</p>
             <p className="text-muted text-sm">
-              Median: {frtMedian ? Math.round((frtMedian / 60) * 100) / 100 : "N/A"} min
+              Average: {frt ? Math.round((frt / 60) * 100) / 100 : "N/A"} min
             </p>
             <ReplyIcon
               width={64}
@@ -263,13 +263,17 @@ export default function ProfileUI({
         </Card>
         <Card className="basis-50 grow shrink relative">
           <div className="flex flex-col gap-1">
-            <p className="text-muted uppercase">Resolve time</p>
+            <p className="text-muted uppercase">Median resolve time</p>
             <p className="font-bold text-3xl">
-              {resolveTime ? Math.round((resolveTime / 60) * 100) / 100 : "N/A"}
+              {resolveTimeMedian
+                ? Math.round((resolveTimeMedian / 60) * 100) / 100
+                : "N/A"}
             </p>
             <p>minutes</p>
             <p className="text-muted text-sm">
-              Median: {resolveTimeMedian ? Math.round((resolveTimeMedian / 60) * 100) / 100 : "N/A"} min
+              Average:{" "}
+              {resolveTime ? Math.round((resolveTime / 60) * 100) / 100 : "N/A"}{" "}
+              min
             </p>
             <ClockCheckIcon
               width={64}
