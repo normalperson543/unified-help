@@ -425,9 +425,9 @@ export default function TicketUI({
               />
               {ticket.replies.map((r) => {
                 const m = RESOLVE_MACROS.findLast(
-                  (m) => m.keyword === r.message,
+                  (m) => r.message.includes(m.keyword),
                 );
-                if (m) {
+                if (m && r.slackUser.isBot) {
                   return (
                     <div
                       key={r.id}
