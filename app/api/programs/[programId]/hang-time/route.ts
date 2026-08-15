@@ -31,5 +31,5 @@ export async function GET(
     newestDate = new Date();
   }
   const hangTime = await getHangTime(programId, oldestDate, newestDate);
-  return new Response(JSON.stringify({ time: hangTime }));
+  return new Response(JSON.stringify(hangTime));
 }

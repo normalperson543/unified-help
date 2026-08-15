@@ -271,12 +271,21 @@ export default function ProgramUI() {
               <div className="flex flex-col gap-1">
                 <p className="text-muted uppercase">Hang time</p>
                 <p className="font-bold text-3xl">
-                  {hangTime ? Math.round((hangTime.time / 60) * 100) / 100 : 0}
+                  {hangTime?.median
+                    ? Math.round((hangTime.median / 60) * 100) / 100
+                    : 0}
                 </p>
                 {(hangTimeError || hangTimeIsLoading) && (
                   <p className="font-bold text-3xl">N/A</p>
                 )}
                 <p>minutes</p>
+                <p className="text-muted text-sm">
+                  Average:{" "}
+                  {hangTime?.average
+                    ? Math.round((hangTime.average / 60) * 100) / 100
+                    : 0}{" "}
+                  min
+                </p>
                 <ClockIcon
                   width={64}
                   className="bottom-2 -right-2 absolute opacity-30"
@@ -287,14 +296,21 @@ export default function ProgramUI() {
               <div className="flex flex-col gap-1">
                 <p className="text-muted uppercase">Resolve time</p>
                 <p className="font-bold text-3xl">
-                  {resolveTime
-                    ? Math.round((resolveTime.time / 60) * 100) / 100
+                  {resolveTime?.median
+                    ? Math.round((resolveTime.median / 60) * 100) / 100
                     : 0}
                 </p>
                 {(resolveTimeError || resolveTimeIsLoading) && (
                   <p className="font-bold text-3xl">N/A</p>
                 )}
                 <p>minutes</p>
+                <p className="text-muted text-sm">
+                  Average:{" "}
+                  {resolveTime?.average
+                    ? Math.round((resolveTime.average / 60) * 100) / 100
+                    : 0}{" "}
+                  min
+                </p>
                 <ClockCheckIcon
                   width={64}
                   className="bottom-2 -right-2 absolute opacity-30"

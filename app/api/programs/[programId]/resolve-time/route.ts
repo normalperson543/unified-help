@@ -30,6 +30,11 @@ export async function GET(
   } else {
     newestDate = new Date();
   }
-  const hangTime = await getResolveTime(programId, oldestDate, newestDate);
-  return new Response(JSON.stringify({ time: hangTime }));
+  const resolveTime = await getResolveTime(programId, oldestDate, newestDate);
+  if (resolveTime === false) {
+    return new Response(JSON.stringify({ status: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+  return new Response(JSON.stringify(resolveTime));
 }

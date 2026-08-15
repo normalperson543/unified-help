@@ -123,10 +123,12 @@ export type AnswerActivity = {
 };
 
 export type HangTime = {
-  time: number;
+  median: number | null;
+  average: number | null;
 };
 export type ResolveTime = {
-  time: number;
+  median: number | null;
+  average: number | null;
 };
 
 export type RouteError = {

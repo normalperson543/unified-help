@@ -575,10 +575,7 @@ export async function getHangTime(
   newest: Date,
 ) {
   await throwIfNoAuth();
-  const res = await prisma.ticket.aggregate({
-    _avg: {
-      responseTime: true,
-    },
+  const tickets = await prisma.ticket.findMany({
     where: {
       programId: programId,
       responseTime: {
@@ -589,8 +586,15 @@ export async function getHangTime(
         lte: newest,
       },
     },
+    select: {
+      responseTime: true,
+    },
   });
-  return res._avg.responseTime;
+  const times = tickets.map((t) => t.responseTime);
+  return {
+    median: median(times),
+    average: average(times),
+  };
 }
 export async function getResolveTime(
   programId: string,
@@ -603,12 +607,12 @@ export async function getResolveTime(
   if (!session || !session.user || !session.user.id) {
     return false;
   }
-  const res = await prisma.ticket.aggregate({
-    _avg: {
-      resolveTime: true,
-    },
+  const tickets = await prisma.ticket.findMany({
     where: {
       programId: programId,
+      resolveTime: {
+        not: 0,
+      },
       responseTime: {
         not: 0,
       },
@@ -620,8 +624,15 @@ export async function getResolveTime(
         lte: newest,
       },
     },
+    select: {
+      resolveTime: true,
+    },
   });
-  return res._avg.resolveTime;
+  const times = tickets.map((t) => t.resolveTime);
+  return {
+    median: median(times),
+    average: average(times),
+  };
 }
 export async function isOrg(programId: string) {
   const session = await auth.api.getSession({
