@@ -76,7 +76,7 @@ export default function ProgramSettings({
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
   const [tagName, setTagName] = useState("");
-
+  const [allowResolver, setAllowResolver] = useState(program.allowResolver);
   const {
     data: backlogStatus,
     error: backlogStatusError,
@@ -163,6 +163,7 @@ export default function ProgramSettings({
       autoIndex,
       resolveKeyword,
       channelId,
+      allowResolver,
     );
     toast("Updated info", {
       indicator: <CheckIcon />,
@@ -252,6 +253,23 @@ export default function ProgramSettings({
             </Switch.Control>
             Enable automatic ticket indexing
           </Switch.Content>
+        </Switch>
+        <Switch isSelected={allowResolver} onChange={setAllowResolver}>
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+            Enable resolving and reopening through Unified Help
+          </Switch.Content>
+          <Description>
+            Helpers can resolve and reopen tickets directly through Unified
+            Help. You must invite the @Unified Help Helper to your channel, and
+            it must be added as a helper in your support bot&apos;s dashboard. Note
+            that resolves in your support bot&apos;s dashboard will be attributed to
+            Unified Help, not the helper. If you enable this, we highly
+            recommend to link a helper channel ID, not a helper user group for
+            security purposes.
+          </Description>
         </Switch>
         <Button onClick={handleUpdateInfo}>
           <SaveIcon /> Save changes

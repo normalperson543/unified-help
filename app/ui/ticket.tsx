@@ -58,7 +58,6 @@ export default function TicketUI({
   signedInUser?: SlackUser | null;
   inotes: INoteWithSlackUser[];
 }) {
-  console.log(inotes);
   const {
     data: ticket,
     error: ticketError,
@@ -567,42 +566,44 @@ export default function TicketUI({
                             </>
                           )}
                         </Button>
-                        {ticket.status !== 2 && (
-                          <Button
-                            onClick={handleResolve}
-                            isPending={resolving}
-                            variant="secondary"
-                          >
-                            {resolving ? (
-                              <>
-                                <Spinner color="current" /> Resolving...
-                              </>
-                            ) : (
-                              <>
-                                <CheckIcon />
-                                Resolve{" "}
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        {ticket.status === 2 && (
-                          <Button
-                            onClick={handleReopen}
-                            isPending={resolving}
-                            variant="secondary"
-                          >
-                            {resolving ? (
-                              <>
-                                <Spinner color="current" /> Reopening...
-                              </>
-                            ) : (
-                              <>
-                                <CircleIcon />
-                                Reopen{" "}
-                              </>
-                            )}
-                          </Button>
-                        )}
+                        {ticket.program.allowResolver &&
+                          ticket.status !== 2 && (
+                            <Button
+                              onClick={handleResolve}
+                              isPending={resolving}
+                              variant="secondary"
+                            >
+                              {resolving ? (
+                                <>
+                                  <Spinner color="current" /> Resolving...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckIcon />
+                                  Resolve{" "}
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        {ticket.program.allowResolver &&
+                          ticket.status === 2 && (
+                            <Button
+                              onClick={handleReopen}
+                              isPending={resolving}
+                              variant="secondary"
+                            >
+                              {resolving ? (
+                                <>
+                                  <Spinner color="current" /> Reopening...
+                                </>
+                              ) : (
+                                <>
+                                  <CircleIcon />
+                                  Reopen{" "}
+                                </>
+                              )}
+                            </Button>
+                          )}
                       </div>
 
                       <Switch isSelected={ctx} onChange={setCtx}>

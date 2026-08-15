@@ -157,6 +157,7 @@ export async function updateInfo(
   canAutoIndex: boolean,
   resolveKeyword: string,
   channelId: string,
+  allowResolver: boolean,
 ) {
   throwIfNoAuth();
   const org = await isOrg(programId);
@@ -170,6 +171,7 @@ export async function updateInfo(
       canAutoIndex: canAutoIndex,
       resolveKeyword: resolveKeyword,
       channelId: channelId,
+      allowResolver: allowResolver,
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -528,15 +530,16 @@ export async function resolveTicket(ticketId: string) {
 
   const ticket = await prisma.ticket.findUnique({
     where: {
-      id: ticketId
+      id: ticketId,
     },
     include: {
-      program: true
-    }
-  })
+      program: true,
+    },
+  });
 
   if (!ticket) return;
-  
+  if (!ticket.program.allowResolver) throw new Error("Program does not allow resolving through Unified Help")
+
   const helper = await isHelper(ticket.programId);
   if (!helper) throw new Error("unauthorized");
 
@@ -559,17 +562,22 @@ export async function resolveTicket(ticketId: string) {
         resolveDate: new Date(),
       },
       include: {
-        program: true
+        program: true,
       },
-    })
+    });
   } catch (e) {
     console.error("Problem assigning a resolver: ", e);
     console.error("Resolver: ", session.user.slackId);
     console.error("Occurred on ticket ", ticket.id);
     throw e;
   }
-  
-  await postMessageAsResolver(ticket.messageId, ticket.program.channelId, "?resolve", `Marked as resolved by <@${session.user.slackId}>.`);
+
+  await postMessageAsResolver(
+    ticket.messageId,
+    ticket.program.channelId,
+    "?resolve",
+    `Marked as resolved by <@${session.user.slackId}>.`,
+  );
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
@@ -579,16 +587,17 @@ export async function reopenTicket(ticketId: string) {
 
   const ticket = await prisma.ticket.findUnique({
     where: {
-      id: ticketId
+      id: ticketId,
     },
     include: {
       program: true,
-      assignees: true
-    }
-  })
+      assignees: true,
+    },
+  });
 
   if (!ticket) return;
-  
+  if (!ticket.program.allowResolver) throw new Error("Program does not allow resolving through Unified Help")
+
   const helper = await isHelper(ticket.programId);
   if (!helper) throw new Error("unauthorized");
 
@@ -615,14 +624,19 @@ export async function reopenTicket(ticketId: string) {
       include: {
         assignees: true,
       },
-    })
+    });
   } catch (e) {
     console.error("Problem reopening: ", e);
     console.error("Occurred on ticket ", ticket.id);
     throw e;
   }
-  
-  await postMessageAsResolver(ticket.messageId, ticket.program.channelId, "?reopen", `This ticket was reopened by <@${session.user.slackId}>.`);
+
+  await postMessageAsResolver(
+    ticket.messageId,
+    ticket.program.channelId,
+    "?reopen",
+    `This ticket was reopened by <@${session.user.slackId}>.`,
+  );
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
@@ -668,15 +682,15 @@ export async function deleteProgram(programId: string) {
     });
     await prisma.iNote.deleteMany({
       where: {
-        ticketId: tickets[i].id
-      }
-    })
+        ticketId: tickets[i].id,
+      },
+    });
   }
   await prisma.tag.deleteMany({
     where: {
-      programId: programId
-    }
-  })
+      programId: programId,
+    },
+  });
   await prisma.ticket.deleteMany({
     where: {
       programId: programId,
