@@ -39,7 +39,7 @@ import NotFound from "./not-found";
 
 // Claude changed this line while doing the pie chart
 // Open, Assigned, Resolved — matching the ticket status chip colors.
-const STATS_COLORS = ["var(--warning)", "var(--accent)", "var(--success)"];
+const STATS_COLORS = ["var(--warning)", "var(--color-blue-500)", "var(--success)"];
 
 const StatsCustomPie = (props: PieSectorShapeProps) => (
   <Sector {...props} fill={STATS_COLORS[props.index % STATS_COLORS.length]} />
