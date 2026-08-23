@@ -1,4 +1,5 @@
 import { getProgramStatistics, getUserAuthStatus } from "@/app/lib/data";
+import { jsonResponse } from "@/app/lib/tools";
 import { type NextRequest } from "next/server";
 
 export async function GET(
@@ -9,9 +10,7 @@ export async function GET(
 
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthorized" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthorized" }, { status: 401 });
   }
 
   const params = req.nextUrl.searchParams;
@@ -22,7 +21,7 @@ export async function GET(
   if (oldest) {
     oldestDate = new Date(Number(oldest));
   } else {
-    oldestDate = new Date("01-01-2000"); // idk vro
+    oldestDate = new Date("2000-01-01T00:00:00Z");
   }
   let newestDate;
   if (newest) {
@@ -34,8 +33,6 @@ export async function GET(
   const stats = await getProgramStatistics(programId, oldestDate, newestDate);
 
   if (!stats)
-    return new Response(JSON.stringify({ status: "Not found" }), {
-      status: 404,
-    });
-  return new Response(JSON.stringify(stats));
+    return jsonResponse({ status: "Not found" }, { status: 404 });
+  return jsonResponse(stats);
 }

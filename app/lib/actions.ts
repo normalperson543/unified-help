@@ -9,12 +9,17 @@ import { redirect } from "next/navigation";
 import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
 
+export async function lookupSlackUser(slackId: string) {
+  await throwIfNoAuth();
+  return await createUser(slackId);
+}
+
 export async function startBacklog(
   programId: string,
   backlogTo?: string | null,
   backlogFrom?: string | null,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   const session = await auth.api.getSession({
@@ -46,7 +51,7 @@ export async function startBacklog(
 }
 
 export async function stopBacklog(programId: string) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -78,7 +83,7 @@ export async function addAsHelper(
   programId: string,
   revalidate: boolean = true,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   await createUser(slackId);
@@ -100,7 +105,7 @@ export async function addAsHelper(
 }
 
 export async function removeHelper(slackId: string, programId: string) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   await prisma.slackUser.update({
@@ -119,7 +124,7 @@ export async function removeHelper(slackId: string, programId: string) {
 }
 
 export async function saveUserGroup(groupId: string, programId: string) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   await prisma.program.update({
@@ -137,7 +142,7 @@ export async function saveHelperChannelId(
   channelId: string,
   programId: string,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   await prisma.program.update({
@@ -159,7 +164,7 @@ export async function updateInfo(
   channelId: string,
   allowResolver: boolean,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   await prisma.program.update({
@@ -183,10 +188,13 @@ export async function createProgram(
   imageLink: string,
   resolveKeyword: string,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
   const program = await prisma.program.create({
     data: {
       name: name,
@@ -196,12 +204,12 @@ export async function createProgram(
       resolveKeyword: resolveKeyword,
       usersOrganizing: {
         connect: {
-          id: session!.user?.id,
+          id: session.user.id,
         },
       },
       assignedUsers: {
         connect: {
-          id: session!.user.slackId as string,
+          id: session.user.slackId as string,
         },
       },
     },
@@ -212,7 +220,7 @@ export async function indexUsersFromUserGroup(
   groupId: string,
   programId: string,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   const session = await auth.api.getSession({
@@ -244,7 +252,7 @@ export async function indexUsersFromChannel(
   channelId: string,
   programId: string,
 ) {
-  throwIfNoAuth();
+  await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
   const session = await auth.api.getSession({
@@ -342,6 +350,12 @@ export async function connectTag(
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
   const t = await prisma.ticket.update({
     where: {
       id: ticketId,
@@ -364,6 +378,12 @@ export async function disconnectTag(
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
   const t = await prisma.ticket.update({
     where: {
       id: ticketId,
@@ -414,6 +434,7 @@ export async function replyToTicket(
   });
 
   if (!ticket) throw new Error("No ticket");
+  if (ticket.programId !== programId) throw new Error("unauthorized");
 
   let r = await prisma.reply.create({
     data: {
@@ -653,6 +674,12 @@ export async function postINote(
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
 
   const session = await auth.api.getSession({
     headers: await headers(),

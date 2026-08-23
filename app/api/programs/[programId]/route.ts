@@ -1,6 +1,7 @@
 import { ITEMS_PER_PAGE } from "@/app/lib/constants";
 import { getUserAuthStatus } from "@/app/lib/data";
 import { prisma } from "@/app/lib/prisma";
+import { jsonResponse } from "@/app/lib/tools";
 import { Prisma } from "@/generated/prisma/client";
 import { type NextRequest } from "next/server";
 
@@ -10,9 +11,7 @@ export async function GET(
 ) {
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthenticated" }, { status: 401 });
   }
   const { programId } = await ctx.params;
   const id = programId !== "all" ? programId : undefined;
@@ -88,13 +87,11 @@ export async function GET(
     },
   });
   if (!tickets)
-    return new Response(JSON.stringify({ status: "Not found" }), {
-      status: 404,
-    });
-  return new Response(
-    JSON.stringify({
+    return jsonResponse({ status: "Not found" }, { status: 404 });
+  return jsonResponse(
+    {
       tickets: tickets,
       total: count,
-    }),
+    },
   );
 }

@@ -1,5 +1,12 @@
 import { getSlackUser } from "./data";
 
+export function jsonResponse(data: unknown, init?: ResponseInit) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: { "Content-Type": "application/json", ...init?.headers },
+  });
+}
+
 export function getShortTitle(str: string) {
   let cutoff = str.length;
   const KEYWORDS = [",", ".", "-", ":", ";", " and ", " or ", "?"];

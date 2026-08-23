@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "./prisma";
+import { throwIfNoAuth } from "./data";
 
 const FLARON_API_URL =
   process.env["FLARON_API_URL"] ?? "https://flaron.halceon.dev";
@@ -39,6 +40,7 @@ async function fetchFlaron<T>(path: string): Promise<T | null> {
 export async function resolveSlackUser(
   id: string,
 ): Promise<ResolvedSlackUser | null> {
+  await throwIfNoAuth();
   const dbUser = await prisma.slackUser.findUnique({
     where: { id },
   });
@@ -60,6 +62,7 @@ export async function resolveSlackUser(
 export async function resolveSlackChannel(
   id: string,
 ): Promise<ResolvedSlackChannel | null> {
+  await throwIfNoAuth();
   const program = await prisma.program.findFirst({
     where: {
       OR: [{ channelId: id }, { helperChannelId: id }],
@@ -81,6 +84,7 @@ export async function resolveSlackChannel(
 export async function resolveSlackEmoji(
   name: string,
 ): Promise<ResolvedSlackEmoji | null> {
+  await throwIfNoAuth();
   const json = await fetchFlaron<{ data?: { url?: string } }>(
     `/emoji/${encodeURIComponent(name)}`,
   );

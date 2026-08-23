@@ -45,6 +45,7 @@ import {
   deleteProgram,
   deleteTag,
   demoteHelper,
+  lookupSlackUser,
   promoteHelper,
   removeHelper,
   saveHelperChannelId,
@@ -54,7 +55,6 @@ import {
   updateInfo,
 } from "../lib/actions";
 import { getLocalTimeZone } from "@internationalized/date";
-import { createUser } from "../lib/slack";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
 import Link from "next/link";
@@ -105,7 +105,7 @@ export default function ProgramSettings({
   async function handleAddUserAsHelper() {
     let user;
     try {
-      user = await createUser(slackId);
+      user = await lookupSlackUser(slackId);
     } catch {
       toast("There was a problem finding this Slack user", {
         description: "Make sure the Slack user ID is correct.",

@@ -1,4 +1,5 @@
 import { getProgram, getUserAuthStatus } from "@/app/lib/data";
+import { jsonResponse } from "@/app/lib/tools";
 import { type NextRequest } from "next/server";
 
 export async function GET(
@@ -8,15 +9,11 @@ export async function GET(
   const { programId } = await ctx.params;
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthenticated" }, { status: 401 });
   }
   const program = await getProgram(programId);
   if (program === null) {
-    return new Response(JSON.stringify({ status: "Not found" }), {
-      status: 404,
-    });
+    return jsonResponse({ status: "Not found" }, { status: 404 });
   }
-  return new Response(JSON.stringify(program));
+  return jsonResponse(program);
 }

@@ -1,15 +1,14 @@
 import { ITEMS_PER_PAGE } from "@/app/lib/constants";
 import { getUserAuthStatus } from "@/app/lib/data";
 import { prisma } from "@/app/lib/prisma";
+import { jsonResponse } from "@/app/lib/tools";
 import { Prisma } from "@/generated/prisma/client";
 import { type NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthenticated" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthenticated" }, { status: 401 });
   }
 
   const params = req.nextUrl.searchParams;
@@ -69,5 +68,5 @@ export async function GET(req: NextRequest) {
       ...(filters.length ? { AND: filters } : {}),
     },
   });
-  return new Response(JSON.stringify({ users: users, total: usersCount }));
+  return jsonResponse({ users: users, total: usersCount });
 }

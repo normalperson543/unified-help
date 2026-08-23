@@ -1,5 +1,6 @@
 // REVIEWER NOTE: This route used for the profile page and program pages to get answer trends data was generated with Claude Code
 import { getProgramReplyActivity, getUserAuthStatus } from "@/app/lib/data";
+import { jsonResponse } from "@/app/lib/tools";
 
 import { type NextRequest } from "next/server";
 
@@ -10,9 +11,7 @@ export async function GET(
   const { programId } = await ctx.params;
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthorized" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthorized" }, { status: 401 });
   }
 
   const params = req.nextUrl.searchParams;
@@ -23,7 +22,7 @@ export async function GET(
   if (oldest) {
     oldestDate = new Date(Number(oldest));
   } else {
-    oldestDate = new Date("01-01-2000"); // idk vro
+    oldestDate = new Date("2000-01-01T00:00:00Z");
   }
   let newestDate;
   if (newest) {
@@ -37,5 +36,5 @@ export async function GET(
     oldestDate,
     newestDate,
   );
-  return new Response(JSON.stringify(activity));
+  return jsonResponse(activity);
 }

@@ -1,4 +1,5 @@
 import { getBacklogStatus, getUserAuthStatus, isOrg } from "@/app/lib/data";
+import { jsonResponse } from "@/app/lib/tools";
 import { BacklogStatus } from "@/app/lib/types";
 
 import { type NextRequest } from "next/server";
@@ -10,19 +11,15 @@ export async function GET(
   const { programId } = await ctx.params;
   const authStatus = await getUserAuthStatus();
   if (authStatus.status === "unauthenticated") {
-    return new Response(JSON.stringify({ status: "Unauthorized" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthorized" }, { status: 401 });
   }
 
   const org = await isOrg(programId);
   if (!org) {
-    return new Response(JSON.stringify({ status: "Unauthorized" }), {
-      status: 401,
-    });
+    return jsonResponse({ status: "Unauthorized" }, { status: 401 });
   }
 
   const backlogStatus: BacklogStatus = await getBacklogStatus(programId);
 
-  return new Response(JSON.stringify(backlogStatus));
+  return jsonResponse(backlogStatus);
 }

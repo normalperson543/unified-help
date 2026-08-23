@@ -1,5 +1,3 @@
-"use server";
-
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
 
@@ -85,30 +83,32 @@ export async function replyAsUser(
   });
 }
 export async function postMessageAsResolver(threadTs: string, channel: string, message: string, intro: string) {
+  const safeMessage = sanitize(message);
+  const safeIntro = sanitize(intro);
  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-    },
-    body: new URLSearchParams({
-      token: process.env["SLACK_XOXC_TOKEN"]!,
-      channel: channel,
-      thread_ts: threadTs,
-      text: intro,
-    }),
- });
-  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-    },
-    body: new URLSearchParams({
-      token: process.env["SLACK_XOXC_TOKEN"]!,
-      channel: channel,
-      thread_ts: threadTs,
-      text: message,
-    }),
+     method: "POST",
+     headers: {
+       "Content-Type": "application/x-www-form-urlencoded",
+       Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+     },
+     body: new URLSearchParams({
+       token: process.env["SLACK_XOXC_TOKEN"]!,
+       channel: channel,
+       thread_ts: threadTs,
+       text: safeIntro,
+     }),
+  });
+   await fetch("https://slack.com/api/chat.postMessage", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/x-www-form-urlencoded",
+       Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+     },
+     body: new URLSearchParams({
+       token: process.env["SLACK_XOXC_TOKEN"]!,
+       channel: channel,
+       thread_ts: threadTs,
+       text: safeMessage,
+     }),
   });
 }

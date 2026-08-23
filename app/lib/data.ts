@@ -751,6 +751,12 @@ export async function getINotes(ticketId: string, programId: string) {
   await throwIfNoAuth();
   const helper = await isHelper(programId);
   if (!helper) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
   
   return await prisma.iNote.findMany({
     where: {
