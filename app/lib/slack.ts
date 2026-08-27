@@ -1,5 +1,6 @@
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
+import { FlaronUserResponse } from "./types";
 
 const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
 
@@ -10,19 +11,68 @@ export async function createUser(id: string) {
       id: id as string,
     },
   });
-  let slackUser;
   if (!dbUser) {
-    slackUser = await web.users.info({
-      user: id as string,
-    });
-
-    dbUser = await prisma.slackUser.create({
-      data: {
-        id: id as string,
-        username:
-          slackUser.user?.real_name ?? slackUser.user?.name ?? "Unknown user",
-      },
-    });
+    const flaronUser = await fetch(`https://flaron.halceon.dev/user/${id}`);
+    if (flaronUser && flaronUser.ok) {
+      const respJson = (await flaronUser.json()) as FlaronUserResponse;
+      let username;
+      if (
+        respJson.data.user.display_name &&
+        respJson.data.user.display_name.length > 0
+      ) {
+        username = respJson.data.user.display_name;
+      } else if (
+        respJson.data.user.real_name &&
+        respJson.data.user.real_name.length > 0
+      ) {
+        username = respJson.data.user.real_name;
+      } else if (
+        respJson.data.user.name &&
+        respJson.data.user.name.length > 0
+      ) {
+        username = respJson.data.user.name;
+      } else {
+        console.warn("WARNING: No username gathered from Flaron ", id);
+        username = "Unknown user";
+      }
+      dbUser = await prisma.slackUser.create({
+        data: {
+          id: id as string,
+          username: username,
+          isBot: respJson.data.user.is_bot ?? false,
+        },
+      });
+    } else {
+      console.warn(
+        `WARNING: Flaron lookup failed for ${id}, falling back to slack lookup`,
+      );
+      const slackUser = await web.users.info({
+        user: id as string,
+      });
+      let username;
+      if (
+        slackUser.user?.profile?.display_name &&
+        slackUser.user?.profile?.display_name.length > 0
+      ) {
+        username = slackUser.user?.profile?.display_name;
+      } else if (
+        slackUser.user?.real_name &&
+        slackUser.user?.real_name.length > 0
+      ) {
+        username = slackUser.user?.real_name;
+      } else if (slackUser.user?.name && slackUser.user?.name.length > 0) {
+        username = slackUser.user?.name;
+      } else {
+        console.warn("WARNING: No username gathered from Flaron ", id);
+        username = "Unknown user";
+      }
+      dbUser = await prisma.slackUser.create({
+        data: {
+          id: id as string,
+          username: username,
+        },
+      });
+    }
   }
   return dbUser;
 }
@@ -82,33 +132,38 @@ export async function replyAsUser(
     unfurl_links: false,
   });
 }
-export async function postMessageAsResolver(threadTs: string, channel: string, message: string, intro: string) {
+export async function postMessageAsResolver(
+  threadTs: string,
+  channel: string,
+  message: string,
+  intro: string,
+) {
   const safeMessage = sanitize(message);
   const safeIntro = sanitize(intro);
- await fetch("https://slack.com/api/chat.postMessage", {
-     method: "POST",
-     headers: {
-       "Content-Type": "application/x-www-form-urlencoded",
-       Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-     },
-     body: new URLSearchParams({
-       token: process.env["SLACK_XOXC_TOKEN"]!,
-       channel: channel,
-       thread_ts: threadTs,
-       text: safeIntro,
-     }),
+  await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+    },
+    body: new URLSearchParams({
+      token: process.env["SLACK_XOXC_TOKEN"]!,
+      channel: channel,
+      thread_ts: threadTs,
+      text: safeIntro,
+    }),
   });
-   await fetch("https://slack.com/api/chat.postMessage", {
-     method: "POST",
-     headers: {
-       "Content-Type": "application/x-www-form-urlencoded",
-       Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-     },
-     body: new URLSearchParams({
-       token: process.env["SLACK_XOXC_TOKEN"]!,
-       channel: channel,
-       thread_ts: threadTs,
-       text: safeMessage,
-     }),
+  await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+    },
+    body: new URLSearchParams({
+      token: process.env["SLACK_XOXC_TOKEN"]!,
+      channel: channel,
+      thread_ts: threadTs,
+      text: safeMessage,
+    }),
   });
 }

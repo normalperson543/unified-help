@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Google_Sans_Flex } from "next/font/google";
 import "./globals.css";
 import Header from "./ui/header";
 import { Toast } from "@heroui/react";
 import PlausibleProvider from "next-plausible";
 import { HammerIcon } from "lucide-react";
-
-const ibmPlexSans = Google_Sans_Flex({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +21,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexSans.className} h-full antialiased bg-gray-50 dark ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
+      className={`h-full antialiased bg-gray-50 dark ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
     >
       <Toast.Provider placement="top" />
       <body className="min-h-full flex flex-col bg-background text-foreground">
