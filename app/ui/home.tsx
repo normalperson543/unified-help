@@ -53,7 +53,7 @@ export default function HomeUI({
               <div className="flex flex-row gap-2">
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">
+                    <p className="text-4xl font-bold">
                       <AnimatedCounter end={stats.tickets} />
                     </p>
                     <p className="text-muted">tickets</p>
@@ -61,7 +61,7 @@ export default function HomeUI({
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">
+                    <p className="text-4xl font-bold">
                       <AnimatedCounter end={stats.replies} />
                     </p>
                     <p className="text-muted">tracked replies</p>
@@ -69,7 +69,7 @@ export default function HomeUI({
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">
+                    <p className="text-4xl font-bold">
                       <AnimatedCounter end={stats.slackUsers} />
                     </p>
                     <p className="text-muted">tracked users</p>
@@ -77,7 +77,7 @@ export default function HomeUI({
                 </Card>
                 <Card className="basis-50 grow shrink relative">
                   <div className="flex flex-col gap-1 items-center text-center">
-                    <p className="text-4xl font-bold italic">
+                    <p className="text-4xl font-bold">
                       <AnimatedCounter end={stats.helpers} />
                     </p>
                     <p className="text-muted">helpers</p>
@@ -180,10 +180,6 @@ export default function HomeUI({
               ))}
             </div>
           </Marquee>
-          <p className="text-muted">
-            Unified Help is not affiliated with, endorsed by, or run by Hack
-            Club HQ - this is a community project.
-          </p>
         </div>
       </div>
     </div>
