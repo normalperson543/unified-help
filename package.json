@@ -5,8 +5,8 @@
   "packageManager": "pnpm@10.29.2",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && next start",
     "lint": "eslint",
     "migrate": "prisma migrate deploy",
     "refetch-usernames": "tsx scripts/refetch-usernames.ts",
@@ -25,7 +25,6 @@
     "lunr": "^2.3.9",
     "motion": "^12.42.2",
     "next": "16.2.11",
-    "next-plausible": "^4.0.0",
     "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

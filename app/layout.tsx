@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "./ui/header";
 import { Toast } from "@heroui/react";
-import PlausibleProvider from "next-plausible";
 import { HammerIcon } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -25,23 +24,18 @@ export default async function RootLayout({
     >
       <Toast.Provider placement="top" />
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <PlausibleProvider
-          src={process.env["NEXT_PUBLIC_PLAUSBLE_TRACKING_URL"]}
-          enabled
-        >
-          <div className="flex flex-col h-screen">
-            {process.env["NODE_ENV"] === "development" && (
-              <div className="bg-[repeating-linear-gradient(45deg,#FFD700,#FFD700_20px,#111_20px,#111_40px)] flex flex-row gap-2 items-center justify-center text-center font-bold">
-                <div className="flex flex-row gap-2 items-center justify-center text-center bg-white text-red-500">
-                  <HammerIcon width={12} />
-                  Development Build
-                </div>
+        <div className="flex flex-col h-screen">
+          {process.env["NODE_ENV"] === "development" && (
+            <div className="bg-[repeating-linear-gradient(45deg,#FFD700,#FFD700_20px,#111_20px,#111_40px)] flex flex-row gap-2 items-center justify-center text-center font-bold">
+              <div className="flex flex-row gap-2 items-center justify-center text-center bg-white text-red-500">
+                <HammerIcon width={12} />
+                Development Build
               </div>
-            )}
-            <Header />
-            {children}
-          </div>
-        </PlausibleProvider>
+            </div>
+          )}
+          <Header />
+          {children}
+        </div>
       </body>
     </html>
   );
