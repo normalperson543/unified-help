@@ -51,12 +51,14 @@ export default function TicketUI({
   isHelper,
   signedInUser,
   inotes,
+  allowReply,
 }: {
   id: string;
   programId: string;
   isHelper: boolean;
   signedInUser?: SlackUser | null;
   inotes: INoteWithSlackUser[];
+  allowReply: boolean;
 }) {
   const {
     data: ticket,
@@ -131,10 +133,21 @@ export default function TicketUI({
       setSending(false);
       return;
     } catch (e) {
-      toast("An error occured when posting", {
-        indicator: <TriangleAlertIcon />,
-        variant: "danger",
-      });
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg === "PARENT_MESSAGE_DELETED") {
+        toast(
+          "This ticket's original Slack message has been deleted, so replies can no longer be posted to this thread.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
+      } else {
+        toast("An error occured when posting", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      }
       console.error(e);
       setSending(false);
       return;
@@ -153,10 +166,21 @@ export default function TicketUI({
       setResolving(false);
       return;
     } catch (e) {
-      toast("An error occured when resolving", {
-        indicator: <TriangleAlertIcon />,
-        variant: "danger",
-      });
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg === "PARENT_MESSAGE_DELETED") {
+        toast(
+          "This ticket's original Slack message has been deleted, so replies can no longer be posted to this thread.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
+      } else {
+        toast("An error occured when resolving", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      }
       console.error(e);
       setResolving(false);
       return;
@@ -175,10 +199,21 @@ export default function TicketUI({
       setResolving(false);
       return;
     } catch (e) {
-      toast("An error occured when reopening", {
-        indicator: <TriangleAlertIcon />,
-        variant: "danger",
-      });
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg === "PARENT_MESSAGE_DELETED") {
+        toast(
+          "This ticket's original Slack message has been deleted, so replies can no longer be posted to this thread.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
+      } else {
+        toast("An error occured when reopening", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      }
       console.error(e);
       setResolving(false);
       return;
@@ -424,8 +459,8 @@ export default function TicketUI({
                 op
               />
               {ticket.replies.map((r) => {
-                const m = RESOLVE_MACROS.findLast(
-                  (m) => r.message.includes(m.keyword),
+                const m = RESOLVE_MACROS.findLast((m) =>
+                  r.message.includes(m.keyword),
                 );
                 if (m && r.slackUser.isBot) {
                   return (
@@ -535,7 +570,7 @@ export default function TicketUI({
                   />
                 );
               })}
-              {isHelper && signedInUser && (
+              {isHelper && signedInUser && allowReply && (
                 <>
                   <div className="flex gap-4 w-full">
                     <Avatar size="sm">
@@ -554,7 +589,11 @@ export default function TicketUI({
                         value={message}
                       />
                       <div className="flex gap-2">
-                        <Button onClick={handlePostMessage} isPending={sending} isDisabled={message.length === 0}>
+                        <Button
+                          onClick={handlePostMessage}
+                          isPending={sending}
+                          isDisabled={message.length === 0}
+                        >
                           {sending ? (
                             <>
                               <Spinner color="current" /> Sending...

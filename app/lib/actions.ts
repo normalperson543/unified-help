@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { createUser, postMessageAsResolver, replyAsUser } from "./slack";
+import { createUser, isParentMessageDeleted, postMessageAsResolver, replyAsUser } from "./slack";
 import { redirect } from "next/navigation";
 import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
@@ -163,6 +163,8 @@ export async function updateInfo(
   resolveKeyword: string,
   channelId: string,
   allowResolver: boolean,
+  supportBotId: string,
+  allowReply: boolean
 ) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
@@ -177,6 +179,8 @@ export async function updateInfo(
       resolveKeyword: resolveKeyword,
       channelId: channelId,
       allowResolver: allowResolver,
+      supportBotId: supportBotId,
+      allowReply: allowReply
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -435,6 +439,11 @@ export async function replyToTicket(
 
   if (!ticket) throw new Error("No ticket");
   if (ticket.programId !== programId) throw new Error("unauthorized");
+  if (!ticket.program.allowReply) throw new Error("Program has disabled replying")
+
+  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+    throw new Error("PARENT_MESSAGE_DELETED");
+  }
 
   let r = await prisma.reply.create({
     data: {
@@ -574,6 +583,10 @@ export async function resolveTicket(ticketId: string) {
     throw new Error("unauthenticated");
   }
 
+  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+    throw new Error("PARENT_MESSAGE_DELETED");
+  }
+
   try {
     await prisma.ticket.update({
       where: {
@@ -631,6 +644,10 @@ export async function reopenTicket(ticketId: string) {
   });
   if (!session || !session.user || !session.user.slackId) {
     throw new Error("unauthenticated");
+  }
+
+  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+    throw new Error("PARENT_MESSAGE_DELETED");
   }
 
   try {

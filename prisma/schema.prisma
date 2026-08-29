@@ -52,6 +52,8 @@ model Program {
   tags            Tag[]
   helperChannelId String?
   allowResolver   Boolean     @default(false)
+  supportBotId    String      @default("")
+  allowReply      Boolean     @default(false)
 }
 
 model SlackUser {

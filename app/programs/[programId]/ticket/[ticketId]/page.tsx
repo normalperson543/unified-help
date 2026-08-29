@@ -2,7 +2,12 @@ import TicketUI from "@/app/ui/ticket";
 import Loading from "@/app/ui/loading";
 import { cache, Suspense } from "react";
 import { Metadata } from "next";
-import { getTicket, getSlackUser, isHelper, getINotes } from "@/app/lib/data";
+import {
+  getTicket,
+  getSlackUser,
+  isHelper,
+  getINotes,
+} from "@/app/lib/data";
 import { getShortTitle } from "@/app/lib/tools";
 import { notFound } from "next/navigation";
 import { auth } from "@/app/lib/auth";
@@ -65,6 +70,7 @@ export default async function ThreadUI({
           isHelper={helper}
           signedInUser={user}
           inotes={inotes}
+          allowReply={ticket.program.allowReply}
         />
       </Suspense>
     );

@@ -36,7 +36,12 @@ export async function GET(req: NextRequest) {
 
   const filters: Prisma.SlackUserWhereInput[] = [];
   if (searchTerm && searchTerm.length > 0) {
-    filters.push({ username: { contains: searchTerm, mode: "insensitive" } });
+    filters.push({
+      OR: [
+        { id: searchTerm },
+        { username: { contains: searchTerm, mode: "insensitive" } },
+      ],
+    });
   }
   if (programs && programs[0].length > 0) {
     filters.push({ programs: { some: { id: { in: programs } } } });

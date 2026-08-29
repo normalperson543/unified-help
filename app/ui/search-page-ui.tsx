@@ -111,15 +111,15 @@ export default function SearchPageUI() {
     // from heroui docs
     const pages: (number | "ellipsis")[] = [];
     pages.push(1);
-    if (usersPage > 3) {
+    if (ticketsPage > 3) {
       pages.push("ellipsis");
     }
-    const start = Math.max(2, usersPage - 1);
-    const end = Math.min(totalTicketPages - 1, usersPage + 1);
+    const start = Math.max(2, ticketsPage - 1);
+    const end = Math.min(totalTicketPages - 1, ticketsPage + 1);
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
-    if (usersPage < totalTicketPages - 2) {
+    if (ticketsPage < totalTicketPages - 2) {
       pages.push("ellipsis");
     }
     if (totalTicketPages > 1) {
@@ -275,7 +275,7 @@ export default function SearchPageUI() {
                 <Pagination.Item key={p}>
                   <Pagination.Link
                     isActive={p === ticketsPage}
-                    onPress={() => setUsersPage(p)}
+                    onPress={() => setTicketsPage(p)}
                   >
                     {p}
                   </Pagination.Link>

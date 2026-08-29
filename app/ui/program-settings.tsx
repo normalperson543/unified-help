@@ -72,10 +72,12 @@ export default function ProgramSettings({
     program.helperChannelId ?? "",
   );
   const [resolveKeyword, setResolveKeyword] = useState(program.resolveKeyword);
+  const [supportBotId, setSupportBotId] = useState(program.supportBotId);
   const [autoIndex, setAutoIndex] = useState(program.canAutoIndex);
   const [userGroup, setUserGroup] = useState(program.userGroup ?? "");
   const [slackId, setSlackId] = useState("");
   const [tagName, setTagName] = useState("");
+  const [allowReply, setAllowReply] = useState(program.allowReply);
   const [allowResolver, setAllowResolver] = useState(program.allowResolver);
   const {
     data: backlogStatus,
@@ -164,6 +166,8 @@ export default function ProgramSettings({
       resolveKeyword,
       channelId,
       allowResolver,
+      supportBotId,
+      allowReply
     );
     toast("Updated info", {
       indicator: <CheckIcon />,
@@ -246,6 +250,16 @@ export default function ProgramSettings({
             onChange={(e) => setResolveKeyword(e.target.value)}
           />
         </TextField>
+        <TextField type="text">
+          <Label htmlFor="programName">Support bot user ID</Label>
+          <Description>
+            Your support bot&apos;s user ID (must begin with U).
+          </Description>
+          <Input
+            value={supportBotId}
+            onChange={(e) => setSupportBotId(e.target.value)}
+          />
+        </TextField>
         <Switch isSelected={autoIndex} onChange={setAutoIndex}>
           <Switch.Content>
             <Switch.Control>
@@ -253,6 +267,19 @@ export default function ProgramSettings({
             </Switch.Control>
             Enable automatic ticket indexing
           </Switch.Content>
+        </Switch>
+        <Switch isSelected={allowReply} onChange={setAllowReply}>
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+            Enable replying through Unified Help
+          </Switch.Content>
+          <Description>
+            Helpers can reply as themselves through Unified Help if you enable
+            this feature. If you enable this, we highly recommend to link a
+            helper channel ID, not a helper user group for security purposes.
+          </Description>
         </Switch>
         <Switch isSelected={allowResolver} onChange={setAllowResolver}>
           <Switch.Content>
@@ -264,11 +291,11 @@ export default function ProgramSettings({
           <Description>
             Helpers can resolve and reopen tickets directly through Unified
             Help. You must invite the @Unified Help Helper to your channel, and
-            it must be added as a helper in your support bot&apos;s dashboard. Note
-            that resolves in your support bot&apos;s dashboard will be attributed to
-            Unified Help, not the helper. If you enable this, we highly
-            recommend to link a helper channel ID, not a helper user group for
-            security purposes.
+            it must be added as a helper in your support bot&apos;s dashboard.
+            Note that resolves in your support bot&apos;s dashboard will be
+            attributed to Unified Help, not the helper. If you enable this, we
+            highly recommend to link a helper channel ID, not a helper user
+            group for security purposes.
           </Description>
         </Switch>
         <Button onClick={handleUpdateInfo}>

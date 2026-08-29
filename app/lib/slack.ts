@@ -88,6 +88,28 @@ function escapeAngleBrackets(text: string) {
 function neutralizeSpecialMentions(text: string) {
   return text.replace(/@(channel|here|everyone)\b/gi, "@\u200B$1");
 }
+export async function isParentMessageDeleted(
+  threadTs: string,
+  channel: string,
+): Promise<boolean> {
+  try {
+    const result = await web.conversations.replies({
+      channel,
+      ts: threadTs,
+      limit: 1,
+    });
+    if (!result.messages || result.messages.length === 0) {
+      return true;
+    }
+    return result.messages[0].ts !== threadTs;
+  } catch (e) {
+    const slackError = e as { data?: { error?: string } };
+    if (slackError.data?.error === "message_not_found") {
+      return true;
+    }
+    throw e;
+  }
+}
 export async function replyAsUser(
   threadTs: string,
   channel: string,
@@ -139,7 +161,6 @@ export async function postMessageAsResolver(
   intro: string,
 ) {
   const safeMessage = sanitize(message);
-  const safeIntro = sanitize(intro);
   await fetch("https://slack.com/api/chat.postMessage", {
     method: "POST",
     headers: {
@@ -150,7 +171,7 @@ export async function postMessageAsResolver(
       token: process.env["SLACK_XOXC_TOKEN"]!,
       channel: channel,
       thread_ts: threadTs,
-      text: safeIntro,
+      text: intro,
     }),
   });
   await fetch("https://slack.com/api/chat.postMessage", {
@@ -163,7 +184,15 @@ export async function postMessageAsResolver(
       token: process.env["SLACK_XOXC_TOKEN"]!,
       channel: channel,
       thread_ts: threadTs,
-      text: safeMessage,
+      blocks: JSON.stringify([
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: safeMessage,
+          },
+        },
+      ]),
     }),
   });
 }
