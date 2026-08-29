@@ -782,3 +782,20 @@ export async function isAdmin() {
   });
   return c > 0;
 }
+
+export async function isSlackAuthenticated() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id || !session.user.slackId) {
+    return false;
+  }
+  const account = await prisma.account.findFirst({
+    where: {
+      userId: session.user.id,
+      providerId: "slack",
+    },
+  });
+
+  return !!account?.accessToken && account.accountId === session.user.slackId;
+}

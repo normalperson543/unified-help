@@ -111,9 +111,9 @@ export async function isParentMessageDeleted(
   }
 }
 export async function replyAsUser(
+  userToken: string,
   threadTs: string,
   channel: string,
-  username: string,
   userId: string,
   message: string,
   enableCtx: boolean,
@@ -134,25 +134,39 @@ export async function replyAsUser(
       },
     ],
   };
-  return await web.chat.postMessage({
-    thread_ts: threadTs,
-    channel: channel,
-    blocks: [
-      {
-        type: "section",
-        expand: true,
-        text: {
-          type: "mrkdwn",
-          text: safeMessage,
+
+  const userWeb = new WebClient(userToken);
+  try {
+    return await userWeb.chat.postMessage({
+      thread_ts: threadTs,
+      channel: channel,
+      blocks: [
+        {
+          type: "section",
+          expand: true,
+          text: {
+            type: "mrkdwn",
+            text: safeMessage,
+          },
         },
-      },
-      ...(enableCtx ? [ctx] : []),
-    ],
-    username: username,
-    text: safeMessage,
-    icon_url: `https://cachet.dunkirk.sh/users/${userId}/r`,
-    unfurl_links: false,
-  });
+        ...(enableCtx ? [ctx] : []),
+      ],
+      text: safeMessage,
+      unfurl_links: false,
+    });
+  } catch (e) {
+    const slackError = e as { data?: { error?: string } };
+    const err = slackError.data?.error;
+    if (
+      err === "token_revoked" ||
+      err === "invalid_auth" ||
+      err === "not_authed" ||
+      err === "account_inactive"
+    ) {
+      throw new Error("SLACK_TOKEN_INVALID");
+    }
+    throw e;
+  }
 }
 export async function postMessageAsResolver(
   threadTs: string,
