@@ -44,6 +44,7 @@ import {
 } from "../lib/actions";
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
+import { authClient } from "../lib/auth-client";
 
 export default function TicketUI({
   id,
@@ -52,6 +53,7 @@ export default function TicketUI({
   signedInUser,
   inotes,
   allowReply,
+  slackAuthenticated,
 }: {
   id: string;
   programId: string;
@@ -59,6 +61,7 @@ export default function TicketUI({
   signedInUser?: SlackUser | null;
   inotes: INoteWithSlackUser[];
   allowReply: boolean;
+  slackAuthenticated: boolean;
 }) {
   const {
     data: ticket,
@@ -79,6 +82,7 @@ export default function TicketUI({
   });
   const [sendingINote, setSendingINote] = useState(false);
   const [inote, setINote] = useState("");
+  const [linkingSlack, setLinkingSlack] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("ticket-attribution-enabled", String(ctx));
@@ -142,6 +146,17 @@ export default function TicketUI({
             variant: "danger",
           },
         );
+      } else if (
+        errMsg === "SLACK_NOT_LINKED" ||
+        errMsg === "SLACK_TOKEN_INVALID"
+      ) {
+        toast(
+          "Your Slack account isn't linked or the link has expired. Please re-link your Slack account to reply.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
       } else {
         toast("An error occured when posting", {
           indicator: <TriangleAlertIcon />,
@@ -152,6 +167,14 @@ export default function TicketUI({
       setSending(false);
       return;
     }
+  }
+
+  async function handleLinkSlack() {
+    setLinkingSlack(true);
+    await authClient.oauth2.link({
+      providerId: "slack",
+      callbackURL: `/programs/${programId}/ticket/${id}`,
+    });
   }
 
   async function handleResolve() {
@@ -570,104 +593,11 @@ export default function TicketUI({
                   />
                 );
               })}
-              {isHelper && signedInUser && allowReply && (
-                <>
-                  <div className="flex gap-4 w-full">
-                    <Avatar size="sm">
-                      <Avatar.Image
-                        src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
-                        alt="Profile picture"
-                      />
-                      <Avatar.Fallback>
-                        {signedInUser.username.substring(0, 1)}
-                      </Avatar.Fallback>
-                    </Avatar>
-                    <div className="flex flex-col gap-2 w-full">
-                      <TextArea
-                        className="w-full h-32"
-                        onChange={(e) => setMessage(e.target.value)}
-                        value={message}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={handlePostMessage}
-                          isPending={sending}
-                          isDisabled={message.length === 0}
-                        >
-                          {sending ? (
-                            <>
-                              <Spinner color="current" /> Sending...
-                            </>
-                          ) : (
-                            <>
-                              <SendIcon />
-                              Reply{" "}
-                            </>
-                          )}
-                        </Button>
-                        {ticket.program.allowResolver &&
-                          ticket.status !== 2 && (
-                            <Button
-                              onClick={handleResolve}
-                              isPending={resolving}
-                              variant="secondary"
-                            >
-                              {resolving ? (
-                                <>
-                                  <Spinner color="current" /> Resolving...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckIcon />
-                                  Resolve{" "}
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        {ticket.program.allowResolver &&
-                          ticket.status === 2 && (
-                            <Button
-                              onClick={handleReopen}
-                              isPending={resolving}
-                              variant="secondary"
-                            >
-                              {resolving ? (
-                                <>
-                                  <Spinner color="current" /> Reopening...
-                                </>
-                              ) : (
-                                <>
-                                  <CircleIcon />
-                                  Reopen{" "}
-                                </>
-                              )}
-                            </Button>
-                          )}
-                      </div>
-
-                      <Switch isSelected={ctx} onChange={setCtx}>
-                        <Switch.Content>
-                          <Switch.Control>
-                            <Switch.Thumb />
-                          </Switch.Control>
-                          Enable attribution in message
-                        </Switch.Content>
-                      </Switch>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-lg font-bold">Internal notes</p>
-                    <p className="text-muted">Only helpers see these notes</p>
-                    {inotes.map((n) => (
-                      <Post
-                        username={n.actor.username}
-                        message={n.message}
-                        slackId={n.actor.id}
-                        key={n.id}
-                        dateCreated={n.dateCreated}
-                        programId={ticket.programId}
-                      />
-                    ))}
+              {isHelper &&
+                signedInUser &&
+                allowReply &&
+                (slackAuthenticated ? (
+                  <>
                     <div className="flex gap-4 w-full">
                       <Avatar size="sm">
                         <Avatar.Image
@@ -681,29 +611,148 @@ export default function TicketUI({
                       <div className="flex flex-col gap-2 w-full">
                         <TextArea
                           className="w-full h-32"
-                          onChange={(e) => setINote(e.target.value)}
-                          value={inote}
+                          onChange={(e) => setMessage(e.target.value)}
+                          value={message}
                         />
-                        <Button
-                          onClick={handlePostINote}
-                          isPending={sendingINote}
-                        >
-                          {sendingINote ? (
-                            <>
-                              <Spinner color="current" /> Adding...
-                            </>
-                          ) : (
-                            <>
-                              <PlusIcon />
-                              Add{" "}
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handlePostMessage}
+                            isPending={sending}
+                            isDisabled={message.length === 0}
+                          >
+                            {sending ? (
+                              <>
+                                <Spinner color="current" /> Sending...
+                              </>
+                            ) : (
+                              <>
+                                <SendIcon />
+                                Reply{" "}
+                              </>
+                            )}
+                          </Button>
+                          {ticket.program.allowResolver &&
+                            ticket.status !== 2 && (
+                              <Button
+                                onClick={handleResolve}
+                                isPending={resolving}
+                                variant="secondary"
+                              >
+                                {resolving ? (
+                                  <>
+                                    <Spinner color="current" /> Resolving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckIcon />
+                                    Resolve{" "}
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          {ticket.program.allowResolver &&
+                            ticket.status === 2 && (
+                              <Button
+                                onClick={handleReopen}
+                                isPending={resolving}
+                                variant="secondary"
+                              >
+                                {resolving ? (
+                                  <>
+                                    <Spinner color="current" /> Reopening...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CircleIcon />
+                                    Reopen{" "}
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                        </div>
+
+                        <Switch isSelected={ctx} onChange={setCtx}>
+                          <Switch.Content>
+                            <Switch.Control>
+                              <Switch.Thumb />
+                            </Switch.Control>
+                            Enable attribution in message
+                          </Switch.Content>
+                        </Switch>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
+                    <div className="flex flex-col gap-2">
+                      <p className="text-lg font-bold">Internal notes</p>
+                      <p className="text-muted">Only helpers see these notes</p>
+                      {inotes.map((n) => (
+                        <Post
+                          username={n.actor.username}
+                          message={n.message}
+                          slackId={n.actor.id}
+                          key={n.id}
+                          dateCreated={n.dateCreated}
+                          programId={ticket.programId}
+                        />
+                      ))}
+                      <div className="flex gap-4 w-full">
+                        <Avatar size="sm">
+                          <Avatar.Image
+                            src={`https://cachet.dunkirk.sh/users/${signedInUser.id}/r`}
+                            alt="Profile picture"
+                          />
+                          <Avatar.Fallback>
+                            {signedInUser.username.substring(0, 1)}
+                          </Avatar.Fallback>
+                        </Avatar>
+                        <div className="flex flex-col gap-2 w-full">
+                          <TextArea
+                            className="w-full h-32"
+                            onChange={(e) => setINote(e.target.value)}
+                            value={inote}
+                          />
+                          <Button
+                            onClick={handlePostINote}
+                            isPending={sendingINote}
+                          >
+                            {sendingINote ? (
+                              <>
+                                <Spinner color="current" /> Adding...
+                              </>
+                            ) : (
+                              <>
+                                <PlusIcon />
+                                Add{" "}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <Alert status="warning">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Title>
+                        To reply, link your Slack account.
+                      </Alert.Title>
+                      <Alert.Description>
+                        <Button
+                          onClick={handleLinkSlack}
+                          isPending={linkingSlack}
+                        >
+                          {linkingSlack ? (
+                            <>
+                              <Spinner color="current" /> Linking...
+                            </>
+                          ) : (
+                            "Sign in with Slack"
+                          )}
+                        </Button>
+                      </Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                ))}
             </div>
           </div>
         </>

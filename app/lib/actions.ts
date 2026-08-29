@@ -445,6 +445,14 @@ export async function replyToTicket(
     throw new Error("PARENT_MESSAGE_DELETED");
   }
 
+  const tokenRes = await auth.api.getAccessToken({
+    body: { providerId: "slack" },
+    headers: await headers(),
+  });
+  if (!tokenRes?.accessToken) {
+    throw new Error("SLACK_NOT_LINKED");
+  }
+
   let r = await prisma.reply.create({
     data: {
       ticketId: ticketId,
@@ -512,9 +520,9 @@ export async function replyToTicket(
   }
 
   const slackR = await replyAsUser(
+    tokenRes.accessToken,
     ticket.messageId,
     ticket.program.channelId,
-    r.slackUser.username,
     r.slackUser.id,
     message,
     enableCtx,
