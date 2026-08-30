@@ -20,6 +20,7 @@ import {
   CircleIcon,
   ClockIcon,
   PlusIcon,
+  RefreshCwIcon,
   ReplyIcon,
   SendIcon,
   SquareArrowOutUpRightIcon,
@@ -38,6 +39,7 @@ import {
   connectTag,
   disconnectTag,
   postINote,
+  reindexTicket,
   replyToTicket,
   resolveTicket,
   reopenTicket,
@@ -54,6 +56,7 @@ export default function TicketUI({
   inotes,
   allowReply,
   slackAuthenticated,
+  isAdmin,
 }: {
   id: string;
   programId: string;
@@ -62,6 +65,7 @@ export default function TicketUI({
   inotes: INoteWithSlackUser[];
   allowReply: boolean;
   slackAuthenticated: boolean;
+  isAdmin: boolean;
 }) {
   const {
     data: ticket,
@@ -83,6 +87,7 @@ export default function TicketUI({
   const [sendingINote, setSendingINote] = useState(false);
   const [inote, setINote] = useState("");
   const [linkingSlack, setLinkingSlack] = useState(false);
+  const [reindexing, setReindexing] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("ticket-attribution-enabled", String(ctx));
@@ -239,6 +244,49 @@ export default function TicketUI({
       }
       console.error(e);
       setResolving(false);
+      return;
+    }
+  }
+
+  async function handleReindex() {
+    try {
+      if (!ticket) return;
+      setReindexing(true);
+      await reindexTicket(ticket.id, ticket.programId);
+      toast("Reindexed!", {
+        indicator: <CheckIcon />,
+      });
+      mutate();
+      setReindexing(false);
+      return;
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg === "SCRAPER_OFFLINE") {
+        toast("The scraper could not be reached. It may be offline.", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      } else if (errMsg === "THREAD_NOT_FOUND") {
+        toast(
+          "This ticket's Slack thread could not be found. It may have been deleted.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
+      } else if (errMsg === "THREAD_IS_PINNED") {
+        toast("This ticket's message is pinned, so it cannot be reindexed.", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      } else {
+        toast("An error occured when reindexing", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      }
+      console.error(e);
+      setReindexing(false);
       return;
     }
   }
@@ -463,14 +511,33 @@ export default function TicketUI({
                   </div>
                 </div>
               </div>
-              <Link
-                href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
-                target="_blank"
-              >
-                <Button>
-                  Open in Slack <SquareArrowOutUpRightIcon />
-                </Button>
-              </Link>
+              <div className="flex gap-2 items-center">
+                {isAdmin && (
+                  <Button
+                    onClick={handleReindex}
+                    isPending={reindexing}
+                    variant="secondary"
+                  >
+                    {reindexing ? (
+                      <>
+                        <Spinner color="current" />
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCwIcon />
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Link
+                  href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
+                  target="_blank"
+                >
+                  <Button>
+                    Open in Slack <SquareArrowOutUpRightIcon />
+                  </Button>
+                </Link>
+              </div>
             </div>
             <div className="flex flex-col gap-4 p-4 ">
               <Post

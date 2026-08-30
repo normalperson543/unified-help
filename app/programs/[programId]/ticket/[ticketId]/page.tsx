@@ -2,7 +2,7 @@ import TicketUI from "@/app/ui/ticket";
 import Loading from "@/app/ui/loading";
 import { cache, Suspense } from "react";
 import { Metadata } from "next";
-import { getTicket, getSlackUser, isHelper, getINotes, isSlackAuthenticated } from "@/app/lib/data";
+import { getTicket, getSlackUser, isHelper, getINotes, isSlackAuthenticated, isAdmin } from "@/app/lib/data";
 import { getShortTitle } from "@/app/lib/tools";
 import { notFound } from "next/navigation";
 import { auth } from "@/app/lib/auth";
@@ -53,6 +53,7 @@ export default async function ThreadUI({
   const ticket = await getTicketCached(ticketId);
   if (ticket) {
     const helper = await isHelper(ticket.program.id);
+    const admin = await isAdmin()
     let inotes: INoteWithSlackUser[] = [];
     if (helper) {
       inotes = await getINotes(ticketId, ticket.programId);
@@ -68,6 +69,7 @@ export default async function ThreadUI({
           inotes={inotes}
           allowReply={ticket.program.allowReply}
           slackAuthenticated={slackAuthenticated}
+          isAdmin={admin}
         />
       </Suspense>
     );

@@ -402,6 +402,51 @@ export async function disconnectTag(
   });
   revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
 }
+export async function reindexTicket(ticketId: string, programId: string) {
+  // this was ai generated as this is an admin-only feature
+  await throwIfNoAuth();
+  const admin = await isAdmin();
+  if (!admin) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+
+  let resp: Response;
+  try {
+    resp = await fetch(
+      `${process.env["SCRAPER_API_URL"]}/api/reindex-ticket/${ticketId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ticketId: ticketId,
+          actorId: session.user.id,
+        }),
+        headers: {
+          "Content-type": "application/json",
+          "x-api-key": process.env["SCRAPER_API_KEY"]!,
+        },
+      },
+    );
+  } catch {
+    throw new Error("SCRAPER_OFFLINE");
+  }
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => null);
+    if (body && typeof body.error === "string") throw new Error(body.error);
+    throw new Error("Could not reindex ticket");
+  }
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
 export async function replyToTicket(
   ticketId: string,
   programId: string,
