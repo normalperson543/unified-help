@@ -9,8 +9,7 @@
     "start": "prisma migrate deploy && next start",
     "lint": "eslint",
     "migrate": "prisma migrate deploy",
-    "refetch-usernames": "tsx scripts/refetch-usernames.ts",
-    "start-backlog-all": "tsx scripts/start-backlog-all.ts"
+    "refetch-usernames": "tsx scripts/refetch-usernames.ts"
   },
   "dependencies": {
     "@heroui/react": "^3.2.1",
