@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     default: "Unified Help",
   },
   description: "All your Hack Club support tickets, under one roof",
+  metadataBase: new URL(process.env["BETTER_AUTH_URL"] ?? "http://localhost:3000"), // i should probably rename this env var
 };
 
 export default async function RootLayout({
