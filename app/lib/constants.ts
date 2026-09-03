@@ -17,4 +17,8 @@ export const RESOLVE_MACROS = [
     keyword: "Please ask questions about project shipping or certifications",
     friendlyMessage: "Redirected to Shipwrights",
   },
+  {
+    keyword: "It seems like this ticket has been inactive for some days so I'll be closing it",
+    friendlyMessage: "Resolved as stale"
+  }
 ];

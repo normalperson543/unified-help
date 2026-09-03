@@ -49,6 +49,10 @@ export default function HomeUI({
                   In depth statistics like resolve time, hang times, and reply
                   trends per user and per program
                 </div>
+                <div className="flex gap-2 items-center">
+                  <CheckIcon />
+                  Reply and resolve tickets within Unified Help without breaking context (on compatible programs)
+                </div>
               </div>
               <div className="flex flex-row gap-2">
                 <Card className="basis-50 grow shrink relative">
