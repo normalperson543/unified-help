@@ -725,7 +725,7 @@ export default function ProgramSettings({
           </Button>
         </TextField>
         <TextField type="text">
-          <Label htmlFor="programName">Linked channel ID</Label>
+          <Label htmlFor="programName">Organizer channel ID</Label>
           <Description>
             Anyone in this channel will automatically be added as a helper. Note
             that users removed from this channel will not be removed in Unified
