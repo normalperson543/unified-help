@@ -24,9 +24,9 @@ import {
 } from "@heroui/react";
 import Link from "next/link";
 import useSWR from "swr";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ITEMS_PER_PAGE, REFRESH_INTERVAL } from "@/app/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
 import Loading from "@/app/ui/loading";
@@ -38,22 +38,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("searchTerm") ?? "",
+  );
   const [searchTermDebounced, setSearchTermDebounced] = useState(searchTerm);
-  const [statusFilter, setStatusFilter] = useState("0,1,2");
+  const [statusFilter, setStatusFilter] = useState(
+    () => searchParams.get("statuses") ?? "0,1,2",
+  );
   const [statusFilterDebounced, setStatusFilterDebounced] =
     useState(statusFilter);
-  const [selectedUsers, setSelectedUsers] = useState<Key[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<Key[]>(() => {
+    const assigneeIds = searchParams.get("assigneeIds");
+    return assigneeIds ? assigneeIds.split(",") : [];
+  });
   const [selectedUsersDebounced, setSelectedUsersDebounced] =
     useState(selectedUsers);
-  const [selectedTags, setSelectedTags] = useState<Key[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Key[]>(() => {
+    const tagIds = searchParams.get("tagIds");
+    return tagIds ? tagIds.split(",") : [];
+  });
   const [selectedTagsDebounced, setSelectedTagsDebounced] =
     useState(selectedTags);
   const [showFilters, setShowFilters] = useState(false);
-  const [sort, setSort] = useState("desc");
+  const [sort, setSort] = useState(() => searchParams.get("order") ?? "desc");
   const [sortDebounced, setSortDebounced] = useState(sort);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  });
   const isFirstLoad = useRef(true);
   const previousData = useRef<ProgramTicketsResponse | null>(null);
   const router = useRouter();
@@ -64,6 +79,41 @@ export default function RootLayout({
       sidebarRef.current.scrollTop = savedSidebarScrollTop;
     }
   });
+
+  useEffect(() => {
+    const newParams = new URLSearchParams();
+    if (searchTermDebounced) {
+      newParams.set("searchTerm", searchTermDebounced);
+    }
+    if (selectedUsersDebounced.length > 0) {
+      newParams.set("assigneeIds", selectedUsersDebounced.join(","));
+    }
+    if (selectedTagsDebounced.length > 0) {
+      newParams.set("tagIds", selectedTagsDebounced.join(","));
+    }
+    if (statusFilterDebounced !== "0,1,2") {
+      newParams.set("statuses", statusFilterDebounced);
+    }
+    if (sortDebounced !== "desc") {
+      newParams.set("order", sortDebounced);
+    }
+    if (page !== 1) {
+      newParams.set("page", String(page));
+    }
+
+    const queryString = newParams.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    router.replace(newUrl, { scroll: false });
+  }, [
+    searchTermDebounced,
+    selectedUsersDebounced,
+    selectedTagsDebounced,
+    statusFilterDebounced,
+    sortDebounced,
+    page,
+    pathname,
+    router,
+  ]);
 
   const {
     data: program,
