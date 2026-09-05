@@ -210,6 +210,54 @@ export async function postMessageAsResolver(
     }),
   });
 }
+export async function postMacroMessage(
+  channelId: string,
+  messageTs: string,
+  username: string,
+  iconUrl: string,
+  message: string,
+  ticketId: string,
+  programId: string,
+) {
+  await web.chat.postMessage({
+    channel: channelId,
+    thread_ts: messageTs,
+    username,
+    icon_url: iconUrl,
+    text: message,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: message,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Reopen", emoji: true },
+            value: ticketId,
+            action_id: "reopen",
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<https://unified.help.hackclub.com/programs/${programId}/ticket/${ticketId}|Open with Unified Help>`,
+          },
+        ],
+      },
+    ],
+    unfurl_links: false,
+  });
+}
+
 export async function resolveMessage(
   channelId: string,
   messageTs: string,

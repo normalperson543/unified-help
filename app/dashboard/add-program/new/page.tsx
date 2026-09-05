@@ -1,5 +1,5 @@
 import { auth } from "@/app/lib/auth";
-import { getUser } from "@/app/lib/data";
+import { canCreateManagedProgram, getUser } from "@/app/lib/data";
 import AddProgramUI from "@/app/ui/add-new";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import Unauthorized from "@/app/ui/unauthorized";
@@ -13,7 +13,7 @@ export default async function AddProgram() {
   let user;
   if (session?.user.id) user = await getUser(session?.user.id);
   if (!user) return <NotLoggedIn />;
-  if (!user.isAdmin) return <Unauthorized />;
+  if (!(await canCreateManagedProgram())) return <Unauthorized />;
 
   return <AddProgramUI />;
 }

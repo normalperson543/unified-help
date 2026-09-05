@@ -5,6 +5,7 @@ import {
   Avatar,
   Chip,
   Button,
+  ButtonGroup,
   Tooltip,
   Alert,
   Dropdown,
@@ -15,6 +16,7 @@ import {
 } from "@heroui/react";
 import {
   CheckIcon,
+  ChevronDownIcon,
   CircleAlertIcon,
   CircleDashedIcon,
   CircleIcon,
@@ -34,7 +36,11 @@ import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
 import Loading from "./loading";
-import { REFRESH_INTERVAL, RESOLVE_MACROS } from "../lib/constants";
+import {
+  REFRESH_INTERVAL,
+  RESOLVE_MACROS,
+  MANAGED_PROGRAM_MACROS,
+} from "../lib/constants";
 import {
   connectTag,
   disconnectTag,
@@ -43,6 +49,7 @@ import {
   replyToTicket,
   resolveTicket,
   reopenTicket,
+  resolveTicketWithMacro,
 } from "../lib/actions";
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
@@ -238,6 +245,39 @@ export default function TicketUI({
         );
       } else {
         toast("An error occured when reopening", {
+          indicator: <TriangleAlertIcon />,
+          variant: "danger",
+        });
+      }
+      console.error(e);
+      setResolving(false);
+      return;
+    }
+  }
+
+  async function handleMacro(macroKey: string) {
+    try {
+      if (!ticket) return;
+      setResolving(true);
+      await resolveTicketWithMacro(ticket.id, macroKey);
+      toast("Resolved!", {
+        indicator: <CheckIcon />,
+      });
+      mutate();
+      setResolving(false);
+      return;
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg === "PARENT_MESSAGE_DELETED") {
+        toast(
+          "This ticket's original Slack message has been deleted, so replies can no longer be posted to this thread.",
+          {
+            indicator: <TriangleAlertIcon />,
+            variant: "danger",
+          },
+        );
+      } else {
+        toast("An error occured when resolving", {
           indicator: <TriangleAlertIcon />,
           variant: "danger",
         });
@@ -700,22 +740,51 @@ export default function TicketUI({
                           </Button>
                           {ticket.program.allowResolver &&
                             ticket.status !== 2 && (
-                              <Button
-                                onClick={handleResolve}
-                                isPending={resolving}
-                                variant="secondary"
-                              >
-                                {resolving ? (
-                                  <>
-                                    <Spinner color="current" /> Resolving...
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckIcon />
-                                    Resolve{" "}
-                                  </>
+                              <ButtonGroup>
+                                <Button
+                                  onClick={handleResolve}
+                                  isPending={resolving}
+                                  variant="secondary"
+                                >
+                                  {resolving ? (
+                                    <>
+                                      <Spinner color="current" /> Resolving...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckIcon />
+                                      Resolve{" "}
+                                    </>
+                                  )}
+                                </Button>
+                                {ticket.program.managed && (
+                                  <Dropdown>
+                                    <Button
+                                      isIconOnly
+                                      variant="secondary"
+                                      aria-label="Resolve with macro"
+                                    >
+                                      <ChevronDownIcon />
+                                    </Button>
+                                    <Dropdown.Popover>
+                                      <Dropdown.Menu>
+                                        {MANAGED_PROGRAM_MACROS.filter(
+                                          (m) =>
+                                            m.action === "resolve" &&
+                                            m.macro !== "?resolve",
+                                        ).map((m) => (
+                                          <Dropdown.Item
+                                            key={m.macro}
+                                            onClick={() => handleMacro(m.macro)}
+                                          >
+                                            {m.label}
+                                          </Dropdown.Item>
+                                        ))}
+                                      </Dropdown.Menu>
+                                    </Dropdown.Popover>
+                                  </Dropdown>
                                 )}
-                              </Button>
+                              </ButtonGroup>
                             )}
                           {ticket.program.allowResolver &&
                             ticket.status === 2 && (

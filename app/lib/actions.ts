@@ -7,13 +7,20 @@ import { prisma } from "./prisma";
 import {
   createUser,
   isParentMessageDeleted,
+  postMacroMessage,
   postMessageAsResolver,
   reopenMessage,
   replyAsUser,
   resolveMessage,
 } from "./slack";
+import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
-import { isAdmin, isHelper, isOrg } from "./data";
+import {
+  canCreateManagedProgram,
+  isAdmin,
+  isHelper,
+  isOrg,
+} from "./data";
 import { throwIfNoAuth } from "./data";
 
 // most of the HC CDN implementation was created with AI
@@ -355,6 +362,7 @@ export async function createManagedProgram(
   supportBotName: string,
 ) {
   await throwIfNoAuth();
+  if (!(await canCreateManagedProgram())) throw new Error("unauthorized");
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -389,6 +397,7 @@ export async function createManagedProgram(
           id: session.user.slackId as string,
         },
       },
+      supportBotName: supportBotName
     },
   });
   await saveHelperChannelId(orgChannelId, program.id);
@@ -897,6 +906,87 @@ export async function resolveTicket(ticketId: string) {
     );
   }
 
+  revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
+}
+
+export async function resolveTicketWithMacro(
+  ticketId: string,
+  macroKey: string,
+) {
+  await throwIfNoAuth();
+
+  const macro = getManagedProgramMacro(macroKey);
+  if (!macro) throw new Error("Invalid macro");
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    include: { program: true, slackUser: true },
+  });
+
+  if (!ticket) return;
+  if (!ticket.program.managed)
+    throw new Error("Macros are only available for managed programs");
+  if (!ticket.program.allowResolver)
+    throw new Error("Program does not allow resolving through Unified Help");
+
+  const helper = await isHelper(ticket.programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.slackId) {
+    throw new Error("unauthenticated");
+  }
+
+  if (
+    await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)
+  ) {
+    throw new Error("PARENT_MESSAGE_DELETED");
+  }
+
+  if (macro.macro === "?resolve") {
+    return resolveTicket(ticketId);
+  }
+  if (macro.macro === "?reopen") {
+    return reopenTicket(ticketId);
+  }
+
+  if (ticket.status === 2) {
+    throw new Error("Ticket is already resolved");
+  }
+
+  const expandedMessage = macro.message.replace(
+    "{USERNAME}",
+    ticket.slackUser.username,
+  );
+
+  try {
+    await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        status: 2,
+        resolveTime: (Date.now() - Number(ticket.messageId) * 1000) / 1000,
+        resolveDate: new Date(),
+      },
+    });
+  } catch (e) {
+    console.error("Problem resolving ticket with macro: ", e);
+    console.error("Occurred on ticket ", ticket.id);
+    throw e;
+  }
+
+  await postMacroMessage(
+    ticket.program.channelId,
+    ticket.messageId,
+    ticket.program.supportBotName,
+    ticket.program.logo ?? "",
+    expandedMessage,
+    ticket.id,
+    ticket.program.id,
+  );
+
+  indexThread(ticket.id, ticket.programId);
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
 

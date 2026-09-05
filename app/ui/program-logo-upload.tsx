@@ -89,7 +89,7 @@ export default function ProgramLogoUpload({
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
       <Description>
-        Images must be smaller than 512x512. Upload your image directly.
+        Images must be smaller than 512x512 and less than 1MB. Upload your image directly.
       </Description>
       <div className="flex items-center gap-3">
         <input
