@@ -104,12 +104,12 @@ export default function HomeUI({
                 </SignInButton>
               )}
               <Link
-                href="https://forms.fillout.com/t/k1NNiLbTasus"
+                href="/dashboard/add-program"
                 target="_blank"
               >
                 <Button variant="secondary">
                   <PencilLineIcon />
-                  Use Unified Help for your program
+                  Get Unified Help for your program
                 </Button>
               </Link>
               <Link

@@ -269,7 +269,7 @@ export default function ProgramUI() {
             </Card>
             <Card className="basis-50 grow shrink relative">
               <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Hang time</p>
+                <p className="text-muted uppercase">Assign time</p>
                 <p className="font-bold text-3xl">
                   {hangTime?.median
                     ? Math.round((hangTime.median / 60) * 100) / 100

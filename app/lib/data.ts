@@ -783,6 +783,19 @@ export async function isAdmin() {
   return c > 0;
 }
 
+export async function canCreateManagedProgram() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.email) {
+    return false;
+  }
+  if (session.user.email.toLowerCase().endsWith("@hackclub.com")) {
+    return true;
+  }
+  return isAdmin();
+}
+
 export async function isSlackAuthenticated() {
   const session = await auth.api.getSession({
     headers: await headers(),

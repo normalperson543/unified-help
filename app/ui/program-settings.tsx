@@ -58,6 +58,7 @@ import { getLocalTimeZone } from "@internationalized/date";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
 import Link from "next/link";
+import ProgramLogoUpload from "./program-logo-upload";
 
 export default function ProgramSettings({
   program,
@@ -79,6 +80,9 @@ export default function ProgramSettings({
   const [tagName, setTagName] = useState("");
   const [allowReply, setAllowReply] = useState(program.allowReply);
   const [allowResolver, setAllowResolver] = useState(program.allowResolver);
+  const [imageLink, setImageLink] = useState(program.logo);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
   const {
     data: backlogStatus,
     error: backlogStatusError,
@@ -159,7 +163,7 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(
+    const savedLogo = await updateInfo(
       program.id,
       programName,
       autoIndex,
@@ -167,8 +171,12 @@ export default function ProgramSettings({
       channelId,
       allowResolver,
       supportBotId,
-      allowReply
+      allowReply,
+      imageFile,
+      imageLink ?? "",
     );
+    setImageFile(null);
+    setImageLink(savedLogo);
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",
@@ -218,7 +226,11 @@ export default function ProgramSettings({
   }
   return (
     <div className="flex flex-col gap-4 p-4 w-full">
-      <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
+      <div className="flex gap-2 items-center">
+        <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
+        {program.managed && <Chip>Managed</Chip>}
+      </div>
+
       <div className="flex flex-col gap-4">
         <TextField type="text">
           <Label htmlFor="programName">Program name</Label>
@@ -239,35 +251,49 @@ export default function ProgramSettings({
             className="font-mono"
           />
         </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Resolve keyword</Label>
-          <Description>
-            This should be a keyword found in your support bot&apos;s message
-            when a ticket is resolved.
-          </Description>
-          <Input
-            value={resolveKeyword}
-            onChange={(e) => setResolveKeyword(e.target.value)}
-          />
-        </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Support bot user ID</Label>
-          <Description>
-            Your support bot&apos;s user ID (must begin with U).
-          </Description>
-          <Input
-            value={supportBotId}
-            onChange={(e) => setSupportBotId(e.target.value)}
-          />
-        </TextField>
-        <Switch isSelected={autoIndex} onChange={setAutoIndex}>
-          <Switch.Content>
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            Enable automatic ticket indexing
-          </Switch.Content>
-        </Switch>
+        <ProgramLogoUpload
+          url={imageLink ?? null}
+          file={imageFile}
+          onChange={({ url, file }) => {
+            setImageLink(url ?? "");
+            setImageFile(file);
+          }}
+          label="Program icon"
+        />
+        {!program.managed && (
+          <>
+            <TextField type="text">
+              <Label htmlFor="programName">Resolve keyword</Label>
+              <Description>
+                This should be a keyword found in your support bot&apos;s
+                message when a ticket is resolved.
+              </Description>
+              <Input
+                value={resolveKeyword}
+                onChange={(e) => setResolveKeyword(e.target.value)}
+              />
+            </TextField>
+            <TextField type="text">
+              <Label htmlFor="programName">Support bot user ID</Label>
+              <Description>
+                Your support bot&apos;s user ID (must begin with U).
+              </Description>
+              <Input
+                value={supportBotId}
+                onChange={(e) => setSupportBotId(e.target.value)}
+              />
+            </TextField>
+            <Switch isSelected={autoIndex} onChange={setAutoIndex}>
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+                Enable automatic ticket indexing
+              </Switch.Content>
+            </Switch>
+          </>
+        )}
+
         <Switch isSelected={allowReply} onChange={setAllowReply}>
           <Switch.Content>
             <Switch.Control>
@@ -277,8 +303,9 @@ export default function ProgramSettings({
           </Switch.Content>
           <Description>
             Helpers can reply as themselves through Unified Help if you enable
-            this feature. If you enable this, we highly recommend to link a
-            helper channel ID, not a helper user group for security purposes.
+            this feature.{" "}
+            {!program.managed &&
+              "If you enable this, we highly recommend to link a helper channel ID, not a helper user group for security purposes."}
           </Description>
         </Switch>
         <Switch isSelected={allowResolver} onChange={setAllowResolver}>
@@ -290,102 +317,101 @@ export default function ProgramSettings({
           </Switch.Content>
           <Description>
             Helpers can resolve and reopen tickets directly through Unified
-            Help. You must invite the @Unified Help Helper to your channel, and
-            it must be added as a helper in your support bot&apos;s dashboard.
-            Note that resolves in your support bot&apos;s dashboard will be
-            attributed to Unified Help, not the helper. If you enable this, we
-            highly recommend to link a helper channel ID, not a helper user
-            group for security purposes.
+            Help.{" "}
+            {!program.managed &&
+              "You must invite the @Unified Help Helper to your channel, and it must be added as a helper in your support bot&apos;s dashboard. Note that resolves in your support bot&apos;s dashboard will be attributed to Unified Help, not the helper. If you enable this, we highly recommend to link a helper channel ID, not a helper user group for security purposes."}
           </Description>
         </Switch>
         <Button onClick={handleUpdateInfo}>
           <SaveIcon /> Save changes
         </Button>
       </div>
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="programName">Backlog</Label>
-        <p className="text-muted">
-          You can choose to index previous tickets from your support channel so
-          that they&apos;ll appear on Unified Help.
-        </p>
-        {backlogStatusError && (
-          <Alert status="danger">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>The backlogger is offline</Alert.Title>
-              <Alert.Description>Please try again later.</Alert.Description>
-            </Alert.Content>
-          </Alert>
-        )}
-        {backlogStatusIsLoading && (
-          <div className="flex flex-row gap-2 items-center">
-            <Spinner />
-            Loading backlog status...
-          </div>
-        )}
-        {backlogStatus && (
-          <div className="flex flex-row gap-2 items-center">
-            {backlogStatus.status === "unqueued" && (
-              <>
-                <InfoIcon width={16} />
-                No active backlog tasks
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "pending" && (
-              <>
-                <ProgressBar
-                  aria-label="Indexing"
-                  className="w-64"
-                  value={backlogPercent}
-                >
-                  <Label>Indexing</Label>
-                  <ProgressBar.Output />
-                  <ProgressBar.Track>
-                    <ProgressBar.Fill />
-                  </ProgressBar.Track>
-                </ProgressBar>
-                <Button onClick={handleStopBacklog}>
-                  <SquareIcon /> Stop
-                </Button>
-              </>
-            )}
-            {backlogStatus.status === "success" && (
-              <>
-                <CheckIcon width={16} />
-                Backlog job completed
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "failed" && (
-              <>
-                <WarningIcon width={16} />
-                Backlog job failed
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "stopped" && (
-              <>
-                <SquareIcon width={16} />
-                Backlog job stopped
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      {!program.managed && (
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="programName">Backlog</Label>
+          <p className="text-muted">
+            You can choose to index previous tickets from your support channel
+            so that they&apos;ll appear on Unified Help.
+          </p>
+          {backlogStatusError && (
+            <Alert status="danger">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>The backlogger is offline</Alert.Title>
+                <Alert.Description>Please try again later.</Alert.Description>
+              </Alert.Content>
+            </Alert>
+          )}
+          {backlogStatusIsLoading && (
+            <div className="flex flex-row gap-2 items-center">
+              <Spinner />
+              Loading backlog status...
+            </div>
+          )}
+          {backlogStatus && (
+            <div className="flex flex-row gap-2 items-center">
+              {backlogStatus.status === "unqueued" && (
+                <>
+                  <InfoIcon width={16} />
+                  No active backlog tasks
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "pending" && (
+                <>
+                  <ProgressBar
+                    aria-label="Indexing"
+                    className="w-64"
+                    value={backlogPercent}
+                  >
+                    <Label>Indexing</Label>
+                    <ProgressBar.Output />
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
+                  <Button onClick={handleStopBacklog}>
+                    <SquareIcon /> Stop
+                  </Button>
+                </>
+              )}
+              {backlogStatus.status === "success" && (
+                <>
+                  <CheckIcon width={16} />
+                  Backlog job completed
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "failed" && (
+                <>
+                  <WarningIcon width={16} />
+                  Backlog job failed
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "stopped" && (
+                <>
+                  <SquareIcon width={16} />
+                  Backlog job stopped
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-col gap-1">
         <div className="flex gap-1 items-center">
           <div className="flex flex-col gap-1 flex-1">
@@ -701,31 +727,33 @@ export default function ProgramSettings({
             </Table.Content>
           </Table.ScrollContainer>
         </Table>
-
+        {!program.managed && (
+          <TextField type="text">
+            <Label htmlFor="programName">Linked user group</Label>
+            <Description>
+              Anyone in this user group will automatically be added as a helper.
+              Note that users removed from this ping group will not be removed
+              in Unified Help.
+            </Description>
+            <Description>
+              Enter the group ID of the user group you want to link. You can
+              find this by opening the user group on Slack, clicking the three
+              dots, and clicking &quot;Copy group ID&quot;. Group IDs begin with
+              S.
+            </Description>
+            <Input
+              id="userGroup"
+              value={userGroup}
+              onChange={(e) => setUserGroup(e.target.value)}
+              className="font-mono"
+            />
+            <Button onClick={handleSaveGroupId}>
+              <SaveIcon /> Save changes
+            </Button>
+          </TextField>
+        )}
         <TextField type="text">
-          <Label htmlFor="programName">Linked user group</Label>
-          <Description>
-            Anyone in this user group will automatically be added as a helper.
-            Note that users removed from this ping group will not be removed in
-            Unified Help.
-          </Description>
-          <Description>
-            Enter the group ID of the user group you want to link. You can find
-            this by opening the user group on Slack, clicking the three dots,
-            and clicking &quot;Copy group ID&quot;. Group IDs begin with S.
-          </Description>
-          <Input
-            id="userGroup"
-            value={userGroup}
-            onChange={(e) => setUserGroup(e.target.value)}
-            className="font-mono"
-          />
-          <Button onClick={handleSaveGroupId}>
-            <SaveIcon /> Save changes
-          </Button>
-        </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Linked channel ID</Label>
+          <Label htmlFor="programName">Organizer channel ID</Label>
           <Description>
             Anyone in this channel will automatically be added as a helper. Note
             that users removed from this channel will not be removed in Unified

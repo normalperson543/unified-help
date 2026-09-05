@@ -210,3 +210,169 @@ export async function postMessageAsResolver(
     }),
   });
 }
+export async function postMacroMessage(
+  channelId: string,
+  messageTs: string,
+  username: string,
+  iconUrl: string,
+  message: string,
+  ticketId: string,
+  programId: string,
+) {
+  await web.chat.postMessage({
+    channel: channelId,
+    thread_ts: messageTs,
+    username,
+    icon_url: iconUrl,
+    text: message,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: message,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Reopen", emoji: true },
+            value: ticketId,
+            action_id: "reopen",
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<https://unified.help.hackclub.com/programs/${programId}/ticket/${ticketId}|Open with Unified Help>`,
+          },
+        ],
+      },
+    ],
+    unfurl_links: false,
+  });
+}
+
+export async function resolveMessage(
+  channelId: string,
+  messageTs: string,
+  username: string,
+  iconUrl: string,
+  resolverId: string,
+  resolveMessage: string,
+  ticketId: string,
+  programId: string,
+) {
+  await web.chat.postMessage({
+    channel: channelId,
+    thread_ts: messageTs,
+    username: username,
+    icon_url: iconUrl,
+    text: `<@${resolverId}> marked this as resolved.`,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: resolveMessage,
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `<@${resolverId}> marked this as resolved. If this issue is still unresolved, click the **Reopen** button.`,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Reopen",
+              emoji: true,
+            },
+            value: ticketId,
+            action_id: "reopen",
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<https://unified.help.hackclub.com/programs/${programId}/ticket/${ticketId}|Open with Unified Help>`,
+          },
+        ],
+      },
+    ],
+    unfurl_links: false,
+  });
+}
+export async function reopenMessage(
+  channelId: string,
+  messageTs: string,
+  username: string,
+  iconUrl: string,
+  reopenerId: string,
+  reopenMessage: string,
+  ticketId: string,
+  programId: string,
+) {
+  await web.chat.postMessage({
+    channel: channelId,
+    thread_ts: messageTs,
+    username: username,
+    icon_url: iconUrl,
+    text: `This ticket was reopened by <@${reopenerId}>.`,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: reopenMessage,
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `This ticket was reopened by <@${reopenerId}>. To close it, click Resolve.`,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Reopen",
+              emoji: true,
+            },
+            value: ticketId,
+            action_id: "reopen",
+          },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<https://unified.help.hackclub.com/programs/${programId}/ticket/${ticketId}|Open with Unified Help>`,
+          },
+        ],
+      },
+    ],
+    unfurl_links: false,
+  });
+}
