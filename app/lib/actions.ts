@@ -15,12 +15,7 @@ import {
 } from "./slack";
 import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
-import {
-  canCreateManagedProgram,
-  isAdmin,
-  isHelper,
-  isOrg,
-} from "./data";
+import { canCreateManagedProgram, isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
 
 // most of the HC CDN implementation was created with AI
@@ -397,7 +392,8 @@ export async function createManagedProgram(
           id: session.user.slackId as string,
         },
       },
-      supportBotName: supportBotName
+      supportBotName: supportBotName,
+      supportBotId: process.env["SLACK_BOT_ID"],
     },
   });
   await saveHelperChannelId(orgChannelId, program.id);
