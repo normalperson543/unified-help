@@ -33,12 +33,12 @@ export default function HelpDropdown() {
             </Label>
           </Dropdown.Item>
           <Dropdown.Item
-            href="https://forms.fillout.com/t/k1NNiLbTasus"
+            href="/dashboard/add-program"
             target="_blank"
           >
             <PencilLineIcon width={16} />
             <Label>
-              <p>Apply for Unified Help</p>
+              <p>Get Unified Help for programs</p>
               <p className="text-muted">Get Unified Help for your program!</p>
             </Label>
           </Dropdown.Item>

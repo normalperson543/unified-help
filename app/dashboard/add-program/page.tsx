@@ -9,8 +9,14 @@ export default async function AddProgram() {
   return (
     <div className="w-full h-full flex justify-center items-center">
       <div className="flex flex-col gap-2 w-2/3">
-        <h2 className="text-2xl font-bold">Welcome to Unified Help</h2>
-        <p>Select an option to begin</p>
+        <h2 className="text-2xl font-bold">
+          Organizers: Get Unified Help for your program
+        </h2>
+        <p>
+          Ready to make your support experience better? Are you a program
+          organizer? Choose one of the options below to set up Unified Help with
+          your program support.
+        </p>
         <div className="flex flex-row gap-2">
           {allowedManaged ? (
             <Link href="/dashboard/add-program/new" className="w-1/2">
@@ -39,21 +45,19 @@ export default async function AddProgram() {
                 <Card.Title className="text-lg font-bold">
                   Deploy a new help channel
                 </Card.Title>
-                <Card.Description className="text-gray-400">
-                  <p>
-                    Instantly make a help channel for your program that&apos;s
-                    managed through Unified Help, including a help channel with
-                    a bot. Helpers resolve and respond to tickets within Slack
-                    or Unified Help, and you can manage your program within the
-                    Unified Help website.
-                  </p>
-                  <br />
-                  <b>
-                    This feature is restricted. Ask your Point of Contact of
-                    your program to sign into Unified Help with an @hackclub.com
-                    email and create your program.
-                  </b>
-                </Card.Description>
+                <p className="text-gray-400">
+                  Instantly make a help channel for your program that&apos;s
+                  managed through Unified Help, including a help channel with a
+                  bot. Helpers resolve and respond to tickets within Slack or
+                  Unified Help, and you can manage your program within the
+                  Unified Help website.
+                </p>
+                <br />
+                <b className="text-gray-400">
+                  This feature is only available to Hack Club HQ staff. Ask your
+                  Point of Contact of your program to sign into Unified Help
+                  with an @hackclub.com email and create your program.
+                </b>
               </Card>
             </div>
           )}
@@ -69,12 +73,13 @@ export default async function AddProgram() {
               <Card.Title className="text-lg font-bold">
                 Set up Unified Help with an existing help channel
               </Card.Title>
-              <Card.Description className="text-gray-400">
+              <p className="text-gray-400">
                 Already using an existing support bot? Choose this option to
                 integrate it with Unified Help. Get enhanced statistics, better
-                ticket searching and management, and reply and resolve* tickets.
-                You&apos;ll apply for this option.
-              </Card.Description>
+                ticket searching and management, and be able to reply and
+                resolve* tickets. You&apos;ll be sent to a Fillout form to apply
+                for this option.
+              </p>
             </Card>
           </Link>
         </div>

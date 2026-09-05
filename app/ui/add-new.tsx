@@ -116,8 +116,8 @@ export default function AddProgramUI() {
   }
 
   return (
-    <div className="min-w-full min-h-full flex justify-center items-center">
-      <div className="flex flex-col gap-2 px-12 py-4 w-1/2 h-full">
+    <div className="w-full flex-1 min-h-0 overflow-y-auto flex justify-center items-center">
+      <div className="flex flex-col gap-2 w-1/2 h-full">
         <h2 className="text-lg font-bold">Deploy a new help channel</h2>
         <p>Let&apos;s get you started with Unified Help.</p>
         <Card>
