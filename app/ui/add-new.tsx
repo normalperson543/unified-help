@@ -1,28 +1,39 @@
 "use client";
 
-import { createProgram } from "@/app/lib/actions";
+import { createManagedProgram } from "@/app/lib/actions";
 import {
   Button,
   Card,
   Description,
   Input,
   Label,
-  Switch,
   TextArea,
   TextField,
 } from "@heroui/react";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
+import ProgramLogoUpload from "./program-logo-upload";
 
 export default function AddProgramUI() {
   const [programName, setProgramName] = useState("");
   const [imageLink, setImageLink] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [helpChannelId, setHelpChannelId] = useState("");
   const [orgChannelId, setOrgChannelId] = useState("");
   const [createMessage, setCreateMessage] = useState("");
-  const [resolveMessage, setResolveMessage] = useState(true);
+  const [resolveMessage, setResolveMessage] = useState("");
+  const [supportBotName, setSupportBotName] = useState("");
   function handleAddProgram() {
-    createManagedProgram(programName, channelId, autoIndex, imageLink, resolveKeyword);
+    createManagedProgram(
+      programName,
+      helpChannelId,
+      orgChannelId,
+      imageFile,
+      imageLink,
+      createMessage,
+      resolveMessage,
+      supportBotName,
+    );
   }
 
   return (
@@ -38,22 +49,20 @@ export default function AddProgramUI() {
               onChange={(e) => setProgramName(e.target.value)}
             />
           </TextField>
+          <ProgramLogoUpload
+            url={imageLink || null}
+            file={imageFile}
+            onChange={({ url, file }) => {
+              setImageLink(url ?? "");
+              setImageFile(file);
+            }}
+            label="Program icon"
+          />
           <TextField type="text" variant="secondary">
-            <Label htmlFor="programName">Program icon</Label>
-            <Description>
-              Icons must be square. Upload your icon through{" "}
-              <a
-                href="https://cdn.hackclub.com"
-                className="underline"
-                target="_blank"
-              >
-                Hack Club CDN
-              </a>
-              , paste the link here.
-            </Description>
+            <Label htmlFor="programName">Support bot name</Label>
             <Input
-              value={imageLink}
-              onChange={(e) => setImageLink(e.target.value)}
+              value={supportBotName}
+              onChange={(e) => setSupportBotName(e.target.value)}
             />
           </TextField>
           <div className="flex gap-2 w-full">

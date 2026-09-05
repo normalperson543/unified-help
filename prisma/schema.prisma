@@ -54,8 +54,10 @@ model Program {
   allowResolver   Boolean     @default(false)
   supportBotId    String      @default("")
   allowReply      Boolean     @default(false)
-  managed Boolean @default(true)
-  
+  managed         Boolean     @default(false)
+  createMessage   String      @default("")
+  resolveMessage  String      @default("")
+  supportBotName  String      @default("")
 }
 
 model SlackUser {

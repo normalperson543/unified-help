@@ -4,10 +4,113 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { createUser, isParentMessageDeleted, postMessageAsResolver, replyAsUser } from "./slack";
+import {
+  createUser,
+  isParentMessageDeleted,
+  postMessageAsResolver,
+  reopenMessage,
+  replyAsUser,
+  resolveMessage,
+} from "./slack";
 import { redirect } from "next/navigation";
 import { isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
+
+// most of the HC CDN implementation was created with AI
+
+const ALLOWED_LOGO_EXTENSIONS = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".svg",
+  ".ico",
+];
+
+function validateProgramLogo(url: string): string {
+  if (!url) return url;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Invalid program icon URL");
+  }
+
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.hostname.toLowerCase() !== "cdn.hackclub.com"
+  ) {
+    throw new Error("Program icons must be hosted on https://cdn.hackclub.com");
+  }
+
+  const pathname = parsed.pathname.toLowerCase();
+  const hasImageExtension = ALLOWED_LOGO_EXTENSIONS.some((ext) =>
+    pathname.endsWith(ext),
+  );
+  if (!hasImageExtension) {
+    throw new Error(
+      "Program icons must be image files (.png, .jpg, .jpeg, .gif, .webp, .svg, .ico)",
+    );
+  }
+
+  return parsed.toString();
+}
+
+const MAX_LOGO_FILE_SIZE = 1024 * 1024; // 1 MB
+
+async function uploadLogoToCdn(file: File): Promise<string> {
+  const apiKey = process.env["HACKCLUB_CDN_API_KEY"];
+  if (!apiKey || apiKey === "sk_cdn_...") {
+    throw new Error("Hack Club CDN API key is not configured");
+  }
+
+  const uploadFormData = new FormData();
+  uploadFormData.set("file", file);
+
+  const resp = await fetch("https://cdn.hackclub.com/api/v4/upload", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: uploadFormData,
+  });
+
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => null);
+    if (body && typeof body.message === "string") {
+      throw new Error(body.message);
+    }
+    throw new Error("Failed to upload program icon");
+  }
+
+  const data = await resp.json();
+  if (!data.url || typeof data.url !== "string") {
+    throw new Error("Invalid upload response");
+  }
+
+  return data.url;
+}
+
+export async function uploadProgramLogo(formData: FormData) {
+  await throwIfNoAuth();
+
+  const file = formData.get("file");
+  if (!file || !(file instanceof File)) {
+    throw new Error("No file provided");
+  }
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Program icons must be image files");
+  }
+
+  if (file.size > MAX_LOGO_FILE_SIZE) {
+    throw new Error("Program icons must be smaller than 1 MB");
+  }
+
+  return uploadLogoToCdn(file);
+}
 
 export async function lookupSlackUser(slackId: string) {
   await throwIfNoAuth();
@@ -164,11 +267,21 @@ export async function updateInfo(
   channelId: string,
   allowResolver: boolean,
   supportBotId: string,
-  allowReply: boolean
+  allowReply: boolean,
+  logoFile: File | null,
+  imageLink: string,
 ) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
+
+  let validatedLogo = "";
+  if (logoFile) {
+    validatedLogo = await uploadLogoToCdn(logoFile);
+  } else if (imageLink) {
+    validatedLogo = validateProgramLogo(imageLink);
+  }
+
   await prisma.program.update({
     where: {
       id: programId,
@@ -180,15 +293,18 @@ export async function updateInfo(
       channelId: channelId,
       allowResolver: allowResolver,
       supportBotId: supportBotId,
-      allowReply: allowReply
+      allowReply: allowReply,
+      logo: validatedLogo,
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
+  return validatedLogo;
 }
 export async function createProgram(
   name: string,
   channelId: string,
   canAutoIndex: boolean,
+  logoFile: File | null,
   imageLink: string,
   resolveKeyword: string,
 ) {
@@ -199,12 +315,20 @@ export async function createProgram(
   if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
   }
+
+  let validatedLogo = "";
+  if (logoFile) {
+    validatedLogo = await uploadLogoToCdn(logoFile);
+  } else if (imageLink) {
+    validatedLogo = validateProgramLogo(imageLink);
+  }
+
   const program = await prisma.program.create({
     data: {
       name: name,
       channelId: channelId,
       canAutoIndex: canAutoIndex,
-      logo: imageLink,
+      logo: validatedLogo,
       resolveKeyword: resolveKeyword,
       usersOrganizing: {
         connect: {
@@ -219,6 +343,56 @@ export async function createProgram(
     },
   });
   redirect(`/programs/${program.id}`);
+}
+export async function createManagedProgram(
+  name: string,
+  helpChannelId: string,
+  orgChannelId: string,
+  logoFile: File | null,
+  imageLink: string,
+  createMessage: string,
+  resolveMessage: string,
+  supportBotName: string,
+) {
+  await throwIfNoAuth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("unauthenticated");
+  }
+
+  let validatedLogo = "";
+  if (logoFile) {
+    validatedLogo = await uploadLogoToCdn(logoFile);
+  } else if (imageLink) {
+    validatedLogo = validateProgramLogo(imageLink);
+  }
+
+  const program = await prisma.program.create({
+    data: {
+      name: name,
+      managed: true,
+      channelId: helpChannelId,
+      canAutoIndex: true,
+      logo: validatedLogo,
+      resolveKeyword: "marked this as resolved",
+      createMessage: createMessage,
+      resolveMessage: resolveMessage,
+      usersOrganizing: {
+        connect: {
+          id: session.user.id,
+        },
+      },
+      assignedUsers: {
+        connect: {
+          id: session.user.slackId as string,
+        },
+      },
+    },
+  });
+  await saveHelperChannelId(orgChannelId, program.id);
+  redirect(`/programs/${program.id}/settings`);
 }
 export async function indexUsersFromUserGroup(
   groupId: string,
@@ -447,6 +621,42 @@ export async function reindexTicket(ticketId: string, programId: string) {
   }
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }
+export async function indexThread(ticketId: string, programId: string) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { programId: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
+
+  let resp: Response;
+  try {
+    resp = await fetch(
+      `${process.env["SCRAPER_API_URL"]}/api/index-thread/${ticketId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ticketId: ticketId,
+        }),
+        headers: {
+          "Content-type": "application/json",
+          "x-api-key": process.env["SCRAPER_API_KEY"]!,
+        },
+      },
+    );
+  } catch {
+    throw new Error("SCRAPER_OFFLINE");
+  }
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => null);
+    if (body && typeof body.error === "string") throw new Error(body.error);
+    throw new Error("Could not index thread");
+  }
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
 export async function replyToTicket(
   ticketId: string,
   programId: string,
@@ -454,7 +664,7 @@ export async function replyToTicket(
   enableCtx: boolean,
 ) {
   if (message.length === 0) throw new Error("Message is too short");
-  
+
   let assignedFirst = false;
 
   await throwIfNoAuth();
@@ -484,9 +694,12 @@ export async function replyToTicket(
 
   if (!ticket) throw new Error("No ticket");
   if (ticket.programId !== programId) throw new Error("unauthorized");
-  if (!ticket.program.allowReply) throw new Error("Program has disabled replying")
+  if (!ticket.program.allowReply)
+    throw new Error("Program has disabled replying");
 
-  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+  if (
+    await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)
+  ) {
     throw new Error("PARENT_MESSAGE_DELETED");
   }
 
@@ -636,7 +849,9 @@ export async function resolveTicket(ticketId: string) {
     throw new Error("unauthenticated");
   }
 
-  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+  if (
+    await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)
+  ) {
     throw new Error("PARENT_MESSAGE_DELETED");
   }
 
@@ -661,13 +876,26 @@ export async function resolveTicket(ticketId: string) {
     console.error("Occurred on ticket ", ticket.id);
     throw e;
   }
-
-  await postMessageAsResolver(
-    ticket.messageId,
-    ticket.program.channelId,
-    "?resolve",
-    `Marked as resolved by <@${session.user.slackId}>.`,
-  );
+  if (ticket.program.managed) {
+    await resolveMessage(
+      ticket.program.channelId,
+      ticket.messageId,
+      ticket.program.supportBotName,
+      ticket.program.logo ?? "",
+      session.user.slackId,
+      ticket.program.resolveMessage,
+      ticket.id,
+      ticket.program.id,
+    );
+    indexThread(ticket.id, ticket.programId);
+  } else {
+    await postMessageAsResolver(
+      ticket.messageId,
+      ticket.program.channelId,
+      "?resolve",
+      `Marked as resolved by <@${session.user.slackId}>.`,
+    );
+  }
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
@@ -699,7 +927,9 @@ export async function reopenTicket(ticketId: string) {
     throw new Error("unauthenticated");
   }
 
-  if (await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)) {
+  if (
+    await isParentMessageDeleted(ticket.messageId, ticket.program.channelId)
+  ) {
     throw new Error("PARENT_MESSAGE_DELETED");
   }
 
@@ -725,13 +955,26 @@ export async function reopenTicket(ticketId: string) {
     console.error("Occurred on ticket ", ticket.id);
     throw e;
   }
-
-  await postMessageAsResolver(
-    ticket.messageId,
-    ticket.program.channelId,
-    "?reopen",
-    `This ticket was reopened by <@${session.user.slackId}>.`,
-  );
+  if (ticket.program.managed) {
+    await reopenMessage(
+      ticket.program.channelId,
+      ticket.messageId,
+      ticket.program.supportBotName,
+      ticket.program.logo ?? "",
+      session.user.slackId,
+      ticket.program.resolveMessage,
+      ticket.id,
+      ticket.program.id,
+    );
+    indexThread(ticket.id, ticket.programId);
+  } else {
+    await postMessageAsResolver(
+      ticket.messageId,
+      ticket.program.channelId,
+      "?reopen",
+      `This ticket was reopened by <@${session.user.slackId}>.`,
+    );
+  }
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
 }
