@@ -280,7 +280,7 @@ export async function resolveMessage(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: resolveMessage,
+          text: resolveMessage.replace("{USERNAME}", `<@${resolverId}>`),
         },
       },
       {
