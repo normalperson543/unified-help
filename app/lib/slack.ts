@@ -130,7 +130,7 @@ export async function replyAsUser(
     elements: [
       {
         type: "mrkdwn",
-        text: `<@${safeUserId}> | Sent with <https://unifiedhelp.normiecodes.dev|Unified Help> | <https://unifiedhelp.normiecodes.dev/programs/${safeProgramId}/ticket/${safeTicketId}|View ticket>`,
+        text: `<@${safeUserId}> | Sent with <https://unified.help.hackclub.com|Unified Help> | <https://unified.help.hackclub.com/programs/${safeProgramId}/ticket/${safeTicketId}|View ticket>`,
       },
     ],
   };
@@ -241,7 +241,7 @@ export async function postMacroMessage(
             text: { type: "plain_text", text: "Reopen", emoji: true },
             value: ticketId,
             action_id: "reopen",
-            style: "primary"
+            style: "primary",
           },
         ],
       },
@@ -302,7 +302,7 @@ export async function resolveMessage(
             },
             value: ticketId,
             action_id: "reopen",
-            style: "primary"
+            style: "primary",
           },
         ],
       },
@@ -362,7 +362,7 @@ export async function reopenMessage(
             },
             value: ticketId,
             action_id: "reopen",
-            style: "primary"
+            style: "primary",
           },
         ],
       },
