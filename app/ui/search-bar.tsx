@@ -28,6 +28,7 @@ export default function SearchBar() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         onKeyDown={onKeyDown}
+        placeholder="Search tickets or users across Unified Help"
       />
     </div>
   );

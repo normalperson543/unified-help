@@ -11,15 +11,26 @@ import {
 } from "@heroui/react";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
+import ProgramLogoUpload from "./program-logo-upload";
 
 export default function AddProgramUI() {
   const [programName, setProgramName] = useState("");
   const [imageLink, setImageLink] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [channelId, setChannelId] = useState("");
   const [resolveKeyword, setResolveKeyword] = useState("");
   const [autoIndex, setAutoIndex] = useState(true);
+  const [claimed, setClaimed] = useState(false);
   function handleAddProgram() {
-    createProgram(programName, channelId, autoIndex, imageLink, resolveKeyword);
+    createProgram(
+      programName,
+      channelId,
+      autoIndex,
+      imageFile,
+      imageLink,
+      resolveKeyword,
+      claimed,
+    );
   }
 
   return (
@@ -32,24 +43,15 @@ export default function AddProgramUI() {
           onChange={(e) => setProgramName(e.target.value)}
         />
       </TextField>
-      <TextField type="text">
-        <Label htmlFor="programName">Icon</Label>
-        <Description>
-          Icons must be square.{" "}
-          <a
-            href="https://cdn.hackclub.com"
-            className="underline"
-            target="_blank"
-          >
-            Hack Club CDN
-          </a>{" "}
-          links are accepted.
-        </Description>
-        <Input
-          value={imageLink}
-          onChange={(e) => setImageLink(e.target.value)}
-        />
-      </TextField>
+      <ProgramLogoUpload
+        url={imageLink || null}
+        file={imageFile}
+        onChange={({ url, file }) => {
+          setImageLink(url ?? "");
+          setImageFile(file);
+        }}
+        label="Icon"
+      />
       <TextField type="text">
         <Label htmlFor="programName">Resolve keyword</Label>
         <Description>
@@ -80,6 +82,14 @@ export default function AddProgramUI() {
             <Switch.Thumb />
           </Switch.Control>
           Enable automatic ticket indexing
+        </Switch.Content>
+      </Switch>
+      <Switch isSelected={claimed} onChange={setClaimed}>
+        <Switch.Content>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          Program is claimed
         </Switch.Content>
       </Switch>
       <Button onClick={handleAddProgram}>

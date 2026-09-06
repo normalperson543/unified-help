@@ -34,12 +34,17 @@ import {
 import { useState } from "react";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import Image from "next/image";
+import Link from "next/link";
 import UsersTable from "./users-table";
 import NotFound from "./not-found";
 
 // Claude changed this line while doing the pie chart
 // Open, Assigned, Resolved — matching the ticket status chip colors.
-const STATS_COLORS = ["var(--warning)", "var(--color-blue-500)", "var(--success)"];
+const STATS_COLORS = [
+  "var(--warning)",
+  "var(--color-blue-500)",
+  "var(--success)",
+];
 
 const StatsCustomPie = (props: PieSectorShapeProps) => (
   <Sector {...props} fill={STATS_COLORS[props.index % STATS_COLORS.length]} />
@@ -206,6 +211,29 @@ export default function ProgramUI() {
           </Alert.Content>
         </Alert>
       )}
+      {info && !infoIsLoading && !info.claimed && (
+        <Alert status="warning">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>
+              This program has not been claimed by the program&apos;s organizer yet
+            </Alert.Title>
+            <Alert.Description>
+              If you&apos;re an organizer, get access to replying and resolving
+              tickets, and manage your program helpers and details on Unified
+              Help by filling out the{" "}
+              <Link
+                href="https://forms.fillout.com/t/k1NNiLbTasus"
+                target="_blank"
+                className="underline"
+              >
+                Unified Help setup form
+              </Link>
+              .
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
       {stats && !statsIsLoading && (
         <>
           <div className="flex flex-row gap-2">
@@ -269,7 +297,7 @@ export default function ProgramUI() {
             </Card>
             <Card className="basis-50 grow shrink relative">
               <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Hang time</p>
+                <p className="text-muted uppercase">Assign time</p>
                 <p className="font-bold text-3xl">
                   {hangTime?.median
                     ? Math.round((hangTime.median / 60) * 100) / 100

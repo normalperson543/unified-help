@@ -392,6 +392,7 @@ export async function getProgram(id: string) {
       },
       usersOrganizing: true,
       tags: true,
+      poc: true,
     },
   });
 }
@@ -546,11 +547,19 @@ export async function getResolvedTicketsCount(
           createdTickets: {
             where: {
               programId: programId,
+              dateCreated: {
+                gte: oldest,
+                lte: newest,
+              },
             },
           },
           resolvedTickets: {
             where: {
               programId: programId,
+              dateCreated: {
+                gte: oldest,
+                lte: newest,
+              },
             },
           },
           users: true,
@@ -781,6 +790,19 @@ export async function isAdmin() {
     },
   });
   return c > 0;
+}
+
+export async function canCreateManagedProgram() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session || !session.user || !session.user.email) {
+    return false;
+  }
+  if (session.user.email.toLowerCase().endsWith("@hackclub.com")) {
+    return true;
+  }
+  return isAdmin();
 }
 
 export async function isSlackAuthenticated() {

@@ -10,6 +10,7 @@ import {
   DateValue,
   Description,
   EmptyState,
+  FieldError,
   Input,
   Label,
   Modal,
@@ -17,8 +18,10 @@ import {
   Spinner,
   Switch,
   Table,
+  TextArea,
   TextField,
   toast,
+  Tooltip,
   WarningIcon,
 } from "@heroui/react";
 import {
@@ -58,6 +61,61 @@ import { getLocalTimeZone } from "@internationalized/date";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
 import Link from "next/link";
+import ProgramLogoUpload from "./program-logo-upload";
+
+type UpdateInfoErrors = {
+  programName?: string;
+  channelId?: string;
+  supportBotName?: string;
+  createMessage?: string;
+  resolveMessage?: string;
+};
+
+function validateChannelId(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return "Channel ID is required";
+  if (!/^[CGD][A-Za-z0-9]{8,}$/.test(trimmed)) {
+    return "Enter a valid Slack channel ID";
+  }
+}
+
+function validateUpdateInfoForm(
+  values: {
+    programName: string;
+    channelId: string;
+    supportBotName: string;
+    createMessage: string;
+    resolveMessage: string;
+  },
+  managed: boolean,
+): UpdateInfoErrors {
+  const errors: UpdateInfoErrors = {};
+
+  if (!values.programName.trim()) {
+    errors.programName = "Program name is required";
+  }
+
+  const channelError = validateChannelId(values.channelId);
+  if (channelError) {
+    errors.channelId = channelError;
+  }
+
+  if (managed) {
+    if (!values.supportBotName.trim()) {
+      errors.supportBotName = "Support bot name is required";
+    }
+
+    if (!values.createMessage.trim()) {
+      errors.createMessage = "Ticket creation message is required";
+    }
+
+    if (!values.resolveMessage.trim()) {
+      errors.resolveMessage = "Ticket resolve message is required";
+    }
+  }
+
+  return errors;
+}
 
 export default function ProgramSettings({
   program,
@@ -79,6 +137,21 @@ export default function ProgramSettings({
   const [tagName, setTagName] = useState("");
   const [allowReply, setAllowReply] = useState(program.allowReply);
   const [allowResolver, setAllowResolver] = useState(program.allowResolver);
+  const [imageLink, setImageLink] = useState(program.logo);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [createMessage, setCreateMessage] = useState(program.createMessage);
+  const [resolveMessage, setResolveMessage] = useState(program.resolveMessage);
+  const [supportBotName, setSupportBotName] = useState(program.supportBotName);
+  const [claimed, setClaimed] = useState(program.claimed);
+  const [updateInfoErrors, setUpdateInfoErrors] = useState<UpdateInfoErrors>(
+    {},
+  );
+  const [helperChannelError, setHelperChannelError] = useState<string>();
+
+  const isPocUser = (userId: string) => userId === program.poc?.id;
+  const isPocSlackUser = (slackId: string) =>
+    slackId === program.poc?.slackUserId;
+
   const {
     data: backlogStatus,
     error: backlogStatusError,
@@ -142,6 +215,12 @@ export default function ProgramSettings({
   }
 
   async function handleSaveHelperChannelId() {
+    const trimmed = helperChannelId.trim();
+    if (trimmed && !/^[CGD][A-Za-z0-9]{8,}$/.test(trimmed)) {
+      setHelperChannelError("Enter a valid Slack channel ID");
+      return;
+    }
+    setHelperChannelError(undefined);
     await saveHelperChannelId(helperChannelId, program.id);
     toast("Saved and indexing users", {
       description: "Unified Help will start index users from this channel.",
@@ -159,7 +238,24 @@ export default function ProgramSettings({
   }
 
   async function handleUpdateInfo() {
-    await updateInfo(
+    const nextErrors = validateUpdateInfoForm(
+      {
+        programName,
+        channelId,
+        supportBotName,
+        createMessage,
+        resolveMessage,
+      },
+      program.managed,
+    );
+
+    setUpdateInfoErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    const savedLogo = await updateInfo(
       program.id,
       programName,
       autoIndex,
@@ -167,8 +263,16 @@ export default function ProgramSettings({
       channelId,
       allowResolver,
       supportBotId,
-      allowReply
+      allowReply,
+      imageFile,
+      imageLink ?? "",
+      createMessage,
+      resolveMessage,
+      supportBotName,
+      claimed,
     );
+    setImageFile(null);
+    setImageLink(savedLogo);
     toast("Updated info", {
       indicator: <CheckIcon />,
       variant: "success",
@@ -218,56 +322,177 @@ export default function ProgramSettings({
   }
   return (
     <div className="flex flex-col gap-4 p-4 w-full">
-      <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
+      <div className="flex gap-2 items-center">
+        <h2 className="text-lg font-bold">Settings for {program?.name}</h2>
+        {program.managed && <Chip>Managed</Chip>}
+      </div>
+
       <div className="flex flex-col gap-4">
-        <TextField type="text">
+        <TextField type="text" isInvalid={!!updateInfoErrors.programName}>
           <Label htmlFor="programName">Program name</Label>
           <Input
+            id="programName"
             value={programName}
-            onChange={(e) => setProgramName(e.target.value)}
+            onChange={(e) => {
+              setProgramName(e.target.value);
+              setUpdateInfoErrors((prev) => ({
+                ...prev,
+                programName: undefined,
+              }));
+            }}
           />
+          {updateInfoErrors.programName && (
+            <FieldError>{updateInfoErrors.programName}</FieldError>
+          )}
         </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Channel ID</Label>
+        <TextField type="text" isInvalid={!!updateInfoErrors.channelId}>
+          <Label htmlFor="channelId">Channel ID</Label>
           <Description>
             Unified Help will use this channel ID to index tickets and for
             ticket links. Be careful when changing this.
           </Description>
           <Input
+            id="channelId"
             value={channelId}
-            onChange={(e) => setChannelId(e.target.value)}
+            onChange={(e) => {
+              setChannelId(e.target.value);
+              setUpdateInfoErrors((prev) => ({
+                ...prev,
+                channelId: undefined,
+              }));
+            }}
             className="font-mono"
           />
+          {updateInfoErrors.channelId && (
+            <FieldError>{updateInfoErrors.channelId}</FieldError>
+          )}
         </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Resolve keyword</Label>
-          <Description>
-            This should be a keyword found in your support bot&apos;s message
-            when a ticket is resolved.
-          </Description>
-          <Input
-            value={resolveKeyword}
-            onChange={(e) => setResolveKeyword(e.target.value)}
-          />
-        </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Support bot user ID</Label>
-          <Description>
-            Your support bot&apos;s user ID (must begin with U).
-          </Description>
-          <Input
-            value={supportBotId}
-            onChange={(e) => setSupportBotId(e.target.value)}
-          />
-        </TextField>
-        <Switch isSelected={autoIndex} onChange={setAutoIndex}>
-          <Switch.Content>
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            Enable automatic ticket indexing
-          </Switch.Content>
-        </Switch>
+        <ProgramLogoUpload
+          url={imageLink ?? null}
+          file={imageFile}
+          onChange={({ url, file }) => {
+            setImageLink(url ?? "");
+            setImageFile(file);
+          }}
+          label="Program icon"
+        />
+        {program.managed && (
+          <>
+            <TextField
+              type="text"
+              isInvalid={!!updateInfoErrors.supportBotName}
+            >
+              <Label htmlFor="supportBotName">Support bot name</Label>
+              <Input
+                id="supportBotName"
+                value={supportBotName}
+                onChange={(e) => {
+                  setSupportBotName(e.target.value);
+                  setUpdateInfoErrors((prev) => ({
+                    ...prev,
+                    supportBotName: undefined,
+                  }));
+                }}
+              />
+              {updateInfoErrors.supportBotName && (
+                <FieldError>{updateInfoErrors.supportBotName}</FieldError>
+              )}
+            </TextField>
+            <TextField type="text" isInvalid={!!updateInfoErrors.createMessage}>
+              <Label htmlFor="createMessage">Ticket creation message</Label>
+              <Description>
+                Unified Help will reply with this message whenever a new ticket
+                is created. You may use markdown to write this message. Use{" "}
+                {`{USERNAME}`} to mention the creator in this message.
+              </Description>
+              <TextArea
+                id="createMessage"
+                value={createMessage}
+                onChange={(e) => {
+                  setCreateMessage(e.target.value);
+                  setUpdateInfoErrors((prev) => ({
+                    ...prev,
+                    createMessage: undefined,
+                  }));
+                }}
+              />
+              {updateInfoErrors.createMessage && (
+                <FieldError>{updateInfoErrors.createMessage}</FieldError>
+              )}
+            </TextField>
+            <TextField
+              type="text"
+              isInvalid={!!updateInfoErrors.resolveMessage}
+            >
+              <Label htmlFor="resolveMessage">Ticket resolve message</Label>
+              <Description>
+                Unified Help will reply with this message whenever a ticket is
+                resolved. You may use markdown to write this message. Use{" "}
+                {`{USERNAME}`} to mention the resolver in this message.
+              </Description>
+              <TextArea
+                id="resolveMessage"
+                value={resolveMessage}
+                onChange={(e) => {
+                  setResolveMessage(e.target.value);
+                  setUpdateInfoErrors((prev) => ({
+                    ...prev,
+                    resolveMessage: undefined,
+                  }));
+                }}
+              />
+              {updateInfoErrors.resolveMessage && (
+                <FieldError>{updateInfoErrors.resolveMessage}</FieldError>
+              )}
+            </TextField>
+          </>
+        )}
+        {!program.managed && (
+          <>
+            <TextField type="text">
+              <Label htmlFor="resolveKeyword">Resolve keyword</Label>
+              <Description>
+                This should be a keyword found in your support bot&apos;s
+                message when a ticket is resolved.
+              </Description>
+              <Input
+                id="resolveKeyword"
+                value={resolveKeyword}
+                onChange={(e) => setResolveKeyword(e.target.value)}
+              />
+            </TextField>
+            <TextField type="text">
+              <Label htmlFor="supportBotId">Support bot user ID</Label>
+              <Description>
+                Your support bot&apos;s user ID (must begin with U).
+              </Description>
+              <Input
+                id="supportBotId"
+                value={supportBotId}
+                onChange={(e) => setSupportBotId(e.target.value)}
+              />
+            </TextField>
+            <Switch isSelected={autoIndex} onChange={setAutoIndex}>
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+                Enable automatic ticket indexing
+              </Switch.Content>
+            </Switch>
+          </>
+        )}
+
+        {isAdmin && (
+          <Switch isSelected={claimed} onChange={setClaimed}>
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              Program is claimed
+            </Switch.Content>
+          </Switch>
+        )}
         <Switch isSelected={allowReply} onChange={setAllowReply}>
           <Switch.Content>
             <Switch.Control>
@@ -277,8 +502,9 @@ export default function ProgramSettings({
           </Switch.Content>
           <Description>
             Helpers can reply as themselves through Unified Help if you enable
-            this feature. If you enable this, we highly recommend to link a
-            helper channel ID, not a helper user group for security purposes.
+            this feature.{" "}
+            {!program.managed &&
+              "If you enable this, we highly recommend to link a helper channel ID, not a helper user group for security purposes."}
           </Description>
         </Switch>
         <Switch isSelected={allowResolver} onChange={setAllowResolver}>
@@ -290,102 +516,101 @@ export default function ProgramSettings({
           </Switch.Content>
           <Description>
             Helpers can resolve and reopen tickets directly through Unified
-            Help. You must invite the @Unified Help Helper to your channel, and
-            it must be added as a helper in your support bot&apos;s dashboard.
-            Note that resolves in your support bot&apos;s dashboard will be
-            attributed to Unified Help, not the helper. If you enable this, we
-            highly recommend to link a helper channel ID, not a helper user
-            group for security purposes.
+            Help.{" "}
+            {!program.managed &&
+              "You must invite the @Unified Help Helper to your channel, and it must be added as a helper in your support bot&apos;s dashboard. Note that resolves in your support bot&apos;s dashboard will be attributed to Unified Help, not the helper. If you enable this, we highly recommend to link a helper channel ID, not a helper user group for security purposes."}
           </Description>
         </Switch>
         <Button onClick={handleUpdateInfo}>
           <SaveIcon /> Save changes
         </Button>
       </div>
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="programName">Backlog</Label>
-        <p className="text-muted">
-          You can choose to index previous tickets from your support channel so
-          that they&apos;ll appear on Unified Help.
-        </p>
-        {backlogStatusError && (
-          <Alert status="danger">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>The backlogger is offline</Alert.Title>
-              <Alert.Description>Please try again later.</Alert.Description>
-            </Alert.Content>
-          </Alert>
-        )}
-        {backlogStatusIsLoading && (
-          <div className="flex flex-row gap-2 items-center">
-            <Spinner />
-            Loading backlog status...
-          </div>
-        )}
-        {backlogStatus && (
-          <div className="flex flex-row gap-2 items-center">
-            {backlogStatus.status === "unqueued" && (
-              <>
-                <InfoIcon width={16} />
-                No active backlog tasks
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "pending" && (
-              <>
-                <ProgressBar
-                  aria-label="Indexing"
-                  className="w-64"
-                  value={backlogPercent}
-                >
-                  <Label>Indexing</Label>
-                  <ProgressBar.Output />
-                  <ProgressBar.Track>
-                    <ProgressBar.Fill />
-                  </ProgressBar.Track>
-                </ProgressBar>
-                <Button onClick={handleStopBacklog}>
-                  <SquareIcon /> Stop
-                </Button>
-              </>
-            )}
-            {backlogStatus.status === "success" && (
-              <>
-                <CheckIcon width={16} />
-                Backlog job completed
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "failed" && (
-              <>
-                <WarningIcon width={16} />
-                Backlog job failed
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-            {backlogStatus.status === "stopped" && (
-              <>
-                <SquareIcon width={16} />
-                Backlog job stopped
-                <StartButton
-                  programId={program.id}
-                  mutate={mutateBacklogStatus}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      {!program.managed && (
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="programName">Backlog</Label>
+          <p className="text-muted">
+            You can choose to index previous tickets from your support channel
+            so that they&apos;ll appear on Unified Help.
+          </p>
+          {backlogStatusError && (
+            <Alert status="danger">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>The backlogger is offline</Alert.Title>
+                <Alert.Description>Please try again later.</Alert.Description>
+              </Alert.Content>
+            </Alert>
+          )}
+          {backlogStatusIsLoading && (
+            <div className="flex flex-row gap-2 items-center">
+              <Spinner />
+              Loading backlog status...
+            </div>
+          )}
+          {backlogStatus && (
+            <div className="flex flex-row gap-2 items-center">
+              {backlogStatus.status === "unqueued" && (
+                <>
+                  <InfoIcon width={16} />
+                  No active backlog tasks
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "pending" && (
+                <>
+                  <ProgressBar
+                    aria-label="Indexing"
+                    className="w-64"
+                    value={backlogPercent}
+                  >
+                    <Label>Indexing</Label>
+                    <ProgressBar.Output />
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
+                  <Button onClick={handleStopBacklog}>
+                    <SquareIcon /> Stop
+                  </Button>
+                </>
+              )}
+              {backlogStatus.status === "success" && (
+                <>
+                  <CheckIcon width={16} />
+                  Backlog job completed
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "failed" && (
+                <>
+                  <WarningIcon width={16} />
+                  Backlog job failed
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+              {backlogStatus.status === "stopped" && (
+                <>
+                  <SquareIcon width={16} />
+                  Backlog job stopped
+                  <StartButton
+                    programId={program.id}
+                    mutate={mutateBacklogStatus}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-col gap-1">
         <div className="flex gap-1 items-center">
           <div className="flex flex-col gap-1 flex-1">
@@ -579,7 +804,21 @@ export default function ProgramSettings({
                         {u.users.length > 0 &&
                           u.users[0].programsOrganizing.filter(
                             (p) => p.id === program.id,
-                          ).length > 0 && (
+                          ).length > 0 &&
+                          (isPocUser(u.users[u.users.length - 1].id) ? (
+                            <Tooltip delay={0}>
+                              <Tooltip.Trigger>
+                                <Button variant="danger" isDisabled>
+                                  <ChevronDownIcon /> Demote
+                                </Button>
+                              </Tooltip.Trigger>
+                              <Tooltip.Content>
+                                <p>
+                                  The PoC cannot be demoted from this program
+                                </p>
+                              </Tooltip.Content>
+                            </Tooltip>
+                          ) : (
                             <Modal>
                               <Button variant="danger">
                                 <ChevronDownIcon /> Demote
@@ -638,61 +877,74 @@ export default function ProgramSettings({
                                 </Modal.Container>
                               </Modal.Backdrop>
                             </Modal>
-                          )}
-                        <Modal>
-                          <Button variant="danger">
-                            <XIcon /> Remove
-                          </Button>
-                          <Modal.Backdrop>
-                            <Modal.Container>
-                              <Modal.Dialog>
-                                <Modal.CloseTrigger />
-                                <Modal.Header>
-                                  <Modal.Heading>
-                                    Remove {u.username} from {program.name}?
-                                  </Modal.Heading>
-                                </Modal.Header>
-                                <Modal.Body>
-                                  <div className="flex flex-row gap-2 items-center">
-                                    <Badge.Anchor>
-                                      <Avatar size="sm">
-                                        <Avatar.Image
-                                          src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
-                                          alt="Profile picture"
-                                        />
-                                        <Avatar.Fallback>
-                                          {u.username.substring(0, 1)}
-                                        </Avatar.Fallback>
-                                      </Avatar>
-                                      <Badge
-                                        color="danger"
-                                        placement="bottom-right"
-                                        size="sm"
-                                      >
-                                        <XIcon className="size-2.5" />
-                                      </Badge>
-                                    </Badge.Anchor>
-                                    <p>
-                                      Confirm you would like to remove{" "}
-                                      <b>{u.username}</b> from helping in{" "}
-                                      <b>{program.name}</b>?
-                                    </p>
-                                  </div>
-                                </Modal.Body>
-                                <Modal.Footer>
-                                  <Button
-                                    slot="close"
-                                    variant="danger"
-                                    onClick={() => handleRemoveHelper(u.id)}
-                                  >
-                                    <XIcon />
-                                    Remove
-                                  </Button>
-                                </Modal.Footer>
-                              </Modal.Dialog>
-                            </Modal.Container>
-                          </Modal.Backdrop>
-                        </Modal>
+                          ))}
+                        {isPocSlackUser(u.id) ? (
+                          <Tooltip delay={0}>
+                            <Tooltip.Trigger>
+                              <Button variant="danger" isDisabled>
+                                <XIcon /> Remove
+                              </Button>
+                            </Tooltip.Trigger>
+                            <Tooltip.Content>
+                              <p>The PoC cannot be removed from this program</p>
+                            </Tooltip.Content>
+                          </Tooltip>
+                        ) : (
+                          <Modal>
+                            <Button variant="danger">
+                              <XIcon /> Remove
+                            </Button>
+                            <Modal.Backdrop>
+                              <Modal.Container>
+                                <Modal.Dialog>
+                                  <Modal.CloseTrigger />
+                                  <Modal.Header>
+                                    <Modal.Heading>
+                                      Remove {u.username} from {program.name}?
+                                    </Modal.Heading>
+                                  </Modal.Header>
+                                  <Modal.Body>
+                                    <div className="flex flex-row gap-2 items-center">
+                                      <Badge.Anchor>
+                                        <Avatar size="sm">
+                                          <Avatar.Image
+                                            src={`https://cachet.dunkirk.sh/users/${u.id}/r`}
+                                            alt="Profile picture"
+                                          />
+                                          <Avatar.Fallback>
+                                            {u.username.substring(0, 1)}
+                                          </Avatar.Fallback>
+                                        </Avatar>
+                                        <Badge
+                                          color="danger"
+                                          placement="bottom-right"
+                                          size="sm"
+                                        >
+                                          <XIcon className="size-2.5" />
+                                        </Badge>
+                                      </Badge.Anchor>
+                                      <p>
+                                        Confirm you would like to remove{" "}
+                                        <b>{u.username}</b> from helping in{" "}
+                                        <b>{program.name}</b>?
+                                      </p>
+                                    </div>
+                                  </Modal.Body>
+                                  <Modal.Footer>
+                                    <Button
+                                      slot="close"
+                                      variant="danger"
+                                      onClick={() => handleRemoveHelper(u.id)}
+                                    >
+                                      <XIcon />
+                                      Remove
+                                    </Button>
+                                  </Modal.Footer>
+                                </Modal.Dialog>
+                              </Modal.Container>
+                            </Modal.Backdrop>
+                          </Modal>
+                        )}
                       </div>
                     </Table.Cell>
                   </Table.Row>
@@ -701,31 +953,33 @@ export default function ProgramSettings({
             </Table.Content>
           </Table.ScrollContainer>
         </Table>
-
-        <TextField type="text">
-          <Label htmlFor="programName">Linked user group</Label>
-          <Description>
-            Anyone in this user group will automatically be added as a helper.
-            Note that users removed from this ping group will not be removed in
-            Unified Help.
-          </Description>
-          <Description>
-            Enter the group ID of the user group you want to link. You can find
-            this by opening the user group on Slack, clicking the three dots,
-            and clicking &quot;Copy group ID&quot;. Group IDs begin with S.
-          </Description>
-          <Input
-            id="userGroup"
-            value={userGroup}
-            onChange={(e) => setUserGroup(e.target.value)}
-            className="font-mono"
-          />
-          <Button onClick={handleSaveGroupId}>
-            <SaveIcon /> Save changes
-          </Button>
-        </TextField>
-        <TextField type="text">
-          <Label htmlFor="programName">Linked channel ID</Label>
+        {!program.managed && (
+          <TextField type="text">
+            <Label htmlFor="userGroup">Linked user group</Label>
+            <Description>
+              Anyone in this user group will automatically be added as a helper.
+              Note that users removed from this ping group will not be removed
+              in Unified Help.
+            </Description>
+            <Description>
+              Enter the group ID of the user group you want to link. You can
+              find this by opening the user group on Slack, clicking the three
+              dots, and clicking &quot;Copy group ID&quot;. Group IDs begin with
+              S.
+            </Description>
+            <Input
+              id="userGroup"
+              value={userGroup}
+              onChange={(e) => setUserGroup(e.target.value)}
+              className="font-mono"
+            />
+            <Button onClick={handleSaveGroupId}>
+              <SaveIcon /> Save changes
+            </Button>
+          </TextField>
+        )}
+        <TextField type="text" isInvalid={!!helperChannelError}>
+          <Label htmlFor="helperChannelId">Organizer channel ID</Label>
           <Description>
             Anyone in this channel will automatically be added as a helper. Note
             that users removed from this channel will not be removed in Unified
@@ -736,11 +990,15 @@ export default function ProgramSettings({
             UHSBot is invited into this channel.
           </Description>
           <Input
-            id="channelId"
+            id="helperChannelId"
             value={helperChannelId}
-            onChange={(e) => setHelperChannelId(e.target.value)}
+            onChange={(e) => {
+              setHelperChannelId(e.target.value);
+              setHelperChannelError(undefined);
+            }}
             className="font-mono"
           />
+          {helperChannelError && <FieldError>{helperChannelError}</FieldError>}
           <Button onClick={handleSaveHelperChannelId}>
             <SaveIcon /> Save changes
           </Button>

@@ -54,6 +54,14 @@ model Program {
   allowResolver   Boolean     @default(false)
   supportBotId    String      @default("")
   allowReply      Boolean     @default(false)
+  managed         Boolean     @default(false)
+  createMessage   String      @default("")
+  resolveMessage  String      @default("")
+  supportBotName  String      @default("")
+  claimed         Boolean     @default(false)
+  poc             User?       @relation(fields: [pocUserId], references: [id])
+
+  pocUserId String?
 }
 
 model SlackUser {
@@ -118,6 +126,7 @@ model User {
   slackUser   SlackUser? @relation(fields: [slackUserId], references: [id])
 
   programsOrganizing Program[] @relation("programsOrganizing")
+  programs           Program[]
 
   @@unique([email])
   @@map("user")
