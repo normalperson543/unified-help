@@ -45,7 +45,7 @@ export default async function AddProgram() {
                 <Card.Title className="text-lg font-bold">
                   Deploy a new help channel
                 </Card.Title>
-                <p className="text-gray-400">
+                <p className="text-muted">
                   Instantly make a help channel for your program that&apos;s
                   managed through Unified Help, including a help channel with a
                   bot. Helpers resolve and respond to tickets within Slack or
@@ -53,7 +53,7 @@ export default async function AddProgram() {
                   Unified Help website.
                 </p>
                 <br />
-                <b className="text-gray-400">
+                <b className="text-muted">
                   This feature is only available to Hack Club HQ staff. Ask your
                   Point of Contact of your program to sign into Unified Help
                   with an @hackclub.com email and create your program.

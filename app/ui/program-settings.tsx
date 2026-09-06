@@ -149,7 +149,8 @@ export default function ProgramSettings({
   const [helperChannelError, setHelperChannelError] = useState<string>();
 
   const isPocUser = (userId: string) => userId === program.poc?.id;
-  const isPocSlackUser = (slackId: string) => slackId === program.poc?.slackUserId;
+  const isPocSlackUser = (slackId: string) =>
+    slackId === program.poc?.slackUserId;
 
   const {
     data: backlogStatus,
@@ -885,9 +886,7 @@ export default function ProgramSettings({
                               </Button>
                             </Tooltip.Trigger>
                             <Tooltip.Content>
-                              <p>
-                                The PoC cannot be removed from this program
-                              </p>
+                              <p>The PoC cannot be removed from this program</p>
                             </Tooltip.Content>
                           </Tooltip>
                         ) : (
