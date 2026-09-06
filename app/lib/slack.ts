@@ -287,7 +287,7 @@ export async function resolveMessage(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `<@${resolverId}> marked this as resolved. If this issue is still unresolved, click the **Reopen** button.`,
+          text: `<@${resolverId}> marked this as resolved. If this issue is still unresolved, click the *Reopen* button.`,
         },
       },
       {
