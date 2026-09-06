@@ -88,7 +88,7 @@ function validateUpdateInfoForm(
     resolveMessage: string;
   },
   managed: boolean,
-emo  existingChannelIds: string[],
+  existingChannelIds: string[],
   currentChannelId: string,
 ): UpdateInfoErrors {
   const errors: UpdateInfoErrors = {};
