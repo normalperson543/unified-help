@@ -1,7 +1,12 @@
 "use client";
 import { GlobalStats, ProgramWithCount } from "../lib/types";
-import { Button, Card } from "@heroui/react";
-import { CheckIcon, PencilLineIcon, RocketIcon } from "lucide-react";
+import { Button, Card, Chip } from "@heroui/react";
+import {
+  CheckIcon,
+  PencilLineIcon,
+  RocketIcon,
+  SparklesIcon,
+} from "lucide-react";
 import Image from "next/image";
 import SignInButton from "@/app/ui/sign-in-button";
 import Marquee from "react-fast-marquee";
@@ -23,7 +28,17 @@ export default function HomeUI({
       <div className="grow bg-radial-[at_25%_25%] dark:from-[#133856] light:from-[#338eda] to-transparent to-75%">
         <div className="flex flex-row w-full justify-between items-center bg-radial-[at_75%_25%] dark:from-[#3e0e15] light:from-[#ec3750] to-transparent to-75% p-12">
           <div className="flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <Chip className="flex gap-2 items-center text-muted w-fit" variant="primary">
+                <SparklesIcon width={12} />
+                <p>
+                  <b>New: </b> Deploy new help channels in <em>seconds</em>.
+                  Unified Help is now a full support bot replacement.{" "}
+                  <Link href="/dashboard/add-program" target="_blank" className="underline">
+                    Get started.
+                  </Link>
+                </p>
+              </Chip>
               <Image
                 src="/assets/logo.svg"
                 width={64}
@@ -42,6 +57,10 @@ export default function HomeUI({
                 </div>
                 <div className="flex gap-2 items-center">
                   <CheckIcon />
+                  Deploy new help channels in seconds
+                </div>
+                <div className="flex gap-2 items-center">
+                  <CheckIcon />
                   Search across all Unified Help programs
                 </div>
                 <div className="flex gap-2 items-center">
@@ -51,7 +70,8 @@ export default function HomeUI({
                 </div>
                 <div className="flex gap-2 items-center">
                   <CheckIcon />
-                  Reply and resolve tickets within Unified Help without breaking context (on compatible programs)
+                  Reply and resolve tickets within Unified Help without breaking
+                  context (on compatible programs)
                 </div>
               </div>
               <div className="flex flex-row gap-2">
@@ -103,10 +123,7 @@ export default function HomeUI({
                   Sign in
                 </SignInButton>
               )}
-              <Link
-                href="/dashboard/add-program"
-                target="_blank"
-              >
+              <Link href="/dashboard/add-program" target="_blank">
                 <Button variant="secondary">
                   <PencilLineIcon />
                   Get Unified Help for your program
