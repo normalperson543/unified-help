@@ -392,6 +392,7 @@ export async function getProgram(id: string) {
       },
       usersOrganizing: true,
       tags: true,
+      poc: true,
     },
   });
 }
@@ -546,11 +547,19 @@ export async function getResolvedTicketsCount(
           createdTickets: {
             where: {
               programId: programId,
+              dateCreated: {
+                gte: oldest,
+                lte: newest,
+              },
             },
           },
           resolvedTickets: {
             where: {
               programId: programId,
+              dateCreated: {
+                gte: oldest,
+                lte: newest,
+              },
             },
           },
           users: true,

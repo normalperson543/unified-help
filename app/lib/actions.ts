@@ -213,6 +213,15 @@ export async function removeHelper(slackId: string, programId: string) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
+  const program = await prisma.program.findUnique({
+    where: {
+      id: programId,
+    },
+    include: {
+      poc: true
+    }
+  })
+  if (slackId === program?.poc?.slackUserId) throw new Error("You cannot remove the PoC from this managed program")
   await prisma.slackUser.update({
     where: {
       id: slackId,
@@ -272,6 +281,10 @@ export async function updateInfo(
   allowReply: boolean,
   logoFile: File | null,
   imageLink: string,
+  createMessage: string,
+  resolveMessage: string,
+  supportBotName: string,
+  claimed: boolean,
 ) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
@@ -283,6 +296,8 @@ export async function updateInfo(
   } else if (imageLink) {
     validatedLogo = validateProgramLogo(imageLink);
   }
+
+  const admin = await isAdmin();
 
   await prisma.program.update({
     where: {
@@ -297,6 +312,10 @@ export async function updateInfo(
       supportBotId: supportBotId,
       allowReply: allowReply,
       logo: validatedLogo,
+      createMessage: createMessage,
+      resolveMessage: resolveMessage,
+      supportBotName: supportBotName,
+      ...(admin && { claimed }),
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -309,6 +328,7 @@ export async function createProgram(
   logoFile: File | null,
   imageLink: string,
   resolveKeyword: string,
+  claimed: boolean,
 ) {
   await throwIfNoAuth();
   const session = await auth.api.getSession({
@@ -324,6 +344,8 @@ export async function createProgram(
   } else if (imageLink) {
     validatedLogo = validateProgramLogo(imageLink);
   }
+
+  const admin = await isAdmin();
 
   const program = await prisma.program.create({
     data: {
@@ -342,6 +364,7 @@ export async function createProgram(
           id: session.user.slackId as string,
         },
       },
+      ...(admin && { claimed }),
     },
   });
   redirect(`/programs/${program.id}`);
@@ -394,6 +417,10 @@ export async function createManagedProgram(
       },
       supportBotName: supportBotName,
       supportBotId: process.env["SLACK_BOT_ID"],
+      allowReply: true,
+      allowResolver: true,
+      claimed: true,
+      pocUserId: session.user.id,
     },
   });
   await saveHelperChannelId(orgChannelId, program.id);
@@ -485,6 +512,16 @@ export async function demoteHelper(userId: string, programId: string) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
   if (!org) throw new Error("unauthorized");
+
+  const program = await prisma.program.findUnique({
+    where: {
+      id: programId,
+    },
+    include: {
+      poc: true
+    }
+  })
+  if (userId === program?.poc?.id) throw new Error("You cannot demote the PoC from this managed program")
 
   await prisma.program.update({
     where: {

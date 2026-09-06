@@ -86,6 +86,7 @@ export default function AddProgramUI() {
   );
   const [supportBotName, setSupportBotName] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [creating, setCreating] = useState(false);
 
   function handleAddProgram() {
     const nextErrors = validateForm({
@@ -102,7 +103,7 @@ export default function AddProgramUI() {
     if (Object.keys(nextErrors).length > 0) {
       return;
     }
-
+    setCreating(true);
     createManagedProgram(
       programName,
       helpChannelId,
@@ -152,7 +153,9 @@ export default function AddProgramUI() {
               3
             </div>
             <div className="flex flex-col gap-2">
-              <h2 className="font-bold">Complete the details below to finish setup</h2>
+              <h2 className="font-bold">
+                Complete the details below to finish setup
+              </h2>
             </div>
           </div>
           <TextField
@@ -298,7 +301,7 @@ export default function AddProgramUI() {
               <FieldError>{errors.resolveMessage}</FieldError>
             )}
           </TextField>
-          <Button onClick={handleAddProgram}>
+          <Button onClick={handleAddProgram} isPending={creating}>
             <PlusIcon /> Add program
           </Button>
         </Card>

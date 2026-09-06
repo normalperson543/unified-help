@@ -20,6 +20,7 @@ export default function AddProgramUI() {
   const [channelId, setChannelId] = useState("");
   const [resolveKeyword, setResolveKeyword] = useState("");
   const [autoIndex, setAutoIndex] = useState(true);
+  const [claimed, setClaimed] = useState(false);
   function handleAddProgram() {
     createProgram(
       programName,
@@ -28,6 +29,7 @@ export default function AddProgramUI() {
       imageFile,
       imageLink,
       resolveKeyword,
+      claimed,
     );
   }
 
@@ -80,6 +82,14 @@ export default function AddProgramUI() {
             <Switch.Thumb />
           </Switch.Control>
           Enable automatic ticket indexing
+        </Switch.Content>
+      </Switch>
+      <Switch isSelected={claimed} onChange={setClaimed}>
+        <Switch.Content>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          Program is claimed
         </Switch.Content>
       </Switch>
       <Button onClick={handleAddProgram}>

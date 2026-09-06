@@ -241,6 +241,7 @@ export async function postMacroMessage(
             text: { type: "plain_text", text: "Reopen", emoji: true },
             value: ticketId,
             action_id: "reopen",
+            style: "primary"
           },
         ],
       },
@@ -301,6 +302,7 @@ export async function resolveMessage(
             },
             value: ticketId,
             action_id: "reopen",
+            style: "primary"
           },
         ],
       },
@@ -360,6 +362,7 @@ export async function reopenMessage(
             },
             value: ticketId,
             action_id: "reopen",
+            style: "primary"
           },
         ],
       },
