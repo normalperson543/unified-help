@@ -12,6 +12,7 @@ import {
   reopenMessage,
   replyAsUser,
   resolveMessage,
+  syncTicketReaction,
 } from "./slack";
 import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
@@ -813,6 +814,11 @@ export async function replyToTicket(
           program: true,
         },
       });
+      await syncTicketReaction(
+        ticket.program.channelId,
+        ticket.messageId,
+        ticket.status,
+      );
     } catch (e) {
       console.error("Problem assigning an assignee: ", e);
       console.error("Occurred on ticket ", ticket.id);
@@ -912,6 +918,11 @@ export async function resolveTicket(ticketId: string) {
         program: true,
       },
     });
+    await syncTicketReaction(
+      ticket.program.channelId,
+      ticket.messageId,
+      2,
+    );
   } catch (e) {
     console.error("Problem assigning a resolver: ", e);
     console.error("Resolver: ", session.user.slackId);
@@ -1003,6 +1014,11 @@ export async function resolveTicketWithMacro(
         resolveDate: new Date(),
       },
     });
+    await syncTicketReaction(
+      ticket.program.channelId,
+      ticket.messageId,
+      2,
+    );
   } catch (e) {
     console.error("Problem resolving ticket with macro: ", e);
     console.error("Occurred on ticket ", ticket.id);
@@ -1073,6 +1089,11 @@ export async function reopenTicket(ticketId: string) {
         assignees: true,
       },
     });
+    await syncTicketReaction(
+      ticket.program.channelId,
+      ticket.messageId,
+      ticket.assignees.length > 0 ? 1 : 0,
+    );
   } catch (e) {
     console.error("Problem reopening: ", e);
     console.error("Occurred on ticket ", ticket.id);

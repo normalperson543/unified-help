@@ -4,6 +4,55 @@ import { FlaronUserResponse } from "./types";
 
 const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
 
+const STATUS_REACTION_EMOJIS = ["white_check_mark", "thinking_face"];
+
+export async function syncTicketReaction(
+  channelId: string,
+  messageTs: string,
+  status: number,
+) {
+  const desiredEmoji = status === 2 ? "white_check_mark" : "thinking_face";
+
+  try {
+    const reactionsRes = await web.reactions.get({
+      channel: channelId,
+      timestamp: messageTs,
+      full: true,
+    });
+
+    const reactions = reactionsRes.message?.reactions ?? [];
+    const existingEmojis = new Set(
+      reactions.map((r) => r.name).filter((name): name is string => !!name),
+    );
+
+    const hasDesired = existingEmojis.has(desiredEmoji);
+
+    for (const name of STATUS_REACTION_EMOJIS) {
+      if (name === desiredEmoji) continue;
+      if (!existingEmojis.has(name)) continue;
+      try {
+        await web.reactions.remove({
+          channel: channelId,
+          timestamp: messageTs,
+          name,
+        });
+      } catch (e) {
+        console.warn(`Failed to remove reaction :${name}:`, e);
+      }
+    }
+
+    if (!hasDesired) {
+      await web.reactions.add({
+        channel: channelId,
+        timestamp: messageTs,
+        name: desiredEmoji,
+      });
+    }
+  } catch (e) {
+    console.error("Error syncing ticket reaction:", e);
+  }
+}
+
 export async function createUser(id: string) {
   let dbUser;
   dbUser = await prisma.slackUser.findUnique({

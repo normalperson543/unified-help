@@ -88,6 +88,8 @@ function validateUpdateInfoForm(
     resolveMessage: string;
   },
   managed: boolean,
+emo  existingChannelIds: string[],
+  currentChannelId: string,
 ): UpdateInfoErrors {
   const errors: UpdateInfoErrors = {};
 
@@ -98,6 +100,14 @@ function validateUpdateInfoForm(
   const channelError = validateChannelId(values.channelId);
   if (channelError) {
     errors.channelId = channelError;
+  } else {
+    const trimmed = values.channelId.trim().toLowerCase();
+    if (
+      trimmed !== currentChannelId.toLowerCase() &&
+      existingChannelIds.some((id) => id.toLowerCase() === trimmed)
+    ) {
+      errors.channelId = "This channel ID is already used by another program";
+    }
   }
 
   if (managed) {
@@ -120,9 +130,11 @@ function validateUpdateInfoForm(
 export default function ProgramSettings({
   program,
   isAdmin,
+  existingChannelIds,
 }: {
   program: ProgramWithAssignees;
   isAdmin: boolean;
+  existingChannelIds: string[];
 }) {
   const [programName, setProgramName] = useState(program.name);
   const [channelId, setChannelId] = useState(program.channelId);
@@ -220,6 +232,14 @@ export default function ProgramSettings({
       setHelperChannelError("Enter a valid Slack channel ID");
       return;
     }
+    if (
+      trimmed &&
+      trimmed.toLowerCase() !== (program.helperChannelId ?? "").toLowerCase() &&
+      existingChannelIds.some((id) => id.toLowerCase() === trimmed.toLowerCase())
+    ) {
+      setHelperChannelError("This channel ID is already used by another program");
+      return;
+    }
     setHelperChannelError(undefined);
     await saveHelperChannelId(helperChannelId, program.id);
     toast("Saved and indexing users", {
@@ -247,6 +267,8 @@ export default function ProgramSettings({
         resolveMessage,
       },
       program.managed,
+      existingChannelIds,
+      program.channelId,
     );
 
     setUpdateInfoErrors(nextErrors);

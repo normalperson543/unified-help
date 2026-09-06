@@ -1,4 +1,9 @@
-import { getProgram, isAdmin, isOrg } from "@/app/lib/data";
+import {
+  getAllProgramChannelIds,
+  getProgram,
+  isAdmin,
+  isOrg,
+} from "@/app/lib/data";
 import ProgramSettings from "@/app/ui/program-settings";
 import Unauthorized from "@/app/ui/unauthorized";
 import { notFound } from "next/navigation";
@@ -18,6 +23,13 @@ export default async function SettingsPage({
   if (!program) notFound();
 
   const admin = await isAdmin();
+  const existingChannelIds = await getAllProgramChannelIds();
 
-  return <ProgramSettings program={program} isAdmin={admin} />;
+  return (
+    <ProgramSettings
+      program={program}
+      isAdmin={admin}
+      existingChannelIds={existingChannelIds}
+    />
+  );
 }

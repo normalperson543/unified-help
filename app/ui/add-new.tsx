@@ -33,14 +33,17 @@ function validateChannelId(value: string): string | undefined {
   }
 }
 
-function validateForm(values: {
-  programName: string;
-  supportBotName: string;
-  helpChannelId: string;
-  orgChannelId: string;
-  createMessage: string;
-  resolveMessage: string;
-}): FormErrors {
+function validateForm(
+  values: {
+    programName: string;
+    supportBotName: string;
+    helpChannelId: string;
+    orgChannelId: string;
+    createMessage: string;
+    resolveMessage: string;
+  },
+  existingChannelIds: string[],
+): FormErrors {
   const errors: FormErrors = {};
 
   if (!values.programName.trim()) {
@@ -54,11 +57,23 @@ function validateForm(values: {
   const helpChannelError = validateChannelId(values.helpChannelId);
   if (helpChannelError) {
     errors.helpChannelId = helpChannelError;
+  } else if (
+    existingChannelIds.some(
+      (id) => id.toLowerCase() === values.helpChannelId.trim().toLowerCase(),
+    )
+  ) {
+    errors.helpChannelId = "This channel ID is already used by another program";
   }
 
   const orgChannelError = validateChannelId(values.orgChannelId);
   if (orgChannelError) {
     errors.orgChannelId = orgChannelError;
+  } else if (
+    existingChannelIds.some(
+      (id) => id.toLowerCase() === values.orgChannelId.trim().toLowerCase(),
+    )
+  ) {
+    errors.orgChannelId = "This channel ID is already used by another program";
   }
 
   if (!values.createMessage.trim()) {
@@ -72,7 +87,11 @@ function validateForm(values: {
   return errors;
 }
 // end
-export default function AddProgramUI() {
+export default function AddProgramUI({
+  existingChannelIds,
+}: {
+  existingChannelIds: string[];
+}) {
   const [programName, setProgramName] = useState("");
   const [imageLink, setImageLink] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -89,14 +108,17 @@ export default function AddProgramUI() {
   const [creating, setCreating] = useState(false);
 
   function handleAddProgram() {
-    const nextErrors = validateForm({
-      programName,
-      supportBotName,
-      helpChannelId,
-      orgChannelId,
-      createMessage,
-      resolveMessage,
-    });
+    const nextErrors = validateForm(
+      {
+        programName,
+        supportBotName,
+        helpChannelId,
+        orgChannelId,
+        createMessage,
+        resolveMessage,
+      },
+      existingChannelIds,
+    );
 
     setErrors(nextErrors);
 

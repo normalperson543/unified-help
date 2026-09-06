@@ -1,5 +1,9 @@
 import { auth } from "@/app/lib/auth";
-import { canCreateManagedProgram, getUser } from "@/app/lib/data";
+import {
+  canCreateManagedProgram,
+  getAllProgramChannelIds,
+  getUser,
+} from "@/app/lib/data";
 import AddProgramUI from "@/app/ui/add-new";
 import NotLoggedIn from "@/app/ui/not-logged-in";
 import Unauthorized from "@/app/ui/unauthorized";
@@ -15,5 +19,7 @@ export default async function AddProgram() {
   if (!user) return <NotLoggedIn />;
   if (!(await canCreateManagedProgram())) return <Unauthorized />;
 
-  return <AddProgramUI />;
+  const existingChannelIds = await getAllProgramChannelIds();
+
+  return <AddProgramUI existingChannelIds={existingChannelIds} />;
 }

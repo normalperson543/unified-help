@@ -374,6 +374,24 @@ export async function getPrograms() {
     },
   });
 }
+export async function getAllProgramChannelIds(): Promise<string[]> {
+  await throwIfNoAuth();
+  const programs = await prisma.program.findMany({
+    select: {
+      channelId: true,
+      helperChannelId: true,
+    },
+  });
+  const ids = new Set<string>();
+  for (const program of programs) {
+    ids.add(program.channelId);
+    if (program.helperChannelId) {
+      ids.add(program.helperChannelId);
+    }
+  }
+  return Array.from(ids);
+}
+
 export async function getProgram(id: string) {
   await throwIfNoAuth();
   return await prisma.program.findUnique({
