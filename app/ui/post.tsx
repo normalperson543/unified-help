@@ -20,7 +20,7 @@ export default function Post({
   programId: string;
 }) {
   return (
-    <div className="flex flex-row gap-4">
+    <div className="flex min-w-0 flex-row gap-4">
       <Link href={`/profile/${slackId}/program/${programId}`}>
         <Avatar size="sm">
           <Avatar.Image
@@ -30,8 +30,8 @@ export default function Post({
           <Avatar.Fallback>{username.substring(0, 1)}</Avatar.Fallback>
         </Avatar>
       </Link>
-      <div className="flex flex-col gap-4 w-full">
-        <div className="flex flex-row justify-between">
+      <div className="flex min-w-0 flex-col gap-4 w-full">
+        <div className="flex flex-row flex-wrap justify-between gap-x-4 gap-y-1">
           <div className="flex flex-row gap-2 items-center">
             <Link href={`/profile/${slackId}/program/${programId}`}>
               <p className="font-bold">{username}</p>
@@ -51,7 +51,7 @@ export default function Post({
               )}
             </div>
           </div>
-          <p className="text-muted">
+          <p className="text-muted shrink-0">
             {" "}
             {new Date(dateCreated).toLocaleString()}
           </p>

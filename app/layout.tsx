@@ -24,7 +24,7 @@ export default async function RootLayout({
       className={`h-full antialiased bg-gray-50 dark ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
     >
       <Toast.Provider placement="top" />
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col overflow-x-hidden bg-background text-foreground">
         <div className="flex flex-col h-screen">
           {process.env["NODE_ENV"] === "development" && (
             <div className="bg-[repeating-linear-gradient(45deg,#FFD700,#FFD700_20px,#111_20px,#111_40px)] flex flex-row gap-2 items-center justify-center text-center font-bold">

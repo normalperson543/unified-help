@@ -29,8 +29,8 @@ export default async function Header({
   return (
     <>
       {session?.user && <NotificationsPermission />}
-      <div className="flex flex-row justify-between p-4 border-b border-accent-background">
-        <div className="flex flex-row gap-8 items-center">
+      <div className="flex flex-row flex-wrap justify-between gap-4 p-4 border-b border-accent-background">
+        <div className="flex min-w-0 flex-1 flex-row flex-wrap gap-8 items-center">
           <div className="flex flex-row gap-2 items-center">
             <Link href="/">
               <Image
@@ -49,7 +49,7 @@ export default async function Header({
 
           {session?.user && (
             <>
-              <div className="flex flex-row gap-2 items-center">
+              <div className="flex min-w-0 flex-row flex-wrap gap-2 items-center">
                 <SearchBar />
                 <Link href="/dashboard">
                   <Button variant="tertiary">
@@ -72,7 +72,7 @@ export default async function Header({
           )}
         </div>
 
-        <div className="flex flex-row gap-4 items-center">
+        <div className="flex min-w-0 flex-row flex-wrap justify-end gap-4 items-center">
           {children}
           <ProgramStats />
           <HelpDropdown />
