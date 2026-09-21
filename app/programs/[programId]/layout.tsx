@@ -262,13 +262,13 @@ export default function RootLayout({
   const endItem = Math.min(page * ITEMS_PER_PAGE, programTickets?.total ?? 0);
 
   return (
-    <div className="flex w-full min-w-0 overflow-x-hidden text-sm flex-1 min-h-0">
+    <div className="flex w-full text-sm flex-1 min-h-0">
       <div
         ref={sidebarRef}
         onScroll={(e) => {
           savedSidebarScrollTop = e.currentTarget.scrollTop; // this was also Claude
         }}
-        className="flex flex-1 basis-0 flex-col gap-2 min-w-0 min-h-0 overflow-y-auto border-r border-accent-background relative"
+        className="flex flex-col gap-2 w-1/2 min-h-0 overflow-y-auto border-r border-accent-background relative"
       >
         <div className="bg-background px-4 py-2 flex flex-col gap-1 sticky top-0 z-10">
           <div className="flex gap-2 items-center">
@@ -631,7 +631,7 @@ export default function RootLayout({
             ))}
         </div>
       </div>
-      <div className="flex flex-1 basis-0 flex-col gap-4 min-w-0 min-h-0 overflow-y-auto">
+      <div className="flex flex-col gap-4 w-full min-h-0 overflow-y-auto">
         {children}
       </div>
     </div>
