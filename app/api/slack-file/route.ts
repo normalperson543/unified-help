@@ -23,8 +23,7 @@ export async function GET(req: NextRequest) {
   }
 
   const isAllowedHost =
-    ALLOWED_HOSTS.has(parsed.hostname) ||
-    parsed.hostname.endsWith(".slack.com");
+    ALLOWED_HOSTS.has(parsed.hostname)
 
   if (!isAllowedHost) {
     return jsonResponse({ status: "Disallowed host" }, { status: 400 });
