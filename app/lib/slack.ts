@@ -1,57 +1,9 @@
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
 import { FlaronUserResponse, SlackAttachment } from "./types";
+import { replyToTicket } from "./actions";
 
 const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
-
-const STATUS_REACTION_EMOJIS = ["white_check_mark", "thinking_face"];
-
-export async function syncTicketReaction(
-  channelId: string,
-  messageTs: string,
-  status: number,
-) {
-  const desiredEmoji = status === 2 ? "white_check_mark" : "thinking_face";
-
-  try {
-    const reactionsRes = await web.reactions.get({
-      channel: channelId,
-      timestamp: messageTs,
-      full: true,
-    });
-
-    const reactions = reactionsRes.message?.reactions ?? [];
-    const existingEmojis = new Set(
-      reactions.map((r) => r.name).filter((name): name is string => !!name),
-    );
-
-    const hasDesired = existingEmojis.has(desiredEmoji);
-
-    for (const name of STATUS_REACTION_EMOJIS) {
-      if (name === desiredEmoji) continue;
-      if (!existingEmojis.has(name)) continue;
-      try {
-        await web.reactions.remove({
-          channel: channelId,
-          timestamp: messageTs,
-          name,
-        });
-      } catch (e) {
-        console.warn(`Failed to remove reaction :${name}:`, e);
-      }
-    }
-
-    if (!hasDesired) {
-      await web.reactions.add({
-        channel: channelId,
-        timestamp: messageTs,
-        name: desiredEmoji,
-      });
-    }
-  } catch (e) {
-    console.error("Error syncing ticket reaction:", e);
-  }
-}
 
 export async function createUser(id: string) {
   let dbUser;
@@ -293,42 +245,49 @@ export async function postMessageAsResolver(
   channel: string,
   message: string,
   intro: string,
+  nPlus: boolean,
+  ticketId: string,
+  programId: string,
 ) {
-  const safeMessage = sanitize(message);
-  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-    },
-    body: new URLSearchParams({
-      token: process.env["SLACK_XOXC_TOKEN"]!,
-      channel: channel,
-      thread_ts: threadTs,
-      text: intro,
-    }),
-  });
-  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
-    },
-    body: new URLSearchParams({
-      token: process.env["SLACK_XOXC_TOKEN"]!,
-      channel: channel,
-      thread_ts: threadTs,
-      blocks: JSON.stringify([
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: safeMessage,
+  if (nPlus) {
+    await replyToTicket(ticketId, programId, message, false);
+  } else {
+    const safeMessage = sanitize(message);
+    await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+      },
+      body: new URLSearchParams({
+        token: process.env["SLACK_XOXC_TOKEN"]!,
+        channel: channel,
+        thread_ts: threadTs,
+        text: intro,
+      }),
+    });
+    await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: `d=${process.env["SLACK_XOXD_TOKEN"]}`,
+      },
+      body: new URLSearchParams({
+        token: process.env["SLACK_XOXC_TOKEN"]!,
+        channel: channel,
+        thread_ts: threadTs,
+        blocks: JSON.stringify([
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: safeMessage,
+            },
           },
-        },
-      ]),
-    }),
-  });
+        ]),
+      }),
+    });
+  }
 }
 export async function postMacroMessage(
   channelId: string,

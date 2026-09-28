@@ -60,6 +60,7 @@ model Program {
   supportBotName  String      @default("")
   claimed         Boolean     @default(false)
   poc             User?       @relation(fields: [pocUserId], references: [id])
+  nPlus           Boolean     @default(false)
 
   pocUserId String?
 }

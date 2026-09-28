@@ -154,6 +154,7 @@ export default function ProgramSettings({
   const [createMessage, setCreateMessage] = useState(program.createMessage);
   const [resolveMessage, setResolveMessage] = useState(program.resolveMessage);
   const [supportBotName, setSupportBotName] = useState(program.supportBotName);
+  const [nPlus, setNPlus] = useState(program.nPlus)
   const [claimed, setClaimed] = useState(program.claimed);
   const [updateInfoErrors, setUpdateInfoErrors] = useState<UpdateInfoErrors>(
     {},
@@ -296,6 +297,7 @@ export default function ProgramSettings({
       resolveMessage,
       supportBotName,
       claimed,
+      nPlus
     );
     setImageFile(null);
     setImageLink(savedLogo);
@@ -510,14 +512,24 @@ export default function ProgramSettings({
         )}
 
         {isAdmin && (
-          <Switch isSelected={claimed} onChange={setClaimed}>
-            <Switch.Content>
-              <Switch.Control>
-                <Switch.Thumb />
-              </Switch.Control>
-              Program is claimed
-            </Switch.Content>
-          </Switch>
+          <>
+            <Switch isSelected={claimed} onChange={setClaimed}>
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+                Program is claimed
+              </Switch.Content>
+            </Switch>
+            <Switch isSelected={nPlus} onChange={setNPlus}>
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+                Nephthys+ program
+              </Switch.Content>
+            </Switch>
+          </>
         )}
         <Switch isSelected={allowReply} onChange={setAllowReply}>
           <Switch.Content>

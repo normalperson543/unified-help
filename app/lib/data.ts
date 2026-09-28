@@ -839,3 +839,10 @@ export async function isSlackAuthenticated() {
 
   return !!account?.accessToken && account.accountId === session.user.slackId;
 }
+export async function getTicketByTs(ts: string) {
+  return await prisma.ticket.findFirst({
+    where: {
+      messageId: ts
+    }
+  })
+}

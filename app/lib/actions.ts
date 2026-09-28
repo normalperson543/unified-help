@@ -11,7 +11,6 @@ import {
   postMessageAsResolver,
   reopenMessage,
   replyAsUser,
-  syncTicketReaction,
 } from "./slack";
 import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
@@ -286,6 +285,7 @@ export async function updateInfo(
   resolveMessage: string,
   supportBotName: string,
   claimed: boolean,
+  nPlus: boolean,
 ) {
   await throwIfNoAuth();
   const org = await isOrg(programId);
@@ -316,7 +316,7 @@ export async function updateInfo(
       createMessage: createMessage,
       resolveMessage: resolveMessage,
       supportBotName: supportBotName,
-      ...(admin && { claimed }),
+      ...(admin && { claimed, nPlus }),
     },
   });
   revalidatePath(`/programs/${programId}/settings`);
@@ -815,11 +815,6 @@ export async function replyToTicket(
           program: true,
         },
       });
-      await syncTicketReaction(
-        ticket.program.channelId,
-        ticket.messageId,
-        ticket.status,
-      );
     } catch (e) {
       console.error("Problem assigning an assignee: ", e);
       console.error("Occurred on ticket ", ticket.id);
@@ -948,6 +943,9 @@ export async function resolveTicket(ticketId: string) {
     ticket.program.channelId,
     "?resolve",
     `Marked as resolved by <@${session.user.slackId}>.`,
+    ticket.program.nPlus,
+    ticket.id,
+    ticket.programId,
   );
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
@@ -1060,6 +1058,9 @@ export async function reopenTicket(ticketId: string) {
     ticket.program.channelId,
     "?reopen",
     `This ticket was reopened by <@${session.user.slackId}>.`,
+    ticket.program.nPlus,
+    ticket.id,
+    ticket.programId,
   );
 
   revalidatePath(`/programs/${ticket.programId}/ticket/${ticketId}`);
