@@ -239,6 +239,8 @@ export type SlackAttachment = {
   thumb360?: string;
   thumb160?: string;
   isImage: boolean;
+  proxyUrl?: string;
+  thumbProxyUrl?: string;
 };
 
 export type FlaronUserResponse = {

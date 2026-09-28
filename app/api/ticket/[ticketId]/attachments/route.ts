@@ -1,6 +1,7 @@
 import { type NextRequest } from "next/server";
 import { getTicket, getUserAuthStatus } from "@/app/lib/data";
 import { getThreadAttachments } from "@/app/lib/slack";
+import { withSignedProxyUrls } from "@/app/lib/slack-file";
 import { jsonResponse } from "@/app/lib/tools";
 
 interface AttachmentsRouteContext {
@@ -28,5 +29,5 @@ export async function GET(
     ticket.messageId,
   );
 
-  return jsonResponse({ attachments });
+  return jsonResponse({ attachments: withSignedProxyUrls(attachments) });
 }

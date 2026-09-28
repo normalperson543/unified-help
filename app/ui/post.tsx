@@ -4,8 +4,12 @@ import { FileIcon } from "lucide-react";
 import SlackMessage from "./slack-message";
 import { SlackAttachment } from "../lib/types";
 
-function slackFileProxyUrl(url: string) {
-  return `/api/slack-file?url=${encodeURIComponent(url)}`;
+function safeExternalHref(url: string): string {
+  try {
+    return new URL(url).protocol === "https:" ? url : "#";
+  } catch {
+    return "#";
+  }
 }
 
 export default function Post({
@@ -68,13 +72,15 @@ export default function Post({
         {attachments && attachments.length > 0 && (
           <div className="flex flex-col gap-2">
             {attachments.map((attachment) => {
-              const href = attachment.urlPrivate
-                ? slackFileProxyUrl(attachment.urlPrivate)
-                : attachment.permalinkPublic ||
-                  attachment.permalink ||
-                  attachment.urlPrivate;
+              const href =
+                attachment.proxyUrl ??
+                safeExternalHref(
+                  attachment.permalinkPublic ||
+                    attachment.permalink ||
+                    attachment.urlPrivate,
+                );
 
-              if (attachment.isImage) {
+              if (attachment.isImage && attachment.thumbProxyUrl) {
                 return (
                   <a
                     key={attachment.id}
@@ -85,9 +91,7 @@ export default function Post({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={slackFileProxyUrl(
-                        attachment.thumb360 || attachment.urlPrivate,
-                      )}
+                      src={attachment.thumbProxyUrl}
                       alt={attachment.title}
                       className="max-w-xs rounded-md border border-default-200"
                     />
