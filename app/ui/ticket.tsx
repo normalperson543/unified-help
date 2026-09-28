@@ -361,7 +361,7 @@ export default function TicketUI({
       toast("This internal note has been posted.", {
         indicator: <CheckIcon />,
       });
-      setMessage("");
+      setINote("");
       mutate();
       setSendingINote(false);
       return;
@@ -751,6 +751,14 @@ export default function TicketUI({
                           className="w-full h-32"
                           onChange={(e) => setMessage(e.target.value)}
                           value={message}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              if (message.length > 0 && !sending) {
+                                handlePostMessage();
+                              }
+                            }
+                          }}
                         />
                         <div className="flex gap-2">
                           <Button
@@ -876,6 +884,14 @@ export default function TicketUI({
                             className="w-full h-32"
                             onChange={(e) => setINote(e.target.value)}
                             value={inote}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                if (inote.length > 0 && !sendingINote) {
+                                  handlePostINote();
+                                }
+                              }
+                            }}
                           />
                           <Button
                             onClick={handlePostINote}
