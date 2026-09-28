@@ -542,7 +542,7 @@ export async function getResolvedTicketsCount(
   newest: Date,
 ) {
   await throwIfNoAuth();
-  return await prisma.slackUser.findMany({
+  const users = await prisma.slackUser.findMany({
     // this was made with help from claude
     where: {
       programs: {
@@ -554,7 +554,8 @@ export async function getResolvedTicketsCount(
     select: {
       id: true,
       username: true,
-
+      isBot: true,
+      programs: true,
       _count: {
         select: {
           programs: {
@@ -571,30 +572,50 @@ export async function getResolvedTicketsCount(
               },
             },
           },
-          resolvedTickets: {
-            where: {
-              programId: programId,
-              dateCreated: {
-                gte: oldest,
-                lte: newest,
-              },
-            },
-          },
           users: true,
-          assignedTickets: {
-            where: {
-              programId: programId,
-              status: 2,
-              dateCreated: {
-                gte: oldest,
-                lte: newest,
-              },
-            },
+        },
+      },
+      assignedTickets: {
+        where: {
+          programId: programId,
+          dateCreated: {
+            gte: oldest,
+            lte: newest,
+          },
+        },
+        select: { id: true },
+      },
+      resolvedTickets: {
+        where: {
+          programId: programId,
+          dateCreated: {
+            gte: oldest,
+            lte: newest,
+          },
+        },
+        select: {
+          id: true,
+          assignees: {
+            select: { id: true },
           },
         },
       },
     },
   });
+
+  return users.map((u) => ({
+    id: u.id,
+    username: u.username,
+    isBot: u.isBot,
+    programs: u.programs,
+    _count: {
+      ...u._count,
+      assignedTickets: u.assignedTickets.length,
+      resolvedTickets: u.resolvedTickets.filter((t) =>
+        t.assignees.some((a) => a.id === u.id),
+      ).length,
+    },
+  }));
 }
 export async function getHangTime(
   programId: string,
