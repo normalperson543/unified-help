@@ -1,6 +1,12 @@
 import { Avatar, Chip } from "@heroui/react";
 import Link from "next/link";
+import { FileIcon } from "lucide-react";
 import SlackMessage from "./slack-message";
+import { SlackAttachment } from "../lib/types";
+
+function slackFileProxyUrl(url: string) {
+  return `/api/slack-file?url=${encodeURIComponent(url)}`;
+}
 
 export default function Post({
   username,
@@ -10,6 +16,7 @@ export default function Post({
   isHelper = false,
   dateCreated,
   programId,
+  attachments,
 }: {
   username: string;
   message: string;
@@ -18,6 +25,7 @@ export default function Post({
   isHelper?: boolean;
   dateCreated: Date;
   programId: string;
+  attachments?: SlackAttachment[];
 }) {
   return (
     <div className="flex min-w-0 flex-row gap-4">
@@ -57,6 +65,53 @@ export default function Post({
           </p>
         </div>
         <SlackMessage text={message} />
+        {attachments && attachments.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {attachments.map((attachment) => {
+              const href = attachment.urlPrivate
+                ? slackFileProxyUrl(attachment.urlPrivate)
+                : attachment.permalinkPublic ||
+                  attachment.permalink ||
+                  attachment.urlPrivate;
+
+              if (attachment.isImage) {
+                return (
+                  <a
+                    key={attachment.id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-fit"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={slackFileProxyUrl(
+                        attachment.thumb360 || attachment.urlPrivate,
+                      )}
+                      alt={attachment.title}
+                      className="max-w-xs rounded-md border border-default-200"
+                    />
+                  </a>
+                );
+              }
+
+              return (
+                <a
+                  key={attachment.id}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 w-fit p-2 rounded-md border border-default-200 hover:bg-default-100"
+                >
+                  <FileIcon size={16} />
+                  <span className="truncate max-w-xs">
+                    {attachment.title || attachment.name}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

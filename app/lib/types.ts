@@ -227,6 +227,20 @@ export type INoteWithSlackUser = Prisma.INoteGetPayload<{
   }
 }>
 
+export type SlackAttachment = {
+  id: string;
+  name: string;
+  title: string;
+  mimetype: string;
+  filetype: string;
+  permalink: string;
+  urlPrivate: string;
+  permalinkPublic?: string;
+  thumb360?: string;
+  thumb160?: string;
+  isImage: boolean;
+};
+
 export type FlaronUserResponse = {
   "data": {
     "user": {

@@ -1,6 +1,6 @@
 import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
-import { FlaronUserResponse } from "./types";
+import { FlaronUserResponse, SlackAttachment } from "./types";
 
 const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
 
@@ -159,6 +159,77 @@ export async function isParentMessageDeleted(
     throw e;
   }
 }
+export async function getThreadAttachments(
+  channelId: string,
+  threadTs: string,
+): Promise<Record<string, SlackAttachment[]>> {
+  const attachments: Record<string, SlackAttachment[]> = {};
+  let cursor: string | undefined;
+
+  try {
+    do {
+      const result = await web.conversations.replies({
+        channel: channelId,
+        ts: threadTs,
+        limit: 200,
+        cursor,
+      });
+
+      if (!result.messages) break;
+
+      for (const message of result.messages) {
+        const ts = message.ts;
+        const files = (message as { files?: unknown[] }).files;
+        if (!ts || !Array.isArray(files) || files.length === 0) continue;
+
+        const mapped: SlackAttachment[] = files
+          .filter(
+            (
+              f,
+            ): f is {
+              id?: string;
+              name?: string;
+              title?: string;
+              mimetype?: string;
+              filetype?: string;
+              permalink?: string;
+              permalink_public?: string;
+              url_private?: string;
+              thumb_360?: string;
+              thumb_160?: string;
+              mode?: string;
+            } => typeof f === "object" && f !== null,
+          )
+          .filter((f) => f.id && f.mode !== "tombstone")
+          .map((f) => {
+            const mimetype = f.mimetype ?? "application/octet-stream";
+            return {
+              id: f.id as string,
+              name: f.name ?? f.title ?? "Untitled",
+              title: f.title ?? f.name ?? "Untitled",
+              mimetype,
+              filetype: f.filetype ?? "",
+              permalink: f.permalink ?? "",
+              permalinkPublic: f.permalink_public,
+              urlPrivate: f.url_private ?? "",
+              thumb360: f.thumb_360,
+              thumb160: f.thumb_160,
+              isImage: mimetype.startsWith("image/"),
+            };
+          });
+
+        if (mapped.length > 0) attachments[ts] = mapped;
+      }
+
+      cursor = result.response_metadata?.next_cursor ?? undefined;
+    } while (cursor);
+  } catch (e) {
+    console.error("Error fetching thread attachments:", e);
+  }
+
+  return attachments;
+}
+
 export async function replyAsUser(
   userToken: string,
   threadTs: string,

@@ -32,7 +32,11 @@ import {
   XIcon,
 } from "lucide-react";
 import useSWR from "swr";
-import { INoteWithSlackUser, TicketWithReplies } from "../lib/types";
+import {
+  INoteWithSlackUser,
+  SlackAttachment,
+  TicketWithReplies,
+} from "../lib/types";
 import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
@@ -84,6 +88,13 @@ export default function TicketUI({
   } = useSWR<TicketWithReplies>(`/api/ticket/${id}`, fetcher, {
     refreshInterval: REFRESH_INTERVAL,
   });
+
+  const { data: attachmentsData } = useSWR<{
+    attachments: Record<string, SlackAttachment[]>;
+  }>(`/api/ticket/${id}/attachments`, fetcher, {
+    revalidateOnFocus: false,
+  });
+  const attachmentsByMessage = attachmentsData?.attachments ?? {};
 
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -381,8 +392,7 @@ export default function TicketUI({
       )}
       {!ticketIsLoading && ticket && (
         <>
-          <div className="relative flex flex-col gap-4 min-h-full">
-            <div
+         <div
               className="flex justify-between sticky top-0 bg-background p-4 z-10"
               style={{ backgroundColor: backgroundColor }}
             >
@@ -595,6 +605,7 @@ export default function TicketUI({
                 </Link>
               </div>
             </div>
+          <div className="relative flex flex-col gap-4 min-h-full">
             <div className="flex flex-col gap-4 p-4 ">
               <Post
                 username={ticket.slackUser.username}
@@ -603,6 +614,7 @@ export default function TicketUI({
                 dateCreated={ticket.dateCreated}
                 programId={ticket.programId}
                 op
+                attachments={attachmentsByMessage[ticket.messageId]}
               />
               {ticket.replies.map((r) => {
                 const m = RESOLVE_MACROS.findLast((m) =>
@@ -713,6 +725,9 @@ export default function TicketUI({
                     )}
                     dateCreated={r.dateCreated}
                     programId={ticket.programId}
+                    attachments={
+                      r.messageId ? attachmentsByMessage[r.messageId] : undefined
+                    }
                   />
                 );
               })}

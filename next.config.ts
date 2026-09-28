@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [new URL("https://cdn.hackclub.com/**")],
+    remotePatterns: [
+      new URL("https://cdn.hackclub.com/**"),
+      new URL("https://slack-files.com/**"),
+    ],
   },
   async headers() {
     return [
@@ -23,7 +26,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+            value:
+              "camera=(), microphone=(), geolocation=(), browsing-topics=()",
           },
           {
             key: "Strict-Transport-Security",
