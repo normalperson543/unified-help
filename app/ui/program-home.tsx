@@ -10,6 +10,7 @@ import {
   SlackUserWithStats,
 } from "../lib/types";
 import AnswerBarChart from "./answer-bar-chart";
+import AnswerLineChart from "./answer-line-chart";
 import useSWR from "swr";
 import { fetcher } from "../lib/swr";
 import { useParams } from "next/navigation";
@@ -438,6 +439,15 @@ export default function ProgramUI() {
           </div>
         </Card>
       </div>
+      <Card>
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-bold">Ticket replies over time</p>
+          <p className="text-muted text-sm">
+            Daily replies in the selected date range (UTC).
+          </p>
+          <AnswerLineChart data={activity?.byDate ?? []} />
+        </div>
+      </Card>
       <div className="flex flex-row gap-2">
         {lbError && (
           <Alert status="danger">

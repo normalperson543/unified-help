@@ -16,6 +16,7 @@ import {
   TicketWithAssigneesAndProgram,
 } from "../lib/types";
 import AnswerBarChart from "./answer-bar-chart";
+import AnswerLineChart from "./answer-line-chart";
 import {
   CheckIcon,
   CircleIcon,
@@ -324,6 +325,15 @@ export default function ProfileUI({
           </div>
         </Card>
       </div>
+      <Card>
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-bold">Ticket replies over time</p>
+          <p className="text-muted text-sm">
+            Daily replies across all time {program ? "for this program" : "for this user"} (UTC).
+          </p>
+          <AnswerLineChart data={activity.byDate} />
+        </div>
+      </Card>
       <Tabs variant="secondary">
         <Tabs.ListContainer>
           <Tabs.List aria-label="Options">

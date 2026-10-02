@@ -27,7 +27,4 @@ export const LOADING_TEXT = [
   "neocat emojis are goated",
 ];
 
-export function randomLoadingText(): string {
-  // claude code :sob: because of stupid type checks
-  return LOADING_TEXT[Math.floor(Math.random() * LOADING_TEXT.length)];
-}
+

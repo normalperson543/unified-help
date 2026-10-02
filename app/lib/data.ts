@@ -243,11 +243,12 @@ function bucketReplyActivity(
     }));
 
   if (replies.length === 0) {
-    return { byWeekday: emptyWeekday(), byHour: emptyHour() };
+    return { byDate: [], byWeekday: emptyWeekday(), byHour: emptyHour() };
   }
 
   const perDay = new Map<string, Set<string>>(); // dateKey -> distinct ticketIds
   const perHour = new Map<string, Set<string>>(); // dateKey|hour -> distinct ticketIds
+  const repliesByDay = new Map<string, number>();
 
   let minTime = Infinity;
   let maxTime = -Infinity;
@@ -260,6 +261,8 @@ function bucketReplyActivity(
 
     const dateKey = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
     const hourKey = `${dateKey}|${d.getUTCHours()}`;
+
+    repliesByDay.set(dateKey, (repliesByDay.get(dateKey) ?? 0) + 1);
 
     if (!perDay.has(dateKey)) perDay.set(dateKey, new Set());
     perDay.get(dateKey)!.add(reply.ticketId);
@@ -290,8 +293,18 @@ function bucketReplyActivity(
   }
 
   const round = (n: number) => Math.round(n * 100) / 100;
+  const byDate = [];
+  for (let t = startDay; t <= endDay; t += DAY_MS) {
+    const date = new Date(t);
+    const dateKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+    byDate.push({
+      date: date.toISOString().slice(0, 10),
+      replies: repliesByDay.get(dateKey) ?? 0,
+    });
+  }
 
   return {
+    byDate,
     byWeekday: WEEKDAYS.map((day, i) => ({
       day,
       average: weekdayOccurrences[i]
