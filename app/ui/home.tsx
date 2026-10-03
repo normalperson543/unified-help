@@ -283,8 +283,8 @@ function HeroProductPreview() {
             </div>
             <p className="text-muted px-1">Showing 1-4 of 24 results</p>
             <div className="flex flex-col gap-1">
-              <HeroTicketRow title="How do I make a Hack Club?" user="normalperson543" status={isResolved ? "resolved" : isAssigned ? "assigned" : "open"} active />
-              <HeroTicketRow title="I need help with my grant" user="Devarsh" status="assigned" />
+              <HeroTicketRow title="How do I make a Hack Club?" user="Devarsh" status={isResolved ? "resolved" : isAssigned ? "assigned" : "open"} active />
+              <HeroTicketRow title="I need help with my grant" user="normalperson543" status="assigned" />
               <HeroTicketRow title="My project hasn't been reviewed" user="astra celestine" status="resolved" />
               <HeroTicketRow title="I hava question about shipping my project" user="swn" status="open" />
             </div>
@@ -368,7 +368,7 @@ function HeroProductPreview() {
                 )}
               </AnimatePresence>
               <div className="flex gap-2">
-                <Avatar size="sm"><Avatar.Fallback>n</Avatar.Fallback></Avatar>
+                <Avatar size="sm"><Avatar.Fallback>N</Avatar.Fallback></Avatar>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <motion.div animate={{ opacity: isResolved ? 0.55 : 1 }} transition={{ duration: 0.4 }}>
                     <TextArea
