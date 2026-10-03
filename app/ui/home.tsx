@@ -283,8 +283,8 @@ function HeroProductPreview() {
             </div>
             <p className="text-muted px-1">Showing 1-4 of 24 results</p>
             <div className="flex flex-col gap-1">
-              <HeroTicketRow title="How do I make a Hack Club?" user="normalperson543" status="open" />
-              <HeroTicketRow title="I need help with my grant" user="Devarsh" status={isResolved ? "resolved" : isAssigned ? "assigned" : "open"} active />
+              <HeroTicketRow title="How do I make a Hack Club?" user="normalperson543" status={isResolved ? "resolved" : isAssigned ? "assigned" : "open"} active/>
+              <HeroTicketRow title="I need help with my grant" user="Devarsh" status="assigned" />
               <HeroTicketRow title="My project hasn't been reviewed" user="astra celestine" status="resolved" />
               <HeroTicketRow title="I hava question about shipping my project" user="swn" status="open" />
             </div>
