@@ -113,15 +113,15 @@ export default function TicketUI({
     localStorage.setItem("ticket-attribution-enabled", String(ctx));
   }, [ctx]);
 
-  let backgroundColor = "initial";
+  let backgroundColor = "var(--surface-secondary)";
   if (ticket && ticket.status === 0) {
-    backgroundColor = "var(--color-orange-950)";
+    backgroundColor = "var(--warning-soft)";
   }
   if (ticket && ticket.status === 1) {
-    backgroundColor = "var(--color-blue-950)";
+    backgroundColor = "var(--accent-soft)";
   }
   if (ticket && ticket.status === 2) {
-    backgroundColor = "var(--color-green-950)";
+    backgroundColor = "var(--success-soft)";
   }
 
   async function handleConnectTag(id: string) {

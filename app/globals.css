@@ -13,36 +13,37 @@ body {
 .default,
 [data-theme="light"],
 [data-theme="default"] {
+  color-scheme: light;
   /* Theme Colors (Light Mode) */
   --accent: oklch(62.25% 0.2148 19.13);
   --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(97.02% 0.02 19.13);
-  --border: oklch(90% 0.02 19.13);
+  --background: oklch(98.5% 0.008 260);
+  --border: oklch(89% 0.018 260);
   --danger: oklch(65.32% 0.2421 357.58);
   --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(94% 0.02 19.13);
-  --default-foreground: oklch(21.03% 0.0059 19.13);
-  --field-background: oklch(100% 0.01 19.13);
+  --default: oklch(94% 0.012 260);
+  --default-foreground: oklch(21.03% 0.0059 260);
+  --field-background: oklch(100% 0 0);
   --field-border: transparent;
-  --field-foreground: oklch(21.03% 0.02 19.13);
-  --field-placeholder: oklch(55.17% 0.04 19.13);
+  --field-foreground: oklch(21.03% 0.02 260);
+  --field-placeholder: oklch(55.17% 0.025 260);
   --focus: oklch(62.25% 0.2148 19.13);
-  --foreground: oklch(21.03% 0.02 19.13);
-  --muted: oklch(55.17% 0.04 19.13);
-  --overlay: oklch(100% 0.006 19.13);
-  --overlay-foreground: oklch(21.03% 0.02 19.13);
-  --scrollbar: oklch(87.1% 0.02 19.13);
-  --segment: oklch(100% 0.02 19.13);
-  --segment-foreground: oklch(21.03% 0.02 19.13);
-  --separator: oklch(92% 0.02 19.13);
+  --foreground: oklch(21.03% 0.02 260);
+  --muted: oklch(55.17% 0.025 260);
+  --overlay: oklch(100% 0 0);
+  --overlay-foreground: oklch(21.03% 0.02 260);
+  --scrollbar: oklch(87.1% 0.015 260);
+  --segment: oklch(100% 0 0);
+  --segment-foreground: oklch(21.03% 0.02 260);
+  --separator: oklch(92% 0.012 260);
   --success: oklch(73.29% 0.2012 122.65);
   --success-foreground: oklch(21.03% 0.0059 122.65);
-  --surface: oklch(100% 0.01 19.13);
-  --surface-foreground: oklch(21.03% 0.02 19.13);
-  --surface-secondary: oklch(95.24% 0.016 19.13);
-  --surface-secondary-foreground: oklch(21.03% 0.02 19.13);
-  --surface-tertiary: oklch(93.73% 0.016 19.13);
-  --surface-tertiary-foreground: oklch(21.03% 0.02 19.13);
+  --surface: oklch(100% 0 0);
+  --surface-foreground: oklch(21.03% 0.02 260);
+  --surface-secondary: oklch(96.5% 0.012 260);
+  --surface-secondary-foreground: oklch(21.03% 0.02 260);
+  --surface-tertiary: oklch(94% 0.014 260);
+  --surface-tertiary-foreground: oklch(21.03% 0.02 260);
   --warning: #ff8c37;
   --warning-foreground: #2d190a;
 

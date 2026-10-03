@@ -21,8 +21,24 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased bg-gray-50 dark ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
+      suppressHydrationWarning
+      data-theme="dark"
+      className={`h-full antialiased ${process.env["NODE_ENV"] === "development" ? "border-yellow-500 border-12" : ""}`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const theme = localStorage.getItem("heroui-theme") || "dark";
+                document.documentElement.classList.remove("light", "dark");
+                document.documentElement.classList.add(theme);
+                document.documentElement.dataset.theme = theme;
+              } catch {}
+            })();`,
+          }}
+        />
+      </head>
       <Toast.Provider placement="top" />
       <body className="min-h-full flex flex-col overflow-x-hidden bg-background text-foreground">
         <div className="flex flex-col h-screen">
