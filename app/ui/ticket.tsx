@@ -115,13 +115,13 @@ export default function TicketUI({
 
   let backgroundColor = "var(--surface-secondary)";
   if (ticket && ticket.status === 0) {
-    backgroundColor = "var(--warning-soft)";
+    backgroundColor = "color-mix(in oklab, var(--warning) 12%, var(--surface))";
   }
   if (ticket && ticket.status === 1) {
-    backgroundColor = "var(--accent-soft)";
+    backgroundColor = "color-mix(in oklab, #3b82f6 18%, var(--surface))";
   }
   if (ticket && ticket.status === 2) {
-    backgroundColor = "var(--success-soft)";
+    backgroundColor = "color-mix(in oklab, #22c55e 24%, var(--surface))";
   }
 
   async function handleConnectTag(id: string) {
