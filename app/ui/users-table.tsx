@@ -10,12 +10,14 @@ export default function UsersTable({
   sortDescriptor,
   setSortDescriptor,
   height = 96,
+  rankStart,
 }: {
   users: SlackUserWithStats[];
   programId?: string;
   sortDescriptor?: SortDescriptor;
   setSortDescriptor?: (s: SortDescriptor) => void;
   height?: number;
+  rankStart?: number;
 }) {
   return (
     <Table>
@@ -26,6 +28,7 @@ export default function UsersTable({
           onSortChange={setSortDescriptor}
         >
           <Table.Header className="sticky top-0 z-10 bg-surface-secondary">
+            {rankStart !== undefined && <Table.Column>Rank</Table.Column>}
             <Table.Column allowsSorting isRowHeader id="username">
               {({ sortDirection }) => (
                 <Table.SortableColumnHeader sortDirection={sortDirection}>
@@ -67,6 +70,9 @@ export default function UsersTable({
             <Table.Collection items={users}>
               {(u) => (
                 <Table.Row key={u.id}>
+                  {rankStart !== undefined && (
+                    <Table.Cell>{rankStart + users.indexOf(u)}</Table.Cell>
+                  )}
                   <Table.Cell>
                     <div className="flex gap-2 items-center shrink w-fit">
                       <Link

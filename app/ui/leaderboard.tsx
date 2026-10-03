@@ -134,6 +134,7 @@ export default function LeaderboardUI() {
           sortDescriptor={userSortDescriptor}
           setSortDescriptor={handleSetUserSortDescriptor}
           height={120}
+          rankStart={startUserItem}
         />
       )}
     </div>
