@@ -1,36 +1,60 @@
 {
     "display_information": {
-        "name": "UHSBot"
+        "name": "Unified Help",
+        "description": "https://unified.help.hackclub.com",
+        "background_color": "#ec3750",
+        "long_description": "Hewwo :3 I operate the Unified Help platform, and act as a support bot for some programs.\r\n\r\nI also scrape tickets from help channels, and index user groups and channel members to add them as helpers for programs.\r\n\r\nTry out Unified Help: https://unified.help.hackclub.com\r\nSupport: #unified-help\r\nManaged by @normalperson543"
     },
     "features": {
         "bot_user": {
-            "display_name": "UHSBot",
+            "display_name": "Unified Help",
             "always_online": false
         }
     },
     "oauth_config": {
+        "redirect_urls": [
+            "https://unified.help.hackclub.com/api/auth/oauth2/callback/slack"
+        ],
         "scopes": {
+            "user": [
+                "chat:write",
+                "users:read"
+            ],
             "bot": [
-                "groups:read",
+                "files:read",
                 "channels:history",
+                "channels:read",
+                "chat:write",
+                "chat:write.customize",
+                "emoji:read",
+                "groups:history",
+                "groups:read",
+                "mpim:read",
+                "reactions:read",
                 "usergroups:read",
-                "users:read",
-                "channels:read"
+                "users:read"
             ]
         },
         "pkce_enabled": false
     },
     "settings": {
         "event_subscriptions": {
-            "request_url": "https://YOUR_SCRAPER_URL_HERE/slack/events",
+            "request_url": "https://uhsbot.help.hackclub.com/slack/events",
             "bot_events": [
+                "member_joined_channel",
                 "message.channels",
+                "message.groups",
                 "subteam_members_changed"
             ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://uhsbot.help.hackclub.com/slack/events"
         },
         "org_deploy_enabled": false,
         "socket_mode_enabled": false,
         "token_rotation_enabled": false,
+        "app_level_token_rotation_enabled": false,
         "is_mcp_enabled": false
     }
 }
