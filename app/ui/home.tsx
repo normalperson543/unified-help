@@ -364,7 +364,7 @@ function HeroProductPreview() {
                     className="flex items-center gap-1 rounded-md border border-green-200 bg-green-50 p-2 text-green-950 dark:border-green-700 dark:bg-green-950 dark:text-green-50"
                   >
                     <CheckIcon width={14} /> Marked as <b>resolved</b> by normalperson543
-                  </motion.div>
+                </motion.div>
                 )}
               </AnimatePresence>
               <div className="flex gap-2">
