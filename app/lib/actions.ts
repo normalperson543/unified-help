@@ -620,6 +620,88 @@ export async function disconnectTag(
   });
   revalidatePath(`/programs/${t.programId}/ticket/${t.id}`);
 }
+export async function assignTicketToHelper(
+  ticketId: string,
+  programId: string,
+  helperId: string,
+) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    include: { program: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
+  if (!ticket.program.managed)
+    throw new Error("This program is not a managed program");
+
+  const isAssignedUser = await prisma.slackUser.count({
+    where: {
+      id: helperId,
+      programs: {
+        some: {
+          id: programId,
+        },
+      },
+    },
+  });
+  if (isAssignedUser === 0) throw new Error("Selected user is not a helper");
+
+  await prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+    data: {
+      assignees: {
+        set: [{ id: helperId }],
+      },
+      status: ticket.status === 2 ? 2 : 1,
+    },
+  });
+
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
+export async function unassignTicketUser(
+  ticketId: string,
+  programId: string,
+  userId: string,
+) {
+  await throwIfNoAuth();
+  const helper = await isHelper(programId);
+  if (!helper) throw new Error("unauthorized");
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    include: { assignees: true, program: true },
+  });
+  if (!ticket || ticket.programId !== programId)
+    throw new Error("unauthorized");
+  if (!ticket.program.managed)
+    throw new Error("This program is not a managed program");
+  if (!ticket.assignees.some((a) => a.id === userId))
+    throw new Error("User is not assigned to this ticket");
+
+  const remaining = ticket.assignees.filter((a) => a.id !== userId);
+
+  await prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+    data: {
+      assignees: {
+        disconnect: {
+          id: userId,
+        },
+      },
+      status: remaining.length === 0 ? 0 : ticket.status,
+    },
+  });
+
+  revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
+}
 export async function reindexTicket(ticketId: string, programId: string) {
   // this was ai generated as this is an admin-only feature
   await throwIfNoAuth();

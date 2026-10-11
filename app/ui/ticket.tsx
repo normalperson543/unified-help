@@ -29,11 +29,13 @@ import {
   TagIcon,
   TrashIcon,
   TriangleAlertIcon,
+  UserIcon,
   XIcon,
 } from "lucide-react";
 import useSWR from "swr";
 import {
   INoteWithSlackUser,
+  ProgramWithAssignees,
   SlackAttachment,
   TicketWithReplies,
 } from "../lib/types";
@@ -56,6 +58,8 @@ import {
   reopenTicket,
   resolveTicketWithMacro,
   deleteTicket,
+  assignTicketToHelper,
+  unassignTicketUser,
 } from "../lib/actions";
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
@@ -108,6 +112,18 @@ export default function TicketUI({
   const [inote, setINote] = useState("");
   const [linkingSlack, setLinkingSlack] = useState(false);
   const [reindexing, setReindexing] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [unassigningUserId, setUnassigningUserId] = useState<string | null>(
+    null,
+  );
+
+  const { data: programInfo } = useSWR<ProgramWithAssignees>(
+    `/api/programs/${programId}/info`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    },
+  );
 
   useEffect(() => {
     localStorage.setItem("ticket-attribution-enabled", String(ctx));
@@ -376,6 +392,42 @@ export default function TicketUI({
     }
   }
 
+  async function handleAssign(helperId: string) {
+    try {
+      if (!ticket) return;
+      setAssigning(true);
+      await assignTicketToHelper(ticket.id, ticket.programId, helperId);
+      mutate();
+      setAssigning(false);
+      return;
+    } catch {
+      toast("Cannot assign this ticket", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      setAssigning(false);
+      return;
+    }
+  }
+
+  async function handleUnassign(userId: string) {
+    try {
+      if (!ticket) return;
+      setUnassigningUserId(userId);
+      await unassignTicketUser(ticket.id, ticket.programId, userId);
+      mutate();
+      setUnassigningUserId(null);
+      return;
+    } catch {
+      toast("Cannot unassign this helper", {
+        indicator: <TriangleAlertIcon />,
+        variant: "danger",
+      });
+      setUnassigningUserId(null);
+      return;
+    }
+  }
+
   return (
     <>
       {(ticketIsLoading || !ticket) && !ticketError && <Loading />}
@@ -442,20 +494,39 @@ export default function TicketUI({
                         {ticket.assignees.map((user) => (
                           <Tooltip delay={0} key={user.id}>
                             <Tooltip.Trigger>
-                              <Link
-                                href={`/profile/${user.id}/program/${ticket.programId}`}
-                                target="_blank"
-                              >
-                                <Avatar size="sm">
-                                  <Avatar.Image
-                                    src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
-                                    alt="Profile picture"
-                                  />
-                                  <Avatar.Fallback>
-                                    {user.username.substring(0, 1)}
-                                  </Avatar.Fallback>
-                                </Avatar>
-                              </Link>
+                              <div className="relative inline-block">
+                                <Link
+                                  href={`/profile/${user.id}/program/${ticket.programId}`}
+                                  target="_blank"
+                                >
+                                  <Avatar size="sm">
+                                    <Avatar.Image
+                                      src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
+                                      alt="Profile picture"
+                                    />
+                                    <Avatar.Fallback>
+                                      {user.username.substring(0, 1)}
+                                    </Avatar.Fallback>
+                                  </Avatar>
+                                </Link>
+                                {isHelper &&
+                                  ticket.program.managed &&
+                                  ticket.status !== 2 && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleUnassign(user.id);
+                                      }}
+                                      disabled={
+                                        unassigningUserId === user.id
+                                      }
+                                      className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-danger text-danger-foreground rounded-full hover:opacity-80 disabled:opacity-50"
+                                    >
+                                      <XIcon width={10} />
+                                    </button>
+                                  )}
+                              </div>
                             </Tooltip.Trigger>
                             <Tooltip.Content>
                               <p>{user.username}</p>
@@ -595,6 +666,55 @@ export default function TicketUI({
                     </Button>
                   </>
                 )}
+                {isHelper &&
+                  ticket.program.managed &&
+                  ticket.status !== 2 && (
+                    <Dropdown>
+                      <Button
+                        isPending={assigning}
+                        variant="secondary"
+                      >
+                        <UserIcon />
+                        Assign{" "}
+                        <ChevronDownIcon />
+                      </Button>
+                      <Dropdown.Popover>
+                        <Dropdown.Menu>
+                          {(
+                            programInfo?.assignedUsers ?? []
+                          ).filter(
+                            (u) =>
+                              u.id !== signedInUser?.id &&
+                              !ticket.assignees.some(
+                                (a) => a.id === u.id,
+                              ),
+                          ).length === 0 && (
+                            <Dropdown.Item isDisabled key="none">
+                              No other helpers
+                            </Dropdown.Item>
+                          )}
+                          {(
+                            programInfo?.assignedUsers ?? []
+                          )
+                            .filter(
+                              (u) =>
+                                u.id !== signedInUser?.id &&
+                                !ticket.assignees.some(
+                                  (a) => a.id === u.id,
+                                ),
+                            )
+                            .map((u) => (
+                              <Dropdown.Item
+                                key={u.id}
+                                onClick={() => handleAssign(u.id)}
+                              >
+                                {u.username}
+                              </Dropdown.Item>
+                            ))}
+                        </Dropdown.Menu>
+                      </Dropdown.Popover>
+                    </Dropdown>
+                  )}
                 <Link
                   href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
                   target="_blank"
@@ -825,26 +945,26 @@ export default function TicketUI({
                                 )}
                               </ButtonGroup>
                             )}
-                          {ticket.program.allowResolver &&
-                            ticket.status === 2 && (
-                              <Button
-                                onClick={handleReopen}
-                                isPending={resolving}
-                                variant="secondary"
-                              >
-                                {resolving ? (
-                                  <>
-                                    <Spinner color="current" /> Reopening...
-                                  </>
-                                ) : (
-                                  <>
-                                    <CircleIcon />
-                                    Reopen{" "}
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                        </div>
+                            {ticket.program.allowResolver &&
+                              ticket.status === 2 && (
+                                <Button
+                                  onClick={handleReopen}
+                                  isPending={resolving}
+                                  variant="secondary"
+                                >
+                                  {resolving ? (
+                                    <>
+                                      <Spinner color="current" /> Reopening...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CircleIcon />
+                                      Reopen{" "}
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                          </div>
 
                         <Switch isSelected={ctx} onChange={setCtx}>
                           <Switch.Content>
