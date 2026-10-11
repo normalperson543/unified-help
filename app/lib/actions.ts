@@ -631,7 +631,7 @@ export async function assignTicketToHelper(
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
-    include: { program: true },
+    include: { program: true, assignees: true },
   });
   if (!ticket || ticket.programId !== programId)
     throw new Error("unauthorized");
@@ -649,6 +649,9 @@ export async function assignTicketToHelper(
     },
   });
   if (isAssignedUser === 0) throw new Error("Selected user is not a helper");
+  if (ticket.assignees.some((a) => a.id === helperId)) {
+    return;
+  }
 
   await prisma.ticket.update({
     where: {
@@ -656,9 +659,11 @@ export async function assignTicketToHelper(
     },
     data: {
       assignees: {
-        set: [{ id: helperId }],
+        connect: {
+          id: helperId,
+        },
       },
-      status: ticket.status === 2 ? 2 : 1,
+      status: ticket.status === 0 ? 1 : ticket.status,
     },
   });
 
