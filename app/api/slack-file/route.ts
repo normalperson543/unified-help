@@ -24,12 +24,13 @@ export async function GET(req: NextRequest) {
     return jsonResponse({ status: "Invalid signature" }, { status: 403 });
   }
 
-  if (!isAllowedSlackFileUrl(url)) {
+  const validatedUrl = isAllowedSlackFileUrl(url);
+  if (!validatedUrl) {
     return jsonResponse({ status: "Disallowed host" }, { status: 400 });
   }
 
   try {
-    const slackRes = await fetch(url, {
+    const slackRes = await fetch(validatedUrl.toString(), {
       headers: {
         Authorization: `Bearer ${process.env["SLACK_BOT_TOKEN"] as string}`,
       },

@@ -16,6 +16,7 @@ import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
 import { canCreateManagedProgram, isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
+import { buildScraperUrl } from "./scraper";
 
 // most of the HC CDN implementation was created with AI
 
@@ -132,22 +133,19 @@ export async function startBacklog(
   if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
   }
-  const resp = await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/start`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        programId: programId,
-        backlogTo: backlogTo,
-        backlogFrom: backlogFrom,
-        actorId: session.user.slackUserId,
-      }),
-      headers: {
-        "Content-type": "application/json",
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  const resp = await fetch(buildScraperUrl(["api", "backlog", programId, "start"]), {
+    method: "POST",
+    body: JSON.stringify({
+      programId: programId,
+      backlogTo: backlogTo,
+      backlogFrom: backlogFrom,
+      actorId: session.user.slackUserId,
+    }),
+    headers: {
+      "Content-type": "application/json",
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   if (!resp.ok) {
     throw new Error("Could not start backlog job");
   }
@@ -162,20 +160,17 @@ export async function stopBacklog(programId: string) {
   if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
   }
-  const resp = await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/stop`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        programId: programId,
-        actorId: session.user.id,
-      }),
-      headers: {
-        "Content-type": "application/json",
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  const resp = await fetch(buildScraperUrl(["api", "backlog", programId, "stop"]), {
+    method: "POST",
+    body: JSON.stringify({
+      programId: programId,
+      actorId: session.user.id,
+    }),
+    headers: {
+      "Content-type": "application/json",
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   if (!resp.ok) {
     throw new Error("Could not stop backlog job");
   }
@@ -440,19 +435,16 @@ export async function indexUsersFromUserGroup(
   if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
   }
-  const resp = await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/index-user-group/${programId}`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        usergroupId: groupId,
-      }),
-      headers: {
-        "Content-type": "application/json",
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  const resp = await fetch(buildScraperUrl(["api", "index-user-group", programId]), {
+    method: "POST",
+    body: JSON.stringify({
+      usergroupId: groupId,
+    }),
+    headers: {
+      "Content-type": "application/json",
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   if (!resp.ok) {
     throw new Error("Could not start user indexing");
   }
@@ -472,19 +464,16 @@ export async function indexUsersFromChannel(
   if (!session || !session.user || !session.user.id) {
     throw new Error("unauthenticated");
   }
-  const resp = await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/index-channel/${programId}`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        channelId: channelId,
-      }),
-      headers: {
-        "Content-type": "application/json",
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  const resp = await fetch(buildScraperUrl(["api", "index-channel", programId]), {
+    method: "POST",
+    body: JSON.stringify({
+      channelId: channelId,
+    }),
+    headers: {
+      "Content-type": "application/json",
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   if (!resp.ok) {
     throw new Error("Could not start user indexing");
   }
@@ -728,20 +717,17 @@ export async function reindexTicket(ticketId: string, programId: string) {
 
   let resp: Response;
   try {
-    resp = await fetch(
-      `${process.env["SCRAPER_API_URL"]}/api/reindex-ticket/${ticketId}`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          ticketId: ticketId,
-          actorId: session.user.id,
-        }),
-        headers: {
-          "Content-type": "application/json",
-          "x-api-key": process.env["SCRAPER_API_KEY"]!,
-        },
+    resp = await fetch(buildScraperUrl(["api", "reindex-ticket", ticketId]), {
+      method: "POST",
+      body: JSON.stringify({
+        ticketId: ticketId,
+        actorId: session.user.id,
+      }),
+      headers: {
+        "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
-    );
+    });
   } catch {
     throw new Error("SCRAPER_OFFLINE");
   }
@@ -765,19 +751,16 @@ export async function indexThread(ticketId: string, programId: string) {
 
   let resp: Response;
   try {
-    resp = await fetch(
-      `${process.env["SCRAPER_API_URL"]}/api/index-thread/${ticketId}`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          ticketId: ticketId,
-        }),
-        headers: {
-          "Content-type": "application/json",
-          "x-api-key": process.env["SCRAPER_API_KEY"]!,
-        },
+    resp = await fetch(buildScraperUrl(["api", "index-thread", ticketId]), {
+      method: "POST",
+      body: JSON.stringify({
+        ticketId: ticketId,
+      }),
+      headers: {
+        "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
-    );
+    });
   } catch {
     throw new Error("SCRAPER_OFFLINE");
   }
@@ -988,7 +971,7 @@ export async function resolveTicket(ticketId: string) {
 
   if (ticket.program.managed) {
     await fetch(
-      `${process.env["SCRAPER_API_URL"]}/api/ticket/${ticket.id}/resolve-managed`,
+      buildScraperUrl(["api", "ticket", ticket.id, "resolve-managed"]),
       {
         method: "POST",
         body: JSON.stringify({
@@ -1046,23 +1029,20 @@ export async function resolveTicketWithMacro(
 ) {
   await throwIfNoAuth();
 
-  await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/ticket/${ticketId}/resolve-with-macro`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        ticketId: ticketId,
-        resolveTime: (Date.now() - Number(messageId) * 1000) / 1000,
-        resolveDate: new Date(),
-        macroId: macroId,
-        threadTs: messageId,
-      }),
-      headers: {
-        "Content-type": "application/json",
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  await fetch(buildScraperUrl(["api", "ticket", ticketId, "resolve-with-macro"]), {
+    method: "POST",
+    body: JSON.stringify({
+      ticketId: ticketId,
+      resolveTime: (Date.now() - Number(messageId) * 1000) / 1000,
+      resolveDate: new Date(),
+      macroId: macroId,
+      threadTs: messageId,
+    }),
+    headers: {
+      "Content-type": "application/json",
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }
 
@@ -1100,21 +1080,18 @@ export async function reopenTicket(ticketId: string) {
   }
 
   if (ticket.program.managed) {
-    await fetch(
-      `${process.env["SCRAPER_API_URL"]}/api/ticket/${ticketId}/reopen-managed`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          ticketId: ticketId,
-          actor: session.user.slackUserId,
-          threadTs: ticket.messageId,
-        }),
-        headers: {
-          "Content-type": "application/json",
-          "x-api-key": process.env["SCRAPER_API_KEY"]!,
-        },
+    await fetch(buildScraperUrl(["api", "ticket", ticketId, "reopen-managed"]), {
+      method: "POST",
+      body: JSON.stringify({
+        ticketId: ticketId,
+        actor: session.user.slackUserId,
+        threadTs: ticket.messageId,
+      }),
+      headers: {
+        "Content-type": "application/json",
+        "x-api-key": process.env["SCRAPER_API_KEY"]!,
       },
-    );
+    });
     return;
   }
   try {

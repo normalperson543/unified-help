@@ -13,7 +13,9 @@ export async function createUser(id: string) {
     },
   });
   if (!dbUser) {
-    const flaronUser = await fetch(`https://flaron.halceon.dev/user/${id}`);
+    const flaronUser = await fetch(
+      `https://flaron.halceon.dev/user/${encodeURIComponent(id)}`,
+    );
     if (flaronUser && flaronUser.ok) {
       const respJson = (await flaronUser.json()) as FlaronUserResponse;
       let username;

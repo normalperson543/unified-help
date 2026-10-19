@@ -4,6 +4,7 @@ import { auth } from "./auth";
 import { prisma } from "./prisma";
 import { AnswerActivity } from "./types";
 import { BsTicketDetailed } from "react-icons/bs";
+import { buildScraperUrl } from "./scraper";
 
 export async function getUserAuthStatus() {
   const session = await auth.api.getSession({
@@ -534,14 +535,11 @@ export async function getBacklogStatus(programId: string) {
   });
   if (!session || !session.user || !session.user.id)
     throw new Error("unauthenticated");
-  const resp = await fetch(
-    `${process.env["SCRAPER_API_URL"]}/api/backlog/${programId}/status`,
-    {
-      headers: {
-        "x-api-key": process.env["SCRAPER_API_KEY"]!,
-      },
+  const resp = await fetch(buildScraperUrl(["api", "backlog", programId, "status"]), {
+    headers: {
+      "x-api-key": process.env["SCRAPER_API_KEY"]!,
     },
-  );
+  });
   const respJson = await resp.json();
   if (!resp.ok) {
     throw new Error("Error fetching backlog status from backlogger");

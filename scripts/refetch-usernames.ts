@@ -52,7 +52,9 @@ function pickName(
 
 async function fetchUsername(id: string): Promise<FetchResult> {
   try {
-    const flaronUser = await fetch(`https://flaron.halceon.dev/user/${id}`);
+    const flaronUser = await fetch(
+      `https://flaron.halceon.dev/user/${encodeURIComponent(id)}`,
+    );
     if (flaronUser && flaronUser.ok) {
       const respJson = (await flaronUser.json()) as FlaronUserResponse;
       const username =

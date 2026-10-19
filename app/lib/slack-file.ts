@@ -18,13 +18,16 @@ function signingKey(): string | undefined {
   );
 }
 
-export function isAllowedSlackFileUrl(url: string): boolean {
+export function isAllowedSlackFileUrl(url: string): URL | null {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "https:" && ALLOWED_HOSTS.has(parsed.hostname);
+    if (parsed.protocol === "https:" && ALLOWED_HOSTS.has(parsed.hostname)) {
+      return parsed;
+    }
   } catch {
-    return false;
+    // ignore
   }
+  return null;
 }
 
 export function slackFileProxyUrlFor(url: string): string | undefined {
