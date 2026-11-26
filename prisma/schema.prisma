@@ -43,6 +43,7 @@ model Program {
   name            String
   channelId       String
   tickets         Ticket[]
+  ignoredThreads  IgnoredThread[]
   assignedUsers   SlackUser[]
   logo            String?
   canAutoIndex    Boolean     @default(true)
@@ -63,6 +64,15 @@ model Program {
   nPlus           Boolean     @default(false)
 
   pocUserId String?
+}
+
+model IgnoredThread {
+  programId String
+  program   Program  @relation(fields: [programId], references: [id])
+  messageId String
+  createdAt DateTime @default(now())
+
+  @@id([programId, messageId])
 }
 
 model SlackUser {
