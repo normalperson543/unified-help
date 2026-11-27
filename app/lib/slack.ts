@@ -2,6 +2,7 @@ import { WebClient } from "@slack/web-api";
 import { prisma } from "./prisma";
 import { FlaronUserResponse, SlackAttachment } from "./types";
 import { replyToTicket } from "./actions";
+import { StringNullableWithAggregatesFilter } from "@/generated/prisma/commonInputTypes";
 
 const web = new WebClient(process.env["SLACK_BOT_TOKEN"]);
 
@@ -291,6 +292,27 @@ export async function postMessageAsResolver(
     });
   }
 }
+export async function sendAssignmentDM(
+  assigneeId: string,
+  channelId: string,
+  threadTs: string,
+  ticketId: string,
+  programId: string,
+  programName: string
+) {
+  const { permalink } = await web.chat.getPermalink({
+    channel: channelId,
+    message_ts: threadTs,
+  });
+  const ticketUrl = `https://unified.help.hackclub.com/programs/${programId}/ticket/${ticketId}`;
+  const text = `You've been assigned to a ${programName} ticket on Unified Help.\nOpen Slack thread: ${permalink}\nOpen on Unified Help: ${ticketUrl}`;
+  await web.chat.postMessage({
+    channel: assigneeId,
+    text,
+    unfurl_links: false,
+  });
+}
+
 export async function postMacroMessage(
   channelId: string,
   messageTs: string,

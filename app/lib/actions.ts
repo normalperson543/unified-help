@@ -7,12 +7,10 @@ import { prisma } from "./prisma";
 import {
   createUser,
   isParentMessageDeleted,
-  postMacroMessage,
   postMessageAsResolver,
-  reopenMessage,
   replyAsUser,
+  sendAssignmentDM,
 } from "./slack";
-import { getManagedProgramMacro } from "./constants";
 import { redirect } from "next/navigation";
 import { canCreateManagedProgram, isAdmin, isHelper, isOrg } from "./data";
 import { throwIfNoAuth } from "./data";
@@ -655,6 +653,24 @@ export async function assignTicketToHelper(
       status: ticket.status === 0 ? 1 : ticket.status,
     },
   });
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (session?.user?.slackId !== helperId) {
+    try {
+      await sendAssignmentDM(
+        helperId,
+        ticket.program.channelId,
+        ticket.messageId,
+        ticketId,
+        programId,
+        ticket.program.name
+      );
+    } catch (e) {
+      console.error("Failed to send assignment DM: ", e);
+    }
+  }
 
   revalidatePath(`/programs/${programId}/ticket/${ticketId}`);
 }

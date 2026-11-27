@@ -8,7 +8,7 @@ import ProgramStats from "./program-stats";
 import Link from "next/link";
 import SignOutButton from "./sign-out-button";
 import ProgramTabs from "./program-tabs";
-import { Button } from "@heroui/react";
+import NavButton from "./nav-button";
 import SearchBar from "./search-bar";
 import { LayoutDashboardIcon, PodiumIcon } from "lucide-react";
 import Image from "next/image";
@@ -51,18 +51,14 @@ export default async function Header({
             <>
               <div className="flex min-w-0 flex-row flex-wrap gap-2 items-center">
                 <SearchBar />
-                <Link href="/dashboard">
-                  <Button variant="tertiary">
-                    <LayoutDashboardIcon />
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/leaderboard">
-                  <Button variant="tertiary">
-                    <PodiumIcon />
-                    Leaderboard
-                  </Button>
-                </Link>
+                <NavButton href="/dashboard">
+                  <LayoutDashboardIcon />
+                  Dashboard
+                </NavButton>
+                <NavButton href="/leaderboard">
+                  <PodiumIcon />
+                  Leaderboard
+                </NavButton>
               </div>
               <div className="flex flex-row gap-2 items-center">
                 <ProgramSelector />

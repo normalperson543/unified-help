@@ -444,287 +444,264 @@ export default function TicketUI({
       )}
       {!ticketIsLoading && ticket && (
         <>
-         <div
-              className="flex justify-between sticky top-0 bg-background p-4 z-10"
-              style={{ backgroundColor: backgroundColor }}
-            >
-              <div className="flex gap-4 flex-1">
-                <Link
-                  href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
-                >
-                  <Avatar>
-                    <Avatar.Image
-                      src={`https://cachet.dunkirk.sh/users/${ticket.slackUser.id}/r`}
-                      alt="Profile picture"
-                    />
-                    <Avatar.Fallback>
-                      {ticket.slackUser.username.substring(0, 1)}
-                    </Avatar.Fallback>
-                  </Avatar>
-                </Link>
+          <div
+            className="flex justify-between sticky top-0 bg-background p-4 z-10"
+            style={{ backgroundColor: backgroundColor }}
+          >
+            <div className="flex gap-4 flex-1">
+              <Link
+                href={`/profile/${ticket.slackUser.id}/program/${ticket.programId}`}
+              >
+                <Avatar>
+                  <Avatar.Image
+                    src={`https://cachet.dunkirk.sh/users/${ticket.slackUser.id}/r`}
+                    alt="Profile picture"
+                  />
+                  <Avatar.Fallback>
+                    {ticket.slackUser.username.substring(0, 1)}
+                  </Avatar.Fallback>
+                </Avatar>
+              </Link>
 
-                <div className="flex flex-col gap-2">
-                  <h2 className="font-bold text-xl">
-                    {getShortTitle(ticket.message).length > 0 ? (
-                      getShortTitle(ticket.message)
-                    ) : (
-                      <span className="text-muted italic">
-                        [No title provided]
-                      </span>
-                    )}
-                  </h2>
-                  <div className="flex flex-row gap-4 items-center">
-                    {ticket.status === 0 && (
-                      <Chip color="warning" variant="primary">
-                        <CircleDashedIcon width={16} /> Open
-                      </Chip>
-                    )}
-                    {ticket.status === 1 && (
-                      <Chip color="accent" variant="primary">
-                        <CircleIcon width={16} /> Assigned
-                      </Chip>
-                    )}
-                    {ticket.status === 2 && (
-                      <Chip color="success" variant="primary">
-                        <CheckIcon width={16} /> Resolved
-                      </Chip>
-                    )}
-                    <div className="flex flex-col gap-6">
-                      <div className="flex -space-x-2">
-                        {ticket.assignees.map((user) => (
-                          <Tooltip delay={0} key={user.id}>
-                            <Tooltip.Trigger>
-                              <div className="relative inline-block">
-                                <Link
-                                  href={`/profile/${user.id}/program/${ticket.programId}`}
-                                  target="_blank"
-                                >
-                                  <Avatar size="sm">
-                                    <Avatar.Image
-                                      src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
-                                      alt="Profile picture"
-                                    />
-                                    <Avatar.Fallback>
-                                      {user.username.substring(0, 1)}
-                                    </Avatar.Fallback>
-                                  </Avatar>
-                                </Link>
-                                {isHelper &&
-                                  ticket.program.managed &&
-                                  ticket.status !== 2 && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleUnassign(user.id);
-                                      }}
-                                      disabled={
-                                        unassigningUserId === user.id
-                                      }
-                                      className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-danger text-danger-foreground rounded-full hover:opacity-80 disabled:opacity-50"
-                                    >
-                                      <XIcon width={10} />
-                                    </button>
-                                  )}
-                              </div>
-                            </Tooltip.Trigger>
-                            <Tooltip.Content>
-                              <p>{user.username}</p>
-                            </Tooltip.Content>
-                          </Tooltip>
-                        ))}
-                      </div>
+              <div className="flex flex-col gap-2">
+                <h2 className="font-bold text-xl">
+                  {getShortTitle(ticket.message).length > 0 ? (
+                    getShortTitle(ticket.message)
+                  ) : (
+                    <span className="text-muted italic">
+                      [No title provided]
+                    </span>
+                  )}
+                </h2>
+                <div className="flex flex-row gap-4 items-center">
+                  {ticket.status === 0 && (
+                    <Chip color="warning" variant="primary">
+                      <CircleDashedIcon width={16} /> Open
+                    </Chip>
+                  )}
+                  {ticket.status === 1 && (
+                    <Chip color="accent" variant="primary">
+                      <CircleIcon width={16} /> Assigned
+                    </Chip>
+                  )}
+                  {ticket.status === 2 && (
+                    <Chip color="success" variant="primary">
+                      <CheckIcon width={16} /> Resolved
+                    </Chip>
+                  )}
+                  <div className="flex flex-col gap-6">
+                    <div className="flex -space-x-2">
+                      {ticket.assignees.map((user) => (
+                        <Tooltip delay={0} key={user.id}>
+                          <Tooltip.Trigger>
+                            <div className="relative inline-block">
+                              <Link
+                                href={`/profile/${user.id}/program/${ticket.programId}`}
+                                target="_blank"
+                              >
+                                <Avatar size="sm">
+                                  <Avatar.Image
+                                    src={`https://cachet.dunkirk.sh/users/${user.id}/r`}
+                                    alt="Profile picture"
+                                  />
+                                  <Avatar.Fallback>
+                                    {user.username.substring(0, 1)}
+                                  </Avatar.Fallback>
+                                </Avatar>
+                              </Link>
+                              {isHelper &&
+                                ticket.program.managed &&
+                                ticket.status !== 2 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleUnassign(user.id);
+                                    }}
+                                    disabled={unassigningUserId === user.id}
+                                    className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-danger text-danger-foreground rounded-full hover:opacity-80 disabled:opacity-50"
+                                  >
+                                    <XIcon width={10} />
+                                  </button>
+                                )}
+                            </div>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p>{user.username}</p>
+                          </Tooltip.Content>
+                        </Tooltip>
+                      ))}
                     </div>
-                    {ticket.assignees.length === 0 && (
-                      <p className="text-muted">No assignees</p>
-                    )}
-                    {ticket.responseTime !== 0 && ticket.status > 0 && (
-                      <div className="flex items-center gap-2">
-                        <ReplyIcon width={16} className="text-muted" />
-                        <p className="text-muted">
-                          {ticket.responseTime < 60 && (
-                            <>
-                              {Math.round(ticket.responseTime * 100) / 100}{" "}
-                              seconds
-                            </>
-                          )}
-                          {ticket.responseTime >= 60 && (
-                            <>
-                              {Math.round((ticket.responseTime / 60) * 100) /
-                                100}{" "}
-                              minutes
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    )}
-                    {ticket.resolveTime !== 0 &&
-                      ticket.responseTime !== 0 &&
-                      ticket.status == 2 && (
-                        <div className="flex items-center gap-2 text-muted">
-                          {ticket.resolveTime > ticket.responseTime &&
-                            ticket.resolveTime - ticket.responseTime < 60 && (
-                              <>
-                                <ClockIcon width={16} className="text-muted" />
-                                {Math.round(
-                                  (ticket.resolveTime - ticket.responseTime) *
-                                    100,
-                                ) / 100}{" "}
-                                seconds
-                              </>
-                            )}
-
-                          {ticket.resolveTime - ticket.responseTime >= 60 && (
+                  </div>
+                  {ticket.assignees.length === 0 && (
+                    <p className="text-muted">No assignees</p>
+                  )}
+                  {ticket.responseTime !== 0 && ticket.status > 0 && (
+                    <div className="flex items-center gap-2">
+                      <ReplyIcon width={16} className="text-muted" />
+                      <p className="text-muted">
+                        {ticket.responseTime < 60 && (
+                          <>
+                            {Math.round(ticket.responseTime * 100) / 100}{" "}
+                            seconds
+                          </>
+                        )}
+                        {ticket.responseTime >= 60 && (
+                          <>
+                            {Math.round((ticket.responseTime / 60) * 100) / 100}{" "}
+                            minutes
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {ticket.resolveTime !== 0 &&
+                    ticket.responseTime !== 0 &&
+                    ticket.status == 2 && (
+                      <div className="flex items-center gap-2 text-muted">
+                        {ticket.resolveTime > ticket.responseTime &&
+                          ticket.resolveTime - ticket.responseTime < 60 && (
                             <>
                               <ClockIcon width={16} className="text-muted" />
                               {Math.round(
-                                ((ticket.resolveTime - ticket.responseTime) /
-                                  60) *
+                                (ticket.resolveTime - ticket.responseTime) *
                                   100,
                               ) / 100}{" "}
-                              minutes
-                            </>
-                          )}
-                        </div>
-                      )}
-                    {ticket.resolveTime !== 0 && ticket.status == 2 && (
-                      <div className="flex items-center gap-2">
-                        <CheckIcon width={16} className="text-muted" />
-                        <p className="text-muted">
-                          {ticket.resolveTime < 60 && (
-                            <>
-                              {Math.round(ticket.resolveTime * 100) / 100}{" "}
                               seconds
                             </>
                           )}
-                          {ticket.resolveTime >= 60 && (
-                            <>
-                              {Math.round((ticket.resolveTime / 60) * 100) /
-                                100}{" "}
-                              minutes
-                            </>
-                          )}
-                        </p>
+
+                        {ticket.resolveTime - ticket.responseTime >= 60 && (
+                          <>
+                            <ClockIcon width={16} className="text-muted" />
+                            {Math.round(
+                              ((ticket.resolveTime - ticket.responseTime) /
+                                60) *
+                                100,
+                            ) / 100}{" "}
+                            minutes
+                          </>
+                        )}
                       </div>
                     )}
-                    <div className="flex gap-2 items-center">
-                      {ticket.tag.map((t) => (
-                        <Chip key={t.id}>
-                          {t.name}{" "}
-                          <button
-                            onClick={() => handleDisconnectTag(t.id)}
-                            className="hover:cursor-pointer"
-                          >
-                            <XIcon width={12} />
-                          </button>
-                        </Chip>
-                      ))}
-
-                      {isHelper && (
-                        <Dropdown>
-                          <Button isIconOnly variant="secondary">
-                            <TagIcon width={12} />
-                          </Button>
-                          <Dropdown.Popover>
-                            <Dropdown.Menu>
-                              {ticket.program.tags.map((t) => (
-                                <Dropdown.Item
-                                  onClick={() => handleConnectTag(t.id)}
-                                  key={t.id}
-                                >
-                                  {t.name}
-                                </Dropdown.Item>
-                              ))}
-                            </Dropdown.Menu>
-                          </Dropdown.Popover>
-                        </Dropdown>
-                      )}
+                  {ticket.resolveTime !== 0 && ticket.status == 2 && (
+                    <div className="flex items-center gap-2">
+                      <CheckIcon width={16} className="text-muted" />
+                      <p className="text-muted">
+                        {ticket.resolveTime < 60 && (
+                          <>
+                            {Math.round(ticket.resolveTime * 100) / 100} seconds
+                          </>
+                        )}
+                        {ticket.resolveTime >= 60 && (
+                          <>
+                            {Math.round((ticket.resolveTime / 60) * 100) / 100}{" "}
+                            minutes
+                          </>
+                        )}
+                      </p>
                     </div>
+                  )}
+                  <div className="flex gap-2 items-center">
+                    {ticket.tag.map((t) => (
+                      <Chip key={t.id}>
+                        {t.name}{" "}
+                        <button
+                          onClick={() => handleDisconnectTag(t.id)}
+                          className="hover:cursor-pointer"
+                        >
+                          <XIcon width={12} />
+                        </button>
+                      </Chip>
+                    ))}
+
+                    {isHelper && (
+                      <Dropdown>
+                        <Button isIconOnly variant="secondary">
+                          <TagIcon width={12} />
+                        </Button>
+                        <Dropdown.Popover>
+                          <Dropdown.Menu>
+                            {ticket.program.tags.map((t) => (
+                              <Dropdown.Item
+                                onClick={() => handleConnectTag(t.id)}
+                                key={t.id}
+                              >
+                                {t.name}
+                              </Dropdown.Item>
+                            ))}
+                          </Dropdown.Menu>
+                        </Dropdown.Popover>
+                      </Dropdown>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2 items-center">
-                {isAdmin && (
-                  <>
-                    <Button onClick={handleTicketDelete} variant="secondary">
-                      <TrashIcon />
-                    </Button>
-                    <Button
-                      onClick={handleReindex}
-                      isPending={reindexing}
-                      variant="secondary"
-                    >
-                      {reindexing ? (
-                        <>
-                          <Spinner color="current" />
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCwIcon />
-                        </>
-                      )}
-                    </Button>
-                  </>
-                )}
-                {isHelper &&
-                  ticket.program.managed &&
-                  ticket.status !== 2 && (
-                    <Dropdown>
-                      <Button
-                        isPending={assigning}
-                        variant="secondary"
-                      >
-                        <UserIcon />
-                        Assign{" "}
-                        <ChevronDownIcon />
-                      </Button>
-                      <Dropdown.Popover>
-                        <Dropdown.Menu>
-                          {(
-                            programInfo?.assignedUsers ?? []
-                          ).filter(
-                            (u) =>
-                              u.id !== signedInUser?.id &&
-                              !ticket.assignees.some(
-                                (a) => a.id === u.id,
-                              ),
-                          ).length === 0 && (
-                            <Dropdown.Item isDisabled key="none">
-                              No other helpers
-                            </Dropdown.Item>
-                          )}
-                          {(
-                            programInfo?.assignedUsers ?? []
-                          )
-                            .filter(
-                              (u) =>
-                                u.id !== signedInUser?.id &&
-                                !ticket.assignees.some(
-                                  (a) => a.id === u.id,
-                                ),
-                            )
-                            .map((u) => (
-                              <Dropdown.Item
-                                key={u.id}
-                                onClick={() => handleAssign(u.id)}
-                              >
-                                {u.username}
-                              </Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                      </Dropdown.Popover>
-                    </Dropdown>
-                  )}
-                <Link
-                  href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
-                  target="_blank"
-                >
-                  <Button>
-                    Open in Slack <SquareArrowOutUpRightIcon />
-                  </Button>
-                </Link>
-              </div>
             </div>
+            <div className="flex gap-2 items-center">
+              {isAdmin && (
+                <>
+                  <Button onClick={handleTicketDelete} variant="secondary">
+                    <TrashIcon />
+                  </Button>
+                  <Button
+                    onClick={handleReindex}
+                    isPending={reindexing}
+                    variant="secondary"
+                  >
+                    {reindexing ? (
+                      <>
+                        <Spinner color="current" />
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCwIcon />
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+              {isHelper && ticket.program.managed && ticket.status !== 2 && (
+                <Dropdown>
+                  <Button isPending={assigning} variant="secondary">
+                    <UserIcon />
+                    Assign <ChevronDownIcon />
+                  </Button>
+                  <Dropdown.Popover>
+                    <Dropdown.Menu>
+                      {(programInfo?.assignedUsers ?? []).filter(
+                        (u) => !ticket.assignees.some((a) => a.id === u.id),
+                      ).length === 0 && (
+                        <Dropdown.Item isDisabled key="none">
+                          No other helpers
+                        </Dropdown.Item>
+                      )}
+                      {(programInfo?.assignedUsers ?? [])
+                        .filter(
+                          (u) => !ticket.assignees.some((a) => a.id === u.id),
+                        )
+                        .map((u) => (
+                          <Dropdown.Item
+                            key={u.id}
+                            onClick={() => handleAssign(u.id)}
+                          >
+                            {u.username}
+                          </Dropdown.Item>
+                        ))}
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
+                </Dropdown>
+              )}
+              <Link
+                href={`https://hackclub.slack.com/archives/${ticket.program.channelId}/p${Number(ticket.messageId) * 1000000}`}
+                target="_blank"
+              >
+                <Button>
+                  Open in Slack <SquareArrowOutUpRightIcon />
+                </Button>
+              </Link>
+            </div>
+          </div>
           <div className="relative flex flex-col gap-4 min-h-full">
             <div className="flex flex-col gap-4 p-4 ">
               <Post
@@ -846,7 +823,9 @@ export default function TicketUI({
                     dateCreated={r.dateCreated}
                     programId={ticket.programId}
                     attachments={
-                      r.messageId ? attachmentsByMessage[r.messageId] : undefined
+                      r.messageId
+                        ? attachmentsByMessage[r.messageId]
+                        : undefined
                     }
                   />
                 );
@@ -945,26 +924,26 @@ export default function TicketUI({
                                 )}
                               </ButtonGroup>
                             )}
-                            {ticket.program.allowResolver &&
-                              ticket.status === 2 && (
-                                <Button
-                                  onClick={handleReopen}
-                                  isPending={resolving}
-                                  variant="secondary"
-                                >
-                                  {resolving ? (
-                                    <>
-                                      <Spinner color="current" /> Reopening...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CircleIcon />
-                                      Reopen{" "}
-                                    </>
-                                  )}
-                                </Button>
-                              )}
-                          </div>
+                          {ticket.program.allowResolver &&
+                            ticket.status === 2 && (
+                              <Button
+                                onClick={handleReopen}
+                                isPending={resolving}
+                                variant="secondary"
+                              >
+                                {resolving ? (
+                                  <>
+                                    <Spinner color="current" /> Reopening...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CircleIcon />
+                                    Reopen{" "}
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                        </div>
 
                         <Switch isSelected={ctx} onChange={setCtx}>
                           <Switch.Content>

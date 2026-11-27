@@ -4,13 +4,13 @@ import { Button } from "@heroui/react";
 import { fetcher } from "../lib/swr";
 import useSWR from "swr";
 import { ProgramWithAssignees } from "../lib/types";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { HomeIcon, SettingsIcon } from "lucide-react";
 import { authClient } from "../lib/auth-client";
-import Link from "next/link";
 
 export default function ProgramTabs() {
   const { programId } = useParams();
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const { data: stats } = useSWR<ProgramWithAssignees>(
     programId && `/api/programs/${programId}/info`,
@@ -21,19 +21,21 @@ export default function ProgramTabs() {
   if (!programId) return;
   return (
     <div className="flex gap-4 items-center">
-      <Link href={`/programs/${programId}`}>
-        <Button variant="tertiary">
-          <HomeIcon />
-          Overview
-        </Button>
-      </Link>
+      <Button
+        variant="tertiary"
+        onPress={() => router.push(`/programs/${programId}`)}
+      >
+        <HomeIcon />
+        Overview
+      </Button>
       {canEdit && (
-        <Link href={`/programs/${programId}/settings`}>
-          <Button variant="tertiary">
-            <SettingsIcon />
-            Settings
-          </Button>
-        </Link>
+        <Button
+          variant="tertiary"
+          onPress={() => router.push(`/programs/${programId}/settings`)}
+        >
+          <SettingsIcon />
+          Settings
+        </Button>
       )}
     </div>
   );
