@@ -57,7 +57,7 @@ export default function AnswerLineChart({ data }: { data: ReplyPoint[] }) {
         data={data}
         style={{ width: "100%", height: 280 }}
         responsive
-        margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
+        margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="date" tick={{ fontSize: 12, fill: "var(--muted)" }} interval="preserveStartEnd" />

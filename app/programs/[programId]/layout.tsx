@@ -21,6 +21,7 @@ import {
   ToggleButton,
   useFilter,
   Chip,
+  Skeleton,
 } from "@heroui/react";
 import Link from "next/link";
 import useSWR from "swr";
@@ -29,8 +30,17 @@ import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ITEMS_PER_PAGE, REFRESH_INTERVAL } from "@/app/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
-import Loading from "@/app/ui/loading";
 let savedSidebarScrollTop = 0;
+
+const TicketRowSkeleton = () => (
+  <div className="p-2 flex flex-row gap-2 items-center border-l-4 border-accent-background">
+    <Skeleton className="size-8 rounded-full shrink-0" />
+    <div className="flex flex-col gap-2 w-full">
+      <Skeleton className="h-4 w-3/4 rounded-md" />
+      <Skeleton className="h-3 w-1/2 rounded-md" />
+    </div>
+  </div>
+);
 
 export default function RootLayout({
   children,
@@ -563,7 +573,8 @@ export default function RootLayout({
         </div>
         <div className="flex flex-col gap-2 px-4 py-2">
           {(!programTickets || programTicketsIsLoading) &&
-            !programTicketsError && <Loading />}
+            !programTicketsError &&
+            [0, 1, 2, 3, 4].map((i) => <TicketRowSkeleton key={i} />)}
           {programError && (
             <Alert status="danger">
               <Alert.Indicator />

@@ -19,9 +19,13 @@ import {
   Button,
   Card,
   DateField,
+  DateRangePicker,
   DateValue,
   Label,
+  RangeCalendar,
+  Skeleton,
 } from "@heroui/react";
+import { ReactNode } from "react";
 import {
   CheckIcon,
   CircleDashedIcon,
@@ -50,15 +54,30 @@ const STATS_COLORS = [
 const StatsCustomPie = (props: PieSectorShapeProps) => (
   <Sector {...props} fill={STATS_COLORS[props.index % STATS_COLORS.length]} />
 );
+const StatNumber = ({
+  loading,
+  children,
+}: {
+  loading: boolean;
+  children: ReactNode;
+}) =>
+  loading ? (
+    <Skeleton className="h-9 w-20 rounded-md" />
+  ) : (
+    <p className="font-bold text-3xl">{children}</p>
+  );
 
 export default function ProgramUI() {
   const { programId } = useParams<{ programId: string }>();
-  const [startDate, setStartDate] = useState<DateValue | null>(
-    today(getLocalTimeZone()).subtract({ days: 1 }),
-  );
-  const [endDate, setEndDate] = useState<DateValue | null>(
-    today(getLocalTimeZone()),
-  );
+  const [dateRange, setDateRange] = useState<{
+    start: DateValue;
+    end: DateValue;
+  } | null>({
+    start: today(getLocalTimeZone()).subtract({ days: 1 }),
+    end: today(getLocalTimeZone()),
+  });
+  const startDate = dateRange?.start ?? null;
+  const endDate = dateRange?.end ?? null;
 
   // Claude helped fix a bug in the following fStartDate and fEndDate lines
   // Start at midnight of the selected start day, end at the last millisecond of
@@ -77,11 +96,7 @@ export default function ProgramUI() {
     fetcher,
   );
 
-  const {
-    data: stats,
-    error: statsError,
-    isLoading: statsIsLoading,
-  } = useSWR<ProgramStatistics>(
+  const { data: stats, error: statsError } = useSWR<ProgramStatistics>(
     programId &&
       `/api/programs/${programId}/ticket-count/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
@@ -95,29 +110,29 @@ export default function ProgramUI() {
       `/api/programs/${programId}/leaderboard/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
-  const {
-    data: hangTime,
-    error: hangTimeError,
-    isLoading: hangTimeIsLoading,
-  } = useSWR<HangTime>(
+  const { data: hangTime, error: hangTimeError } = useSWR<HangTime>(
     programId &&
       `/api/programs/${programId}/hang-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
-  const {
-    data: resolveTime,
-    error: resolveTimeError,
-    isLoading: resolveTimeIsLoading,
-  } = useSWR<HangTime>(
+  const { data: resolveTime, error: resolveTimeError } = useSWR<HangTime>(
     programId &&
       `/api/programs/${programId}/resolve-time/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
-  const { data: activity } = useSWR<AnswerActivity>(
+  const { data: activity, error: activityError } = useSWR<AnswerActivity>(
     programId &&
       `/api/programs/${programId}/reply-activity/?oldest=${fStartDate}&newest=${fEndDate}`,
     fetcher,
   );
+
+  // A card shows its skeleton only while its data is pending. On error it falls
+  // back to the existing empty/N/A state instead of loading forever.
+  const headerLoading = infoIsLoading;
+  const statsLoading = !stats && !statsError;
+  const hangTimeLoading = !hangTime && !hangTimeError;
+  const resolveTimeLoading = !resolveTime && !resolveTimeError;
+  const activityLoading = !activity && !activityError;
 
   let statsPieData;
   if (stats) {
@@ -143,8 +158,17 @@ export default function ProgramUI() {
 
   return (
     <div className="flex flex-col p-4 gap-6 w-full min-h-full">
-      {info && !infoIsLoading && (
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
+        {headerLoading && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-sm" />
+              <Skeleton className="h-7 w-48 rounded-md" />
+            </div>
+            <Skeleton className="h-4 w-72 rounded-md" />
+          </div>
+        )}
+        {info && !infoIsLoading && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
               {info?.logo && (
@@ -165,40 +189,64 @@ export default function ProgramUI() {
               {info?.usersOrganizing.length != 1 && "s"}
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            {info?.channelId && (
-              <a
-                href={`https://hackclub.enterprise.slack.com/archives/${info.channelId}`}
-                target="_blank"
-              >
-                <Button>
-                  Open in Slack <SquareArrowOutUpRightIcon />
-                </Button>
-              </a>
-            )}
-            <DateField
-              name="startDate"
-              value={startDate}
-              onChange={setStartDate}
+        )}
+        <div className="flex items-center gap-4">
+          {info?.channelId && (
+            <a
+              href={`https://hackclub.enterprise.slack.com/archives/${info.channelId}`}
+              target="_blank"
             >
-              <Label>Start date</Label>
-              <DateField.Group variant="secondary">
-                <DateField.Input>
+              <Button>
+                Open in Slack <SquareArrowOutUpRightIcon />
+              </Button>
+            </a>
+          )}
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            aria-label="Date range"
+          >
+            <Label>Date range</Label>
+            <DateField.Group variant="secondary">
+              <DateField.InputContainer>
+                <DateField.Input slot="start">
                   {(segment) => <DateField.Segment segment={segment} />}
                 </DateField.Input>
-              </DateField.Group>
-            </DateField>
-            <DateField name="endDate" value={endDate} onChange={setEndDate}>
-              <Label>End date</Label>
-              <DateField.Group variant="secondary">
-                <DateField.Input>
+                <DateRangePicker.RangeSeparator />
+                <DateField.Input slot="end">
                   {(segment) => <DateField.Segment segment={segment} />}
                 </DateField.Input>
-              </DateField.Group>
-            </DateField>
-          </div>
+              </DateField.InputContainer>
+              <DateField.Suffix>
+                <DateRangePicker.Trigger>
+                  <DateRangePicker.TriggerIndicator />
+                </DateRangePicker.Trigger>
+              </DateField.Suffix>
+            </DateField.Group>
+            <DateRangePicker.Popover>
+              <RangeCalendar aria-label="Date range">
+                <RangeCalendar.Header>
+                  <RangeCalendar.Heading />
+                  <div className="flex items-center gap-1">
+                    <RangeCalendar.NavButton slot="previous" />
+                    <RangeCalendar.NavButton slot="next" />
+                  </div>
+                </RangeCalendar.Header>
+                <RangeCalendar.Grid>
+                  <RangeCalendar.GridHeader>
+                    {(day) => (
+                      <RangeCalendar.HeaderCell>{day}</RangeCalendar.HeaderCell>
+                    )}
+                  </RangeCalendar.GridHeader>
+                  <RangeCalendar.GridBody>
+                    {(date) => <RangeCalendar.Cell date={date} />}
+                  </RangeCalendar.GridBody>
+                </RangeCalendar.Grid>
+              </RangeCalendar>
+            </DateRangePicker.Popover>
+          </DateRangePicker>
         </div>
-      )}
+      </div>
       {infoError && (
         <Alert status="danger">
           <Alert.Indicator />
@@ -217,7 +265,8 @@ export default function ProgramUI() {
           <Alert.Indicator />
           <Alert.Content>
             <Alert.Title>
-              This program has not been claimed by the program&apos;s organizer yet
+              This program has not been claimed by the program&apos;s organizer
+              yet
             </Alert.Title>
             <Alert.Description>
               If you&apos;re an organizer, get access to replying and resolving
@@ -235,79 +284,82 @@ export default function ProgramUI() {
           </Alert.Content>
         </Alert>
       )}
-      {stats && !statsIsLoading && (
-        <>
-          <div className="flex flex-row gap-2">
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Open tickets</p>
-                <p className="font-bold text-3xl">{stats ? stats.open : 0}</p>
-                <CircleDashedIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Assigned tickets</p>
-                <p className="font-bold text-3xl">
-                  {stats ? stats.assigned : 0}
-                </p>
-                <CircleIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Resolved tickets</p>
-                <p className="font-bold text-3xl">
-                  {stats ? stats.resolved : 0}
-                </p>
-                <CheckIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Assigned to you</p>
-                <p className="font-bold text-3xl">
-                  {stats ? stats.assignedToMe : 0}
-                </p>
-                <UserCheckIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-          </div>
-          <div className="flex flex-row gap-2">
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Total tickets</p>
-                <p className="font-bold text-3xl">{stats ? stats.total : 0}</p>
-                <TicketIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Assign time</p>
-                <p className="font-bold text-3xl">
-                  {hangTime?.median
+      <>
+        <div className="flex flex-row gap-2">
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Open tickets</p>
+              <StatNumber loading={statsLoading}>{stats?.open ?? 0}</StatNumber>
+              <CircleDashedIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Assigned tickets</p>
+              <StatNumber loading={statsLoading}>
+                {stats?.assigned ?? 0}
+              </StatNumber>
+              <CircleIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Resolved tickets</p>
+              <StatNumber loading={statsLoading}>
+                {stats?.resolved ?? 0}
+              </StatNumber>
+              <CheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Assigned to you</p>
+              <StatNumber loading={statsLoading}>
+                {stats?.assignedToMe ?? 0}
+              </StatNumber>
+              <UserCheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+        </div>
+        <div className="flex flex-row gap-2">
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Total tickets</p>
+              <StatNumber loading={statsLoading}>
+                {stats?.total ?? 0}
+              </StatNumber>
+              <TicketIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Assign time</p>
+              <StatNumber loading={hangTimeLoading}>
+                {hangTimeError
+                  ? "N/A"
+                  : hangTime?.median
                     ? Math.round((hangTime.median / 60) * 100) / 100
                     : 0}
-                </p>
-                {(hangTimeError || hangTimeIsLoading) && (
-                  <p className="font-bold text-3xl">N/A</p>
-                )}
-                <p>minutes</p>
+              </StatNumber>
+              <p>minutes</p>
+              {hangTimeLoading ? (
+                <Skeleton className="h-4 w-32 rounded-md" />
+              ) : (
                 <p className="text-muted text-sm">
                   Average:{" "}
                   {hangTime?.average
@@ -315,24 +367,27 @@ export default function ProgramUI() {
                     : 0}{" "}
                   min
                 </p>
-                <ClockIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-            <Card className="basis-50 grow shrink relative">
-              <div className="flex flex-col gap-1">
-                <p className="text-muted uppercase">Resolve time</p>
-                <p className="font-bold text-3xl">
-                  {resolveTime?.median
+              )}
+              <ClockIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+          <Card className="basis-50 grow shrink relative">
+            <div className="flex flex-col gap-1">
+              <p className="text-muted uppercase">Resolve time</p>
+              <StatNumber loading={resolveTimeLoading}>
+                {resolveTimeError
+                  ? "N/A"
+                  : resolveTime?.median
                     ? Math.round((resolveTime.median / 60) * 100) / 100
                     : 0}
-                </p>
-                {(resolveTimeError || resolveTimeIsLoading) && (
-                  <p className="font-bold text-3xl">N/A</p>
-                )}
-                <p>minutes</p>
+              </StatNumber>
+              <p>minutes</p>
+              {resolveTimeLoading ? (
+                <Skeleton className="h-4 w-32 rounded-md" />
+              ) : (
                 <p className="text-muted text-sm">
                   Average:{" "}
                   {resolveTime?.average
@@ -340,15 +395,15 @@ export default function ProgramUI() {
                     : 0}{" "}
                   min
                 </p>
-                <ClockCheckIcon
-                  width={64}
-                  className="bottom-2 -right-2 absolute opacity-30"
-                />
-              </div>
-            </Card>
-          </div>
-        </>
-      )}
+              )}
+              <ClockCheckIcon
+                width={64}
+                className="bottom-2 -right-2 absolute opacity-30"
+              />
+            </div>
+          </Card>
+        </div>
+      </>
       {statsError && (
         <Alert status="danger">
           <Alert.Indicator />
@@ -371,42 +426,55 @@ export default function ProgramUI() {
             <p className="text-muted text-sm">
               Distribution of tickets in the selected date range.
             </p>
-            <PieChart
-              style={{
-                width: "100%",
-                aspectRatio: 1,
-              }}
-              responsive
-            >
-              <Pie
-                data={statsPieData}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius="80%"
-                label={({ percent }) =>
-                  percent ? `${(percent * 100).toFixed(0)}%` : ""
-                }
-                isAnimationActive={false}
-                shape={StatsCustomPie}
-              />
-            </PieChart>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {statsPieData?.map((slice, i) => (
-                <div
-                  key={slice.name}
-                  className="flex items-center gap-2 text-sm"
-                >
-                  <span
-                    className="size-2.5 rounded-full"
-                    style={{
-                      background: STATS_COLORS[i % STATS_COLORS.length],
-                    }}
-                  />
-                  <span className="text-muted">{slice.name}</span>
-                  <span className="font-bold">{slice.value}</span>
-                </div>
-              ))}
+            {statsLoading ? (
+              <div className="flex justify-center">
+                <Skeleton
+                  className="w-[65%] rounded-full"
+                  style={{ aspectRatio: 1 }}
+                />
+              </div>
+            ) : (
+              <PieChart
+                style={{
+                  width: "100%",
+                  aspectRatio: 1,
+                }}
+                responsive
+              >
+                <Pie
+                  data={statsPieData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="65%"
+                  label={({ percent }) =>
+                    percent ? `${(percent * 100).toFixed(0)}%` : ""
+                  }
+                  isAnimationActive={false}
+                  shape={StatsCustomPie}
+                />
+              </PieChart>
+            )}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 min-h-5">
+              {statsLoading
+                ? [0, 1, 2].map((i) => (
+                    <Skeleton key={i} className="h-4 w-24 rounded-md" />
+                  ))
+                : statsPieData?.map((slice, i) => (
+                    <div
+                      key={slice.name}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{
+                          background: STATS_COLORS[i % STATS_COLORS.length],
+                        }}
+                      />
+                      <span className="text-muted">{slice.name}</span>
+                      <span className="font-bold">{slice.value}</span>
+                    </div>
+                  ))}
             </div>
           </div>
         </Card>
@@ -417,11 +485,15 @@ export default function ProgramUI() {
               Average tickets replied to on each day of the week across the
               whole program, in the selected date range (UTC).
             </p>
-            <AnswerBarChart
-              data={activity?.byWeekday ?? []}
-              categoryKey="day"
-              categoryLabel="Weekday"
-            />
+            {activityLoading ? (
+              <Skeleton className="w-full h-65 rounded-md" />
+            ) : (
+              <AnswerBarChart
+                data={activity?.byWeekday ?? []}
+                categoryKey="day"
+                categoryLabel="Weekday"
+              />
+            )}
           </div>
         </Card>
         <Card className="grow shrink basis-0">
@@ -431,11 +503,15 @@ export default function ProgramUI() {
               Average tickets replied to during each hour of the day across the
               whole program, in the selected date range (UTC).
             </p>
-            <AnswerBarChart
-              data={activity?.byHour ?? []}
-              categoryKey="hour"
-              categoryLabel="Hour"
-            />
+            {activityLoading ? (
+              <Skeleton className="w-full h-65 rounded-md" />
+            ) : (
+              <AnswerBarChart
+                data={activity?.byHour ?? []}
+                categoryKey="hour"
+                categoryLabel="Hour"
+              />
+            )}
           </div>
         </Card>
       </div>
@@ -445,7 +521,18 @@ export default function ProgramUI() {
           <p className="text-muted text-sm">
             Daily replies in the selected date range (UTC).
           </p>
-          <AnswerLineChart data={activity?.byDate ?? []} />
+          {activityLoading ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-end gap-2">
+                <Skeleton className="h-8 w-20 rounded-md" />
+                <Skeleton className="h-8 w-20 rounded-md" />
+                <Skeleton className="h-8 w-16 rounded-md" />
+              </div>
+              <Skeleton className="w-full h-70 rounded-md" />
+            </div>
+          ) : (
+            <AnswerLineChart data={activity?.byDate ?? []} />
+          )}
         </div>
       </Card>
       <div className="flex flex-row gap-2">
@@ -461,6 +548,16 @@ export default function ProgramUI() {
               </Alert.Description>
             </Alert.Content>
           </Alert>
+        )}
+        {lbIsLoading && (
+          <Card className="grow shrink">
+            <div className="flex flex-col gap-4">
+              <p className="text-lg font-bold">Leaderboard</p>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+            </div>
+          </Card>
         )}
         {lb && !lbIsLoading && lb.length > 0 && (
           <Card className="grow shrink">

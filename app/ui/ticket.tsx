@@ -13,6 +13,7 @@ import {
   TextArea,
   Spinner,
   Switch,
+  Skeleton,
 } from "@heroui/react";
 import {
   CheckIcon,
@@ -42,7 +43,6 @@ import {
 import Post from "./post";
 import { getShortTitle } from "../lib/tools";
 import Link from "next/link";
-import Loading from "./loading";
 import {
   REFRESH_INTERVAL,
   RESOLVE_MACROS,
@@ -64,6 +64,60 @@ import {
 import { useEffect, useState } from "react";
 import { SlackUser } from "@/generated/prisma/browser";
 import { authClient } from "../lib/auth-client";
+
+// Placeholder for a single post (avatar + name + message lines).
+const PostSkeleton = ({ lines }: { lines: number }) => (
+  <div className="flex gap-4 w-full">
+    <Skeleton className="size-8 rounded-full shrink-0" />
+    <div className="flex flex-col gap-2 w-full">
+      <Skeleton className="h-4 w-32 rounded-md" />
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={`h-4 rounded-md ${i === lines - 1 ? "w-2/3" : "w-full"}`}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+// Mirrors the ticket layout (sticky header, posts, reply area) so the page
+// doesn't shift when the real ticket arrives.
+function TicketSkeleton() {
+  return (
+    <>
+      <div
+        className="flex justify-between sticky top-0 bg-background p-4 z-10"
+        style={{ backgroundColor: "var(--surface-secondary)" }}
+      >
+        <div className="flex gap-4 flex-1">
+          <Skeleton className="size-10 rounded-full shrink-0" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-7 w-72 rounded-md" />
+            <div className="flex flex-row gap-4 items-center">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <div className="flex -space-x-2">
+                <Skeleton className="size-8 rounded-full" />
+                <Skeleton className="size-8 rounded-full" />
+              </div>
+              <Skeleton className="h-4 w-24 rounded-md" />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 items-center">
+          <Skeleton className="h-9 w-32 rounded-md" />
+        </div>
+      </div>
+      <div className="relative flex flex-col gap-4 min-h-full">
+        <div className="flex flex-col gap-4 p-4">
+          <PostSkeleton lines={4} />
+          <PostSkeleton lines={2} />
+          <PostSkeleton lines={3} />
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function TicketUI({
   id,
@@ -430,7 +484,7 @@ export default function TicketUI({
 
   return (
     <>
-      {(ticketIsLoading || !ticket) && !ticketError && <Loading />}
+      {(ticketIsLoading || !ticket) && !ticketError && <TicketSkeleton />}
       {ticketError && (
         <Alert status="danger">
           <Alert.Indicator />
